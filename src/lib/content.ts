@@ -77,6 +77,17 @@ export function getPage(topic: string, slug: string): DocPage | undefined {
   return allPages.find((p) => p.topic === topic && p.slug === slug)
 }
 
+export function getCourseStartPath(topicId: string): string {
+  const overview = allPages.find(
+    (p) => p.topic === topicId && p.slug === 'ch00-course-overview',
+  )
+  if (overview) return overview.path
+  const first = allPages
+    .filter((p) => p.topic === topicId)
+    .sort((a, b) => a.order - b.order)[0]
+  return first?.path ?? `/docs/${topicId}`
+}
+
 export function getAllTags(): string[] {
   const tags = new Set<string>()
   for (const page of allPages) {

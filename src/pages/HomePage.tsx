@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Search } from 'lucide-react'
-import { getTopics, getAllTags } from '@/lib/content'
+import { getTopics, getAllTags, getCourseStartPath } from '@/lib/content'
 import { ButtonLink } from '@/components/ui/Button'
 
 export function HomePage() {
@@ -16,7 +16,7 @@ export function HomePage() {
           </Link>
           <div className="flex items-center gap-3">
             <ButtonLink
-              to="/docs/typescript/introduction"
+              to="/docs/typescript/ch00-course-overview"
               variant="outline-on-dark"
               className="!py-2.5 !px-5 text-sm"
             >
@@ -44,7 +44,7 @@ export function HomePage() {
           Quick revision for TypeScript, JavaScript, React, Python, Django, and Django REST Framework.
           No backend — just your notes, ready when you are.
         </p>
-        <ButtonLink to="/docs/typescript/introduction" variant="outline-on-dark">
+        <ButtonLink to="/docs/typescript/ch00-course-overview" variant="outline-on-dark">
           Start learning
           <ArrowRight size={18} strokeWidth={1.5} />
         </ButtonLink>
@@ -59,7 +59,7 @@ export function HomePage() {
           {topics.map((topic) => (
             <Link
               key={topic.id}
-              to={topic.pages[0]?.path ?? `/docs/${topic.id}`}
+              to={getCourseStartPath(topic.id)}
               className="group relative bg-canvas-night-elevated border border-white/[0.08] rounded-xl p-8 transition-all duration-300 hover:border-white/15 hover:-translate-y-0.5"
               style={{
                 boxShadow:
