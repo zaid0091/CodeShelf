@@ -40,509 +40,366 @@ tags: [python, oop, classes]
 
 ## What Is OOP?
 
-> **Definition:** This section explains **What Is OOP?** — a core idea you will use throughout the chapter.
+> **Definition:** **Object-oriented programming** bundles data and behavior in **objects**.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Models real entities (User, Order, Cart).
 
-You will use **what is oop?** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: What Is OOP?
-x = chapter_7_demo = True
-print("What Is OOP?", x)
+class Dog:
+    def speak(self):
+        return 'woof'
 ```
-
-### Hands-on: What Is OOP?
-
-1. State **What Is OOP?** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## When to Use Classes in Python
 
-> **Definition:** This section explains **When to Use Classes in Python** — a core idea you will use throughout the chapter.
+> **Definition:** Use classes when you have state + behavior together; otherwise functions may suffice.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Dataclasses help data-only objects.
 
-You will use **when to use classes in python** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: When to Use Classes in Python
-x = chapter_7_demo = True
-print("When to Use Classes in Python", x)
+# simple data -> dataclass later in chapter
 ```
-
-### Hands-on: When to Use Classes in Python
-
-1. State **When to Use Classes in Python** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Classes and Objects
 
-> **Definition:** This section explains **Classes and Objects** — a core idea you will use throughout the chapter.
+> **Definition:** A **class** is a blueprint; an **object** is an instance.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Call `ClassName()` to construct.
 
-You will use **classes and objects** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-class Greeter:
-    def __init__(self, prefix):
-        self.prefix = prefix
-    def greet(self, name):
-        return f"{self.prefix}, {name}!"
-
-g = Greeter("Hi")
-print(g.greet("World"))
+class Point:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+p = Point(1,2)
 ```
-
-### Hands-on: Classes and Objects
-
-1. State **Classes and Objects** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The __init__ Constructor and self
 
-> **Definition:** This section explains **The __init__ Constructor and self** — a core idea you will use throughout the chapter.
+> **Definition:** `__init__` initializes instance attributes; `self` is the instance.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Every method receives `self` first.
 
-You will use **the __init__ constructor and self** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The __init__ Constructor and self
-x = chapter_7_demo = True
-print("The __init__ Constructor and self", x)
+class User:
+    def __init__(self, name):
+        self.name = name
 ```
-
-### Hands-on: The __init__ Constructor and self
-
-1. State **The __init__ Constructor and self** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Instance vs Class Attributes
 
-> **Definition:** This section explains **Instance vs Class Attributes** — a core idea you will use throughout the chapter.
+> **Definition:** Instance attrs on `self`; class attrs shared by all instances.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Mutable class attrs are shared — beware.
 
-You will use **instance vs class attributes** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Instance vs Class Attributes
-x = chapter_7_demo = True
-print("Instance vs Class Attributes", x)
+class Config:
+    debug = False
 ```
-
-### Hands-on: Instance vs Class Attributes
-
-1. State **Instance vs Class Attributes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Instance Methods
 
-> **Definition:** This section explains **Instance Methods** — a core idea you will use throughout the chapter.
+> **Definition:** Functions on the class taking `self`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Define behavior that uses instance state.
 
-You will use **instance methods** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Instance Methods
-x = chapter_7_demo = True
-print("Instance Methods", x)
+class Counter:
+    def __init__(self):
+        self.n = 0
+    def inc(self):
+        self.n += 1
 ```
-
-### Hands-on: Instance Methods
-
-1. State **Instance Methods** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Inheritance
 
-> **Definition:** This section explains **Inheritance** — a core idea you will use throughout the chapter.
+> **Definition:** Subclass extends superclass with `class Child(Parent):`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Reuse and specialize behavior.
 
-You will use **inheritance** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Inheritance
-x = chapter_7_demo = True
-print("Inheritance", x)
+class Animal:
+    def speak(self):
+        return '...'
+class Dog(Animal):
+    def speak(self):
+        return 'bark'
 ```
-
-### Hands-on: Inheritance
-
-1. State **Inheritance** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## super() and Method Overriding
 
-> **Definition:** This section explains **super() and Method Overriding** — a core idea you will use throughout the chapter.
+> **Definition:** `super()` calls parent implementation.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Override methods to customize; call `super()` to extend.
 
-You will use **super() and method overriding** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: super() and Method Overriding
-x = chapter_7_demo = True
-print("super() and Method Overriding", x)
+class B(A):
+    def greet(self):
+        return super().greet() + '!'
 ```
-
-### Hands-on: super() and Method Overriding
-
-1. State **super() and Method Overriding** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Method Types: instance, class, static
 
-> **Definition:** This section explains **Method Types: instance, class, static** — a core idea you will use throughout the chapter.
+> **Definition:** `@classmethod` gets `cls`; `@staticmethod` no implicit first arg.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Class methods for factories; static for utilities.
 
-You will use **method types: instance, class, static** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Method Types: instance, class, static
-x = chapter_7_demo = True
-print("Method Types: instance, class, static", x)
+class Math:
+    @staticmethod
+    def add(a,b):
+        return a+b
 ```
-
-### Hands-on: Method Types: instance, class, static
-
-1. State **Method Types: instance, class, static** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Encapsulation and Properties
 
-> **Definition:** This section explains **Encapsulation and Properties** — a core idea you will use throughout the chapter.
+> **Definition:** Use `@property` for computed or validated attributes.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Public API without exposing raw fields.
 
-You will use **encapsulation and properties** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Encapsulation and Properties
-x = chapter_7_demo = True
-print("Encapsulation and Properties", x)
+class Circle:
+    def __init__(self, r):
+        self._r = r
+    @property
+    def area(self):
+        return 3.14 * self._r ** 2
 ```
-
-### Hands-on: Encapsulation and Properties
-
-1. State **Encapsulation and Properties** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Dataclasses
 
-> **Definition:** This section explains **Dataclasses** — a core idea you will use throughout the chapter.
+> **Definition:** `@dataclass` auto-generates `__init__`, `__repr__`, etc.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Less boilerplate for data containers.
 
-You will use **dataclasses** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Dataclasses
-x = chapter_7_demo = True
-print("Dataclasses", x)
+from dataclasses import dataclass
+@dataclass
+class User:
+    name: str
+    active: bool = True
 ```
-
-### Hands-on: Dataclasses
-
-1. State **Dataclasses** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Magic (Dunder) Methods
 
-> **Definition:** This section explains **Magic (Dunder) Methods** — a core idea you will use throughout the chapter.
+> **Definition:** Double-underscore methods customize operators and builtins.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+`__str__`, `__len__`, `__eq__` are common.
 
-You will use **magic (dunder) methods** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Magic (Dunder) Methods
-x = chapter_7_demo = True
-print("Magic (Dunder) Methods", x)
+class Vec:
+    def __init__(self, x,y):
+        self.x, self.y = x,y
+    def __repr__(self):
+        return f'Vec({self.x},{self.y})'
 ```
-
-### Hands-on: Magic (Dunder) Methods
-
-1. State **Magic (Dunder) Methods** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Abstract Base Classes
 
-> **Definition:** This section explains **Abstract Base Classes** — a core idea you will use throughout the chapter.
+> **Definition:** `abc.ABC` enforces subclasses implement methods.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Define interfaces in larger systems.
 
-You will use **abstract base classes** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Abstract Base Classes
-x = chapter_7_demo = True
-print("Abstract Base Classes", x)
+from abc import ABC, abstractmethod
+class Repo(ABC):
+    @abstractmethod
+    def get(self, id): ...
 ```
-
-### Hands-on: Abstract Base Classes
-
-1. State **Abstract Base Classes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Composition vs Inheritance
 
-> **Definition:** This section explains **Composition vs Inheritance** — a core idea you will use throughout the chapter.
+> **Definition:** **Composition** builds objects from other objects; **inheritance** is-is-a.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Favor composition when reuse is has-a.
 
-You will use **composition vs inheritance** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Composition vs Inheritance
-x = chapter_7_demo = True
-print("Composition vs Inheritance", x)
+class Engine: ...
+class Car:
+    def __init__(self):
+        self.engine = Engine()
 ```
-
-### Hands-on: Composition vs Inheritance
-
-1. State **Composition vs Inheritance** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Multiple Inheritance and MRO
 
-> **Definition:** This section explains **Multiple Inheritance and MRO** — a core idea you will use throughout the chapter.
+> **Definition:** Python supports multiple bases; **MRO** orders lookup.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Keep hierarchies shallow; use mixins carefully.
 
-You will use **multiple inheritance and mro** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Multiple Inheritance and MRO
-x = chapter_7_demo = True
-print("Multiple Inheritance and MRO", x)
+class A: pass
+class B(A): pass
+print(B.__mro__)
 ```
-
-### Hands-on: Multiple Inheritance and MRO
-
-1. State **Multiple Inheritance and MRO** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_7_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Prefer composition over deep inheritance
+- Use dataclasses for plain data
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_7_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| God object class | Hard to test | Split responsibilities |
 
 
 ---
 
 ## OOP Design Checklist
 
-> **Definition:** This section explains **OOP Design Checklist** — a core idea you will use throughout the chapter.
+> **Definition:** Ask: one responsibility? clear names? minimal public surface?
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Refactor when classes grow past ~200 lines.
 
-You will use **oop design checklist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: OOP Design Checklist
-x = chapter_7_demo = True
-print("OOP Design Checklist", x)
+# sketch classes on paper before coding
 ```
-
-### Hands-on: OOP Design Checklist
-
-1. State **OOP Design Checklist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---

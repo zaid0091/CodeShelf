@@ -43,588 +43,420 @@ tags: [python, interview, career]
 
 ## How to Prepare
 
-> **Definition:** This section explains **How to Prepare** — a core idea you will use throughout the chapter.
+> **Definition:** Spaced repetition, timed practice, mock interviews.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Consistency beats cramming.
 
-You will use **how to prepare** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: How to Prepare
-x = chapter_14_demo = True
-print("How to Prepare", x)
+# 4-week plan: fundamentals → patterns → mocks
 ```
-
-### Hands-on: How to Prepare
-
-1. State **How to Prepare** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Study Plan by Week
 
-> **Definition:** This section explains **Study Plan by Week** — a core idea you will use throughout the chapter.
+> **Definition:** Week1 syntax, week2 collections/OOP, week3 I/O/exceptions, week4 patterns.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Track weak topics.
 
-You will use **study plan by week** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Study Plan by Week
-x = chapter_14_demo = True
-print("Study Plan by Week", x)
+topics = ['dict','closure','async']
+print(topics)
 ```
-
-### Hands-on: Study Plan by Week
-
-1. State **Study Plan by Week** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Language Fundamentals Review
 
-> **Definition:** This section explains **Language Fundamentals Review** — a core idea you will use throughout the chapter.
+> **Definition:** Types, control flow, functions, comprehensions.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Flashcards for truthiness and mutability.
 
-You will use **language fundamentals review** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Language Fundamentals Review
-x = chapter_14_demo = True
-print("Language Fundamentals Review", x)
+assert [] is not None
 ```
-
-### Hands-on: Language Fundamentals Review
-
-1. State **Language Fundamentals Review** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Data Structures Deep Dive
 
-> **Definition:** This section explains **Data Structures Deep Dive** — a core idea you will use throughout the chapter.
+> **Definition:** Know list/dict/set ops and complexity.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Two-sum uses hash map.
 
-You will use **data structures deep dive** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Data Structures Deep Dive
-x = chapter_14_demo = True
-print("Data Structures Deep Dive", x)
+def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        if target-n in seen: return [seen[target-n], i]
+        seen[n] = i
 ```
-
-### Hands-on: Data Structures Deep Dive
-
-1. State **Data Structures Deep Dive** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Time and Space Complexity
 
-> **Definition:** This section explains **Time and Space Complexity** — a core idea you will use throughout the chapter.
+> **Definition:** Big-O for loops, dict lookup O(1) average.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Mention tradeoffs aloud.
 
-You will use **time and space complexity** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Time and Space Complexity
-x = chapter_14_demo = True
-print("Time and Space Complexity", x)
+# nested loop O(n^2)
+# dict lookup O(1) avg
 ```
-
-### Hands-on: Time and Space Complexity
-
-1. State **Time and Space Complexity** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Functions, Closures, and Scope
 
-> **Definition:** This section explains **Functions, Closures, and Scope** — a core idea you will use throughout the chapter.
+> **Definition:** LEGB, closures, decorators basics.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Explain mutable default trap.
 
-You will use **functions, closures, and scope** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Functions, Closures, and Scope
-x = chapter_14_demo = True
-print("Functions, Closures, and Scope", x)
+def make():
+    xs = []
+    def add(x):
+        xs.append(x)
+        return xs
+    return add
 ```
-
-### Hands-on: Functions, Closures, and Scope
-
-1. State **Functions, Closures, and Scope** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## OOP Interview Topics
 
-> **Definition:** This section explains **OOP Interview Topics** — a core idea you will use throughout the chapter.
+> **Definition:** Inheritance vs composition, dunder methods, dataclasses.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+When not to use classes.
 
-You will use **oop interview topics** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: OOP Interview Topics
-x = chapter_14_demo = True
-print("OOP Interview Topics", x)
+@dataclass
+class Point:
+    x: int; y: int
 ```
-
-### Hands-on: OOP Interview Topics
-
-1. State **OOP Interview Topics** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Modules, I/O, and Exceptions
 
-> **Definition:** This section explains **Modules, I/O, and Exceptions** — a core idea you will use throughout the chapter.
+> **Definition:** import styles, with open, try/except.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Design error responses.
 
-You will use **modules, i/o, and exceptions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Modules, I/O, and Exceptions
-x = chapter_14_demo = True
-print("Modules, I/O, and Exceptions", x)
+if __name__ == '__main__': main()
 ```
-
-### Hands-on: Modules, I/O, and Exceptions
-
-1. State **Modules, I/O, and Exceptions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Decorators and Generators Q&A
 
-> **Definition:** This section explains **Decorators and Generators Q&A** — a core idea you will use throughout the chapter.
+> **Definition:** Explain yield and @wraps.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Iterator vs iterable.
 
-You will use **decorators and generators q&a** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Decorators and Generators Q&A
-x = chapter_14_demo = True
-print("Decorators and Generators Q&A", x)
+@lru_cache
+def fib(n): ...
 ```
-
-### Hands-on: Decorators and Generators Q&A
-
-1. State **Decorators and Generators Q&A** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Environment and Tooling Questions
 
-> **Definition:** This section explains **Environment and Tooling Questions** — a core idea you will use throughout the chapter.
+> **Definition:** venv, pip, pytest, mypy.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+How you ship safely.
 
-You will use **environment and tooling questions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Environment and Tooling Questions
-x = chapter_14_demo = True
-print("Environment and Tooling Questions", x)
+python -m venv .venv
 ```
-
-### Hands-on: Environment and Tooling Questions
-
-1. State **Environment and Tooling Questions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Coding Patterns
 
-> **Definition:** This section explains **Coding Patterns** — a core idea you will use throughout the chapter.
+> **Definition:** Two-pointer, sliding window, BFS/DFS basics.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Practice on LeetCode easy/medium.
 
-You will use **coding patterns** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Coding Patterns
-x = chapter_14_demo = True
-print("Coding Patterns", x)
+def bfs(start, neighbors):
+    seen = {start}; q = [start]
 ```
-
-### Hands-on: Coding Patterns
-
-1. State **Coding Patterns** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Standard Library in Interviews
 
-> **Definition:** This section explains **Standard Library in Interviews** — a core idea you will use throughout the chapter.
+> **Definition:** collections.Counter, heapq, bisect, itertools.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Do not reinvent poorly.
 
-You will use **standard library in interviews** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Standard Library in Interviews
-x = chapter_14_demo = True
-print("Standard Library in Interviews", x)
+from collections import deque
+q = deque([1])
 ```
-
-### Hands-on: Standard Library in Interviews
-
-1. State **Standard Library in Interviews** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Python Gotchas
 
-> **Definition:** This section explains **Python Gotchas** — a core idea you will use throughout the chapter.
+> **Definition:** Mutable defaults, late binding closures, is vs ==.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Shows experience.
 
-You will use **python gotchas** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Python Gotchas
-x = chapter_14_demo = True
-print("Python Gotchas", x)
+def f(x, items=None):
+    if items is None: items = []
 ```
-
-### Hands-on: Python Gotchas
-
-1. State **Python Gotchas** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## System Design for Python Backends
 
-> **Definition:** This section explains **System Design for Python Backends** — a core idea you will use throughout the chapter.
+> **Definition:** WSGI/ASGI, workers, caching, DB pooling.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+High-level boxes and data flow.
 
-You will use **system design for python backends** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: System Design for Python Backends
-x = chapter_14_demo = True
-print("System Design for Python Backends", x)
+# Django/FastAPI + Postgres + Redis sketch
 ```
-
-### Hands-on: System Design for Python Backends
-
-1. State **System Design for Python Backends** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Behavioral and Communication Tips
 
-> **Definition:** This section explains **Behavioral and Communication Tips** — a core idea you will use throughout the chapter.
+> **Definition:** Think aloud, clarify inputs, test examples.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Interviewers grade process.
 
-You will use **behavioral and communication tips** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Behavioral and Communication Tips
-x = chapter_14_demo = True
-print("Behavioral and Communication Tips", x)
+# STAR stories prepared
 ```
-
-### Hands-on: Behavioral and Communication Tips
-
-1. State **Behavioral and Communication Tips** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Mock Interview Questions
 
-> **Definition:** This section explains **Mock Interview Questions** — a core idea you will use throughout the chapter.
+> **Definition:** Practice 20 common questions out loud.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Record yourself.
 
-You will use **mock interview questions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Mock Interview Questions
-x = chapter_14_demo = True
-print("Mock Interview Questions", x)
+Q: GIL? A: allows one thread bytecode at a time...
 ```
-
-### Hands-on: Mock Interview Questions
-
-1. State **Mock Interview Questions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Practice Problems with Solutions
 
-> **Definition:** This section explains **Practice Problems with Solutions** — a core idea you will use throughout the chapter.
+> **Definition:** Implement FizzBuzz, anagram check, flatten list.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Time-box 25 minutes.
 
-You will use **practice problems with solutions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Practice Problems with Solutions
-x = chapter_14_demo = True
-print("Practice Problems with Solutions", x)
+def flatten(nested):
+    for x in nested:
+        if isinstance(x, list): yield from flatten(x)
+        else: yield x
 ```
-
-### Hands-on: Practice Problems with Solutions
-
-1. State **Practice Problems with Solutions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Resources
 
-> **Definition:** This section explains **Resources** — a core idea you will use throughout the chapter.
+> **Definition:** docs.python.org, Real Python, official tutorials.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Avoid outdated Python 2 material.
 
-You will use **resources** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Resources
-x = chapter_14_demo = True
-print("Resources", x)
+print('https://docs.python.org/3/')
 ```
-
-### Hands-on: Resources
-
-1. State **Resources** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Course Review Checklist
 
-> **Definition:** This section explains **Course Review Checklist** — a core idea you will use throughout the chapter.
+> **Definition:** Re-read summaries ch1-13.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Redo exercises you skipped.
 
-You will use **course review checklist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Course Review Checklist
-x = chapter_14_demo = True
-print("Course Review Checklist", x)
+checklist = ['types','oop','exceptions']
+print(len(checklist))
 ```
-
-### Hands-on: Course Review Checklist
-
-1. State **Course Review Checklist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Day-Before Checklist
 
-> **Definition:** This section explains **Day-Before Checklist** — a core idea you will use throughout the chapter.
+> **Definition:** Sleep, light review, no new topics.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Prepare questions for interviewer.
 
-You will use **day-before checklist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Day-Before Checklist
-x = chapter_14_demo = True
-print("Day-Before Checklist", x)
+print('rest + confidence')
 ```
-
-### Hands-on: Day-Before Checklist
-
-1. State **Day-Before Checklist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Additional Verbal Q&A
 
-> **Definition:** This section explains **Additional Verbal Q&A** — a core idea you will use throughout the chapter.
+> **Definition:** Explain list vs tuple, GIL at high level, pickle risks.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Short crisp answers.
 
-You will use **additional verbal q&a** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Additional Verbal Q&A
-x = chapter_14_demo = True
-print("Additional Verbal Q&A", x)
+# practice 60-second answers
 ```
-
-### Hands-on: Additional Verbal Q&A
-
-1. State **Additional Verbal Q&A** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---

@@ -41,532 +41,361 @@ tags: [python, types, strings]
 
 ## Why Data Types Matter
 
-> **Definition:** This section explains **Why Data Types Matter** — a core idea you will use throughout the chapter.
+> **Definition:** Every value has a **type** that determines what operations are valid.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Adding a string to an integer raises `TypeError`.
 
-You will use **why data types matter** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Check types with `type()` and convert explicitly.
 
 ```python
-# Example related to: Why Data Types Matter
-x = chapter_2_demo = True
-print("Why Data Types Matter", x)
+print(type(42), type('42'))
 ```
-
-### Hands-on: Why Data Types Matter
-
-1. State **Why Data Types Matter** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Overview of Built-in Types
 
-> **Definition:** This section explains **Overview of Built-in Types** — a core idea you will use throughout the chapter.
+> **Definition:** Core types include numbers, strings, booleans, sequences, and mappings.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Choosing the right type models your data correctly.
 
-You will use **overview of built-in types** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Overview of Built-in Types
-x = chapter_2_demo = True
-print("Overview of Built-in Types", x)
+sample = [1, 'a', True, {'k': 1}]
+print([type(x).__name__ for x in sample]
 ```
-
-### Hands-on: Overview of Built-in Types
-
-1. State **Overview of Built-in Types** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## type() and isinstance()
 
-> **Definition:** This section explains **type() and isinstance()** — a core idea you will use throughout the chapter.
+> **Definition:** `type(x)` returns the exact class. `isinstance(x, int)` respects inheritance.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Prefer `isinstance` for type checks in application code.
 
-You will use **type() and isinstance()** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: type() and isinstance()
-x = chapter_2_demo = True
-print("type() and isinstance()", x)
+print(isinstance(3, int))
+print(isinstance(True, int))  # bool subclasses int
 ```
-
-### Hands-on: type() and isinstance()
-
-1. State **type() and isinstance()** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Integers
 
-> **Definition:** This section explains **Integers** — a core idea you will use throughout the chapter.
+> **Definition:** **int** is arbitrary-precision whole numbers.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+No overflow like fixed-width integers in C.
 
-You will use **integers** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Integers
-x = chapter_2_demo = True
-print("Integers", x)
+big = 10 ** 30
+print(big)
 ```
-
-### Hands-on: Integers
-
-1. State **Integers** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Floating-Point Numbers
 
-> **Definition:** This section explains **Floating-Point Numbers** — a core idea you will use throughout the chapter.
+> **Definition:** **float** represents decimals in binary — some values are approximate.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Use `decimal.Decimal` for money.
 
-You will use **floating-point numbers** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Floating-Point Numbers
-x = chapter_2_demo = True
-print("Floating-Point Numbers", x)
+print(0.1 + 0.2)
+print(round(0.1 + 0.2, 2)
 ```
-
-### Hands-on: Floating-Point Numbers
-
-1. State **Floating-Point Numbers** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Complex Numbers
 
-> **Definition:** This section explains **Complex Numbers** — a core idea you will use throughout the chapter.
+> **Definition:** **complex** uses `j` for imaginary unit: `3+4j`.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Used in science/engineering libraries.
 
-You will use **complex numbers** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Complex Numbers
-x = chapter_2_demo = True
-print("Complex Numbers", x)
+z = 3 + 4j
+print(z.real, z.imag, abs(z))
 ```
-
-### Hands-on: Complex Numbers
-
-1. State **Complex Numbers** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Strings
 
-> **Definition:** This section explains **Strings** — a core idea you will use throughout the chapter.
+> **Definition:** **str** is immutable Unicode text in quotes.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Most user-facing data is strings.
 
-You will use **strings** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Strings
-x = chapter_2_demo = True
-print("Strings", x)
+msg = "Hello"
+print(msg.upper(), len(msg))
 ```
-
-### Hands-on: Strings
-
-1. State **Strings** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## String Methods Reference
 
-> **Definition:** This section explains **String Methods Reference** — a core idea you will use throughout the chapter.
+> **Definition:** Strings have dozens of methods: `strip`, `split`, `join`, `replace`, etc.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Methods return new strings — originals never change.
 
-You will use **string methods reference** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: String Methods Reference
-x = chapter_2_demo = True
-print("String Methods Reference", x)
+line = "  a,b,c  "
+parts = line.strip().split(",")
+print("|".join(parts))
 ```
-
-### Hands-on: String Methods Reference
-
-1. State **String Methods Reference** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## String Formatting Deep Dive
 
-> **Definition:** This section explains **String Formatting Deep Dive** — a core idea you will use throughout the chapter.
+> **Definition:** Format with **f-strings**, `.format()`, or `%` (legacy).
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+f-strings are fastest to read and write.
 
-You will use **string formatting deep dive** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: String Formatting Deep Dive
-x = chapter_2_demo = True
-print("String Formatting Deep Dive", x)
+name, score = "Ada", 98
+print(f"{name} scored {score}%")
 ```
-
-### Hands-on: String Formatting Deep Dive
-
-1. State **String Formatting Deep Dive** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Booleans
 
-> **Definition:** This section explains **Booleans** — a core idea you will use throughout the chapter.
+> **Definition:** **bool** is `True` or `False`, subclass of `int`.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Drive conditional logic.
 
-You will use **booleans** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Booleans
-x = chapter_2_demo = True
-print("Booleans", x)
+print(bool(0), bool(1), bool(''))
 ```
-
-### Hands-on: Booleans
-
-1. State **Booleans** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Truthiness and Falsiness
 
-> **Definition:** This section explains **Truthiness and Falsiness** — a core idea you will use throughout the chapter.
+> **Definition:** Empty containers and zero are **falsy**; most other values are **truthy**.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Use `if items:` instead of `if len(items) > 0`.
 
-You will use **truthiness and falsiness** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Truthiness and Falsiness
-x = chapter_2_demo = True
-print("Truthiness and Falsiness", x)
+values = [[], [0], '0', None]
+print([bool(v) for v in values])
 ```
-
-### Hands-on: Truthiness and Falsiness
-
-1. State **Truthiness and Falsiness** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Type Conversion
 
-> **Definition:** This section explains **Type Conversion** — a core idea you will use throughout the chapter.
+> **Definition:** Convert with `int()`, `float()`, `str()`, `list()`, etc.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Explicit conversion beats implicit surprises.
 
-You will use **type conversion** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Type Conversion
-x = chapter_2_demo = True
-print("Type Conversion", x)
+n = int('42')
+print(n + 8)
 ```
-
-### Hands-on: Type Conversion
-
-1. State **Type Conversion** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Immutability Explained
 
-> **Definition:** This section explains **Immutability Explained** — a core idea you will use throughout the chapter.
+> **Definition:** Immutable objects cannot change in place; operations create new objects.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Explains why strings/tuples behave differently from lists.
 
-You will use **immutability explained** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Immutability Explained
-x = chapter_2_demo = True
-print("Immutability Explained", x)
+s = 'hi'
+s2 = s + '!'
+print(s, s2)
 ```
-
-### Hands-on: Immutability Explained
-
-1. State **Immutability Explained** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Identity vs Equality
 
-> **Definition:** This section explains **Identity vs Equality** — a core idea you will use throughout the chapter.
+> **Definition:** `==` compares values; `is` compares object identity.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Use `is` for `None` only in most code.
 
-You will use **identity vs equality** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Identity vs Equality
-x = chapter_2_demo = True
-print("Identity vs Equality", x)
+a = [1,2]
+b = [1,2]
+print(a == b, a is b)
 ```
-
-### Hands-on: Identity vs Equality
-
-1. State **Identity vs Equality** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The None Type
 
-> **Definition:** This section explains **The None Type** — a core idea you will use throughout the chapter.
+> **Definition:** `None` has type `NoneType` — single global instance.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Represents missing or optional values.
 
-You will use **the none type** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The None Type
-x = chapter_2_demo = True
-print("The None Type", x)
+x = None
+print(x is None)
 ```
-
-### Hands-on: The None Type
-
-1. State **The None Type** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Bytes and Bytearray
 
-> **Definition:** This section explains **Bytes and Bytearray** — a core idea you will use throughout the chapter.
+> **Definition:** `bytes` is immutable binary; `bytearray` is mutable.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Use at file/network boundaries.
 
-You will use **bytes and bytearray** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Bytes and Bytearray
-x = chapter_2_demo = True
-print("Bytes and Bytearray", x)
+data = b'hello'
+print(data.decode('utf-8'))
 ```
-
-### Hands-on: Bytes and Bytearray
-
-1. State **Bytes and Bytearray** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Numeric Special Values
 
-> **Definition:** This section explains **Numeric Special Values** — a core idea you will use throughout the chapter.
+> **Definition:** Floats include `inf`, `-inf`, and `nan` from the math module.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Comparisons with `nan` are always False.
 
-You will use **numeric special values** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Numeric Special Values
-x = chapter_2_demo = True
-print("Numeric Special Values", x)
+import math
+print(math.isnan(float('nan')))
 ```
-
-### Hands-on: Numeric Special Values
-
-1. State **Numeric Special Values** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_2_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Prefer `isinstance` over `type() ==`
+- Use f-strings
+- Never compare floats with `==` for money
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_2_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| `is` for values | Wrong equality semantics | Use `==` except for `None` |
 
 
 ---

@@ -43,588 +43,390 @@ tags: [python, venv, pip]
 
 ## Why Virtual Environments Exist
 
-> **Definition:** This section explains **Why Virtual Environments Exist** — a core idea you will use throughout the chapter.
+> **Definition:** Isolate dependencies per project.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Avoid version conflicts globally.
 
-You will use **why virtual environments exist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Why Virtual Environments Exist
-x = chapter_12_demo = True
-print("Why Virtual Environments Exist", x)
+# python -m venv .venv
 ```
-
-### Hands-on: Why Virtual Environments Exist
-
-1. State **Why Virtual Environments Exist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## System Python vs Project Python
 
-> **Definition:** This section explains **System Python vs Project Python** — a core idea you will use throughout the chapter.
+> **Definition:** OS Python is shared; venv has own `site-packages`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Never pip install globally for apps.
 
-You will use **system python vs project python** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: System Python vs Project Python
-x = chapter_12_demo = True
-print("System Python vs Project Python", x)
+import sys
+print(sys.prefix)
 ```
-
-### Hands-on: System Python vs Project Python
-
-1. State **System Python vs Project Python** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Creating a venv with venv
 
-> **Definition:** This section explains **Creating a venv with venv** — a core idea you will use throughout the chapter.
+> **Definition:** `python -m venv .venv` creates a folder.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Commit `.venv` to gitignore, not repo.
 
-You will use **creating a venv with venv** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Creating a venv with venv
-x = chapter_12_demo = True
-print("Creating a venv with venv", x)
+# python -m venv .venv
 ```
-
-### Hands-on: Creating a venv with venv
-
-1. State **Creating a venv with venv** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Activating and Deactivating
 
-> **Definition:** This section explains **Activating and Deactivating** — a core idea you will use throughout the chapter.
+> **Definition:** Activate sets PATH to venv python; `deactivate` restores.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Must activate each new shell.
 
-You will use **activating and deactivating** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Activating and Deactivating
-x = chapter_12_demo = True
-print("Activating and Deactivating", x)
+# Windows: .venv\Scripts\activate
+# Unix: source .venv/bin/activate
 ```
-
-### Hands-on: Activating and Deactivating
-
-1. State **Activating and Deactivating** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## What Changes Inside a venv
 
-> **Definition:** This section explains **What Changes Inside a venv** — a core idea you will use throughout the chapter.
+> **Definition:** `python`, `pip`, and `site-packages` point inside `.venv`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Imports resolve to installed packages there.
 
-You will use **what changes inside a venv** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: What Changes Inside a venv
-x = chapter_12_demo = True
-print("What Changes Inside a venv", x)
+import site
+print(site.getsitepackages())
 ```
-
-### Hands-on: What Changes Inside a venv
-
-1. State **What Changes Inside a venv** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Introduction to pip
 
-> **Definition:** This section explains **Introduction to pip** — a core idea you will use throughout the chapter.
+> **Definition:** **pip** installs packages from PyPI.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Comes with Python — upgrade occasionally.
 
-You will use **introduction to pip** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Introduction to pip
-x = chapter_12_demo = True
-print("Introduction to pip", x)
+python -m pip --version
 ```
-
-### Hands-on: Introduction to pip
-
-1. State **Introduction to pip** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Installing and Uninstalling Packages
 
-> **Definition:** This section explains **Installing and Uninstalling Packages** — a core idea you will use throughout the chapter.
+> **Definition:** `pip install pkg` and `pip uninstall pkg`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Install into active environment only.
 
-You will use **installing and uninstalling packages** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Installing and Uninstalling Packages
-x = chapter_12_demo = True
-print("Installing and Uninstalling Packages", x)
+python -m pip install requests
 ```
-
-### Hands-on: Installing and Uninstalling Packages
-
-1. State **Installing and Uninstalling Packages** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Version Specifiers
 
-> **Definition:** This section explains **Version Specifiers** — a core idea you will use throughout the chapter.
+> **Definition:** `==`, `>=`, `~=` in requirements pin compatibility.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Reproducible builds need pins.
 
-You will use **version specifiers** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Version Specifiers
-x = chapter_12_demo = True
-print("Version Specifiers", x)
+# requests>=2.28,<3
 ```
-
-### Hands-on: Version Specifiers
-
-1. State **Version Specifiers** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## requirements.txt
 
-> **Definition:** This section explains **requirements.txt** — a core idea you will use throughout the chapter.
+> **Definition:** List of packages for `pip install -r requirements.txt`.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Share with team and CI.
 
-You will use **requirements.txt** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: requirements.txt
-x = chapter_12_demo = True
-print("requirements.txt", x)
+# requirements.txt
+requests==2.31.0
 ```
-
-### Hands-on: requirements.txt
-
-1. State **requirements.txt** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Lock Files and Reproducibility
 
-> **Definition:** This section explains **Lock Files and Reproducibility** — a core idea you will use throughout the chapter.
+> **Definition:** Exact pins or tools like `pip-tools`/`uv` lock transitive deps.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Production deploys need determinism.
 
-You will use **lock files and reproducibility** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Lock Files and Reproducibility
-x = chapter_12_demo = True
-print("Lock Files and Reproducibility", x)
+pip freeze > requirements.lock
 ```
-
-### Hands-on: Lock Files and Reproducibility
-
-1. State **Lock Files and Reproducibility** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## pyproject.toml and Modern Packaging
 
-> **Definition:** This section explains **pyproject.toml and Modern Packaging** — a core idea you will use throughout the chapter.
+> **Definition:** PEP 518 project metadata and build backend.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Standard for new libraries.
 
-You will use **pyproject.toml and modern packaging** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: pyproject.toml and Modern Packaging
-x = chapter_12_demo = True
-print("pyproject.toml and Modern Packaging", x)
+# [project]
+# name = 'myapp'
+# version = '0.1.0'
 ```
-
-### Hands-on: pyproject.toml and Modern Packaging
-
-1. State **pyproject.toml and Modern Packaging** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Editable Installs
 
-> **Definition:** This section explains **Editable Installs** — a core idea you will use throughout the chapter.
+> **Definition:** `pip install -e .` links source for development.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Edit code without reinstalling.
 
-You will use **editable installs** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Editable Installs
-x = chapter_12_demo = True
-print("Editable Installs", x)
+pip install -e .
 ```
-
-### Hands-on: Editable Installs
-
-1. State **Editable Installs** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## pip list, show, and freeze
 
-> **Definition:** This section explains **pip list, show, and freeze** — a core idea you will use throughout the chapter.
+> **Definition:** Inspect installed packages.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Debug wrong versions.
 
-You will use **pip list, show, and freeze** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: pip list, show, and freeze
-x = chapter_12_demo = True
-print("pip list, show, and freeze", x)
+pip list
+pip show requests
 ```
-
-### Hands-on: pip list, show, and freeze
-
-1. State **pip list, show, and freeze** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Upgrading pip and Packages
 
-> **Definition:** This section explains **Upgrading pip and Packages** — a core idea you will use throughout the chapter.
+> **Definition:** `python -m pip install -U pip`.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Stay current for security fixes.
 
-You will use **upgrading pip and packages** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Upgrading pip and Packages
-x = chapter_12_demo = True
-print("Upgrading pip and Packages", x)
+python -m pip install -U pip
 ```
-
-### Hands-on: Upgrading pip and Packages
-
-1. State **Upgrading pip and Packages** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Security: pip audit
 
-> **Definition:** This section explains **Security: pip audit** — a core idea you will use throughout the chapter.
+> **Definition:** Scan dependencies for known CVEs.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Run in CI pipelines.
 
-You will use **security: pip audit** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Security: pip audit
-x = chapter_12_demo = True
-print("Security: pip audit", x)
+pip install pip-audit
+pip-audit
 ```
-
-### Hands-on: Security: pip audit
-
-1. State **Security: pip audit** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## .gitignore for Python Projects
 
-> **Definition:** This section explains **.gitignore for Python Projects** — a core idea you will use throughout the chapter.
+> **Definition:** Ignore `.venv/`, `__pycache__/`, `*.pyc`, `.env`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Keep secrets out of git.
 
-You will use **.gitignore for python projects** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: .gitignore for Python Projects
-x = chapter_12_demo = True
-print(".gitignore for Python Projects", x)
+# .gitignore
+.venv/
+__pycache__/
 ```
-
-### Hands-on: .gitignore for Python Projects
-
-1. State **.gitignore for Python Projects** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Multiple Python Versions
 
-> **Definition:** This section explains **Multiple Python Versions** — a core idea you will use throughout the chapter.
+> **Definition:** Use `py -3.12` on Windows or `python3.11` on Linux.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+pyenv/asdf manage many versions.
 
-You will use **multiple python versions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Multiple Python Versions
-x = chapter_12_demo = True
-print("Multiple Python Versions", x)
+py -0p  # list installed
 ```
-
-### Hands-on: Multiple Python Versions
-
-1. State **Multiple Python Versions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## pip vs conda vs uv
 
-> **Definition:** This section explains **pip vs conda vs uv** — a core idea you will use throughout the chapter.
+> **Definition:** pip is default; conda for scientific stacks; uv is fast modern installer.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Pick one workflow per project.
 
-You will use **pip vs conda vs uv** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: pip vs conda vs uv
-x = chapter_12_demo = True
-print("pip vs conda vs uv", x)
+# team standard: venv + pip
 ```
-
-### Hands-on: pip vs conda vs uv
-
-1. State **pip vs conda vs uv** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## End-to-End Project Workflow
 
-> **Definition:** This section explains **End-to-End Project Workflow** — a core idea you will use throughout the chapter.
+> **Definition:** venv → activate → pip install -r requirements → run tests.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Document steps in README.
 
-You will use **end-to-end project workflow** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: End-to-End Project Workflow
-x = chapter_12_demo = True
-print("End-to-End Project Workflow", x)
+# README quickstart commands
 ```
-
-### Hands-on: End-to-End Project Workflow
-
-1. State **End-to-End Project Workflow** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_12_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- One venv per project
+- Pin dependencies for production
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_12_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Installing globally | Breaks other projects | Always activate venv first |
 
 
 ---

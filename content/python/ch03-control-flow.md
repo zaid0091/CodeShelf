@@ -41,532 +41,382 @@ tags: [python, control-flow, loops]
 
 ## What Is Control Flow?
 
-> **Definition:** This section explains **What Is Control Flow?** — a core idea you will use throughout the chapter.
+> **Definition:** **Control flow** decides which lines run, how often, and in what order.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Without branches and loops, programs cannot respond to input or process collections.
 
-You will use **what is control flow?** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: What Is Control Flow?
-x = chapter_3_demo = True
-print("What Is Control Flow?", x)
+score = 85
+print('pass' if score >= 60 else 'fail')
 ```
-
-### Hands-on: What Is Control Flow?
-
-1. State **What Is Control Flow?** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Boolean Conditions Recap
 
-> **Definition:** This section explains **Boolean Conditions Recap** — a core idea you will use throughout the chapter.
+> **Definition:** Conditions use `and`, `or`, `not` and evaluate to `True` or `False`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Short-circuiting skips the right side when the result is already known.
 
-You will use **boolean conditions recap** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Boolean Conditions Recap
-x = chapter_3_demo = True
-print("Boolean Conditions Recap", x)
+name = ''
+if name and name[0] == 'A':
+    print('starts with A')
 ```
-
-### Hands-on: Boolean Conditions Recap
-
-1. State **Boolean Conditions Recap** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The if Statement
 
-> **Definition:** This section explains **The if Statement** — a core idea you will use throughout the chapter.
+> **Definition:** `if condition:` runs a block when the condition is truthy.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+The building block of decision-making.
 
-You will use **the if statement** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The if Statement
-x = chapter_3_demo = True
-print("The if Statement", x)
+age = 20
+if age >= 18:
+    print('adult')
 ```
-
-### Hands-on: The if Statement
-
-1. State **The if Statement** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## elif and else
 
-> **Definition:** This section explains **elif and else** — a core idea you will use throughout the chapter.
+> **Definition:** `elif` checks another condition; `else` runs when all prior conditions were false.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Order from most specific to most general.
 
-You will use **elif and else** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: elif and else
-x = chapter_3_demo = True
-print("elif and else", x)
+x = 15
+if x < 10:
+    print('small')
+elif x < 20:
+    print('medium')
+else:
+    print('large')
 ```
-
-### Hands-on: elif and else
-
-1. State **elif and else** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Ternary Conditional Expressions
 
-> **Definition:** This section explains **Ternary Conditional Expressions** — a core idea you will use throughout the chapter.
+> **Definition:** `value_if_true if condition else value_if_false` chooses between two expressions.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Use for simple assignments, not multi-line logic.
 
-You will use **ternary conditional expressions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Ternary Conditional Expressions
-x = chapter_3_demo = True
-print("Ternary Conditional Expressions", x)
+status = 'ok' if errors == 0 else 'fail'
 ```
-
-### Hands-on: Ternary Conditional Expressions
-
-1. State **Ternary Conditional Expressions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Chained Comparisons
 
-> **Definition:** This section explains **Chained Comparisons** — a core idea you will use throughout the chapter.
+> **Definition:** `a < b < c` is equivalent to `a < b and b < c`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Readable range and bound checks.
 
-You will use **chained comparisons** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Chained Comparisons
-x = chapter_3_demo = True
-print("Chained Comparisons", x)
+n = 15
+print(10 < n < 20)
 ```
-
-### Hands-on: Chained Comparisons
-
-1. State **Chained Comparisons** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Truthiness in Conditions
 
-> **Definition:** This section explains **Truthiness in Conditions** — a core idea you will use throughout the chapter.
+> **Definition:** Objects convert to `bool` in `if` — empty collections and zero are falsy.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Write `if items:` instead of `if len(items) > 0`.
 
-You will use **truthiness in conditions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Truthiness in Conditions
-x = chapter_3_demo = True
-print("Truthiness in Conditions", x)
+if []:
+    print('never')
+if [0]:
+    print('runs')
 ```
-
-### Hands-on: Truthiness in Conditions
-
-1. State **Truthiness in Conditions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The for Loop
 
-> **Definition:** This section explains **The for Loop** — a core idea you will use throughout the chapter.
+> **Definition:** `for item in iterable:` visits each element.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Preferred when iterating sequences.
 
-You will use **the for loop** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The for Loop
-x = chapter_3_demo = True
-print("The for Loop", x)
+for ch in 'abc':
+    print(ch)
 ```
-
-### Hands-on: The for Loop
-
-1. State **The for Loop** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The range() Function
 
-> **Definition:** This section explains **The range() Function** — a core idea you will use throughout the chapter.
+> **Definition:** `range(n)` or `range(start, stop, step)` yields integers lazily.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Avoid building huge lists with `list(range(...))` unless needed.
 
-You will use **the range() function** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The range() Function
-x = chapter_3_demo = True
-print("The range() Function", x)
+print(list(range(2, 10, 2)))
 ```
-
-### Hands-on: The range() Function
-
-1. State **The range() Function** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## enumerate() and zip()
 
-> **Definition:** This section explains **enumerate() and zip()** — a core idea you will use throughout the chapter.
+> **Definition:** `enumerate` adds indexes; `zip` pairs parallel iterables.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Cleaner than manual index arithmetic.
 
-You will use **enumerate() and zip()** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: enumerate() and zip()
-x = chapter_3_demo = True
-print("enumerate() and zip()", x)
+for i, w in enumerate(['a','b']):
+    print(i, w)
+for a, b in zip([1,2], ['x','y']):
+    print(a, b)
 ```
-
-### Hands-on: enumerate() and zip()
-
-1. State **enumerate() and zip()** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The while Loop
 
-> **Definition:** This section explains **The while Loop** — a core idea you will use throughout the chapter.
+> **Definition:** Repeats while the condition stays true.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Update loop variables inside the body to avoid infinite loops.
 
-You will use **the while loop** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The while Loop
-x = chapter_3_demo = True
-print("The while Loop", x)
+n = 3
+while n:
+    print(n)
+    n -= 1
 ```
-
-### Hands-on: The while Loop
-
-1. State **The while Loop** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## break, continue, and pass
 
-> **Definition:** This section explains **break, continue, and pass** — a core idea you will use throughout the chapter.
+> **Definition:** `break` exits the loop; `continue` skips to the next item; `pass` is a no-op placeholder.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Search loops often `break` when a match is found.
 
-You will use **break, continue, and pass** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: break, continue, and pass
-x = chapter_3_demo = True
-print("break, continue, and pass", x)
+for n in range(10):
+    if n == 5:
+        break
+    print(n)
 ```
-
-### Hands-on: break, continue, and pass
-
-1. State **break, continue, and pass** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## else on Loops
 
-> **Definition:** This section explains **else on Loops** — a core idea you will use throughout the chapter.
+> **Definition:** A loop `else` runs only if the loop did not `break`.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Useful for 'not found' patterns.
 
-You will use **else on loops** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: else on Loops
-x = chapter_3_demo = True
-print("else on Loops", x)
+for x in [1,2,3]:
+    if x == 9:
+        break
+else:
+    print('not found')
 ```
-
-### Hands-on: else on Loops
-
-1. State **else on Loops** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Nested Control Flow
 
-> **Definition:** This section explains **Nested Control Flow** — a core idea you will use throughout the chapter.
+> **Definition:** Loops and `if` statements can nest inside each other.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Extract functions when nesting exceeds two levels.
 
-You will use **nested control flow** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Nested Control Flow
-x = chapter_3_demo = True
-print("Nested Control Flow", x)
+for row in matrix:
+    for val in row:
+        if val < 0:
+            print('negative', val)
 ```
-
-### Hands-on: Nested Control Flow
-
-1. State **Nested Control Flow** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Structural Pattern Matching
 
-> **Definition:** This section explains **Structural Pattern Matching** — a core idea you will use throughout the chapter.
+> **Definition:** `match subject:` / `case pattern:` (Python 3.10+) matches shapes and values.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Replaces some long `if/elif` chains.
 
-You will use **structural pattern matching** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Structural Pattern Matching
-x = chapter_3_demo = True
-print("Structural Pattern Matching", x)
+def label(x):
+    match x:
+        case 0: return 'zero'
+        case str(s): return s.upper()
+        case _: return 'other'
 ```
-
-### Hands-on: Structural Pattern Matching
-
-1. State **Structural Pattern Matching** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Common Loop Patterns
 
-> **Definition:** This section explains **Common Loop Patterns** — a core idea you will use throughout the chapter.
+> **Definition:** Accumulate totals, search, filter, and transform data in loops.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Know these before reaching for heavy libraries.
 
-You will use **common loop patterns** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Common Loop Patterns
-x = chapter_3_demo = True
-print("Common Loop Patterns", x)
+total = sum(x for x in [1,2,3])
+print(total)
 ```
-
-### Hands-on: Common Loop Patterns
-
-1. State **Common Loop Patterns** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Infinite Loops and Safety
 
-> **Definition:** This section explains **Infinite Loops and Safety** — a core idea you will use throughout the chapter.
+> **Definition:** A `while True` loop needs a clear `break` or exit condition.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Add timeouts or counters in production systems.
 
-You will use **infinite loops and safety** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Infinite Loops and Safety
-x = chapter_3_demo = True
-print("Infinite Loops and Safety", x)
+attempts = 0
+while attempts < 3:
+    attempts += 1
+    print('try', attempts)
 ```
-
-### Hands-on: Infinite Loops and Safety
-
-1. State **Infinite Loops and Safety** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_3_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Prefer `for` over `while` when iterating collections
+- Avoid deep nesting — extract functions
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_3_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Infinite while | Forgot to update loop variable | Check exit condition |
 
 
 ---

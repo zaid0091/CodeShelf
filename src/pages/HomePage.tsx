@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import { ReactLenis } from 'lenis/react'
 import { ArrowRight, Search } from 'lucide-react'
-import { getTopics, getCourseStartPath } from '@/lib/content'
+import { getTopics } from '@/lib/content'
 import { ButtonLink } from '@/components/ui/Button'
+import { NavbarButtonLink } from '@/components/ui/NavbarButton'
 import { TopicIcon } from '@/components/TopicIcon'
+import { TopicsSection } from '@/components/TopicsSection'
 import { ScrollReveal } from '@/components/ScrollReveal'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
@@ -30,21 +32,18 @@ function HomePageContent() {
           <Link to="/" className="font-logo text-xl text-on-primary">
             CodeShelf
           </Link>
-          <div className="flex items-center gap-3">
-            <ButtonLink
-              to="/docs/typescript/ch00-course-overview"
-              variant="outline-on-dark"
-              className="!py-2.5 !px-5 text-sm"
-            >
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <NavbarButtonLink to="/docs/typescript/ch00-course-overview" tone="dark">
               Browse docs
-            </ButtonLink>
-            <ButtonLink
+            </NavbarButtonLink>
+            <NavbarButtonLink
               to="/docs/drf/ch00-course-overview"
-              variant="outline-on-dark"
-              className="!py-2.5 !px-5 text-sm hidden sm:inline-flex"
+              tone="dark"
+              emphasis="accent"
+              className="hidden sm:inline-flex"
             >
               DRF course
-            </ButtonLink>
+            </NavbarButtonLink>
           </div>
         </div>
       </header>
@@ -168,45 +167,7 @@ function HomePageContent() {
         </div>
       </section>
 
-      <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32 mt-10">
-        <ScrollReveal animation="fade-up" duration={0.9}>
-          <p className="text-eyebrow text-link-cool-1 mb-4">Topics</p>
-          <h2 className="font-display text-display-lg text-on-primary mb-16 max-w-2xl">
-            Everything you need to revise.
-          </h2>
-        </ScrollReveal>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topics.map((topic, index) => (
-            <ScrollReveal
-              key={topic.id}
-              animation="fade-up"
-              delay={index * 0.06}
-              duration={0.85}
-              distance={40}
-            >
-              <Link
-                to={getCourseStartPath(topic.id)}
-                className="group relative bg-canvas-night-elevated border border-white/[0.08] rounded-xl p-8 transition-all duration-300 hover:border-white/15 hover:-translate-y-0.5 block h-full"
-                style={{
-                  boxShadow:
-                    '0 1px 2px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04)',
-                }}
-              >
-                <TopicIcon topicId={topic.id} size={40} className="mb-6" />
-                <h3 className="font-display text-2xl text-on-primary mb-2">{topic.label}</h3>
-                <p className="text-caption text-link-cool-2">
-                  {topic.pages.length} note{topic.pages.length !== 1 ? 's' : ''}
-                </p>
-                <ArrowRight
-                  size={18}
-                  className="absolute bottom-8 right-8 text-link-cool-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                  strokeWidth={1.5}
-                />
-              </Link>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
+      <TopicsSection />
 
       <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
         <ScrollReveal animation="fade-scale" duration={0.95} distance={24}>

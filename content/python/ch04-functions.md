@@ -41,532 +41,383 @@ tags: [python, functions, scope]
 
 ## Why Functions Exist
 
-> **Definition:** This section explains **Why Functions Exist** — a core idea you will use throughout the chapter.
+> **Definition:** Functions group reusable logic under a name — **Don't Repeat Yourself**.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Change behavior in one place instead of many copy-pasted blocks.
 
-You will use **why functions exist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Why Functions Exist
-x = chapter_4_demo = True
-print("Why Functions Exist", x)
+def area(w, h):
+    return w * h
+print(area(3, 4), area(5, 2))
 ```
-
-### Hands-on: Why Functions Exist
-
-1. State **Why Functions Exist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Defining and Calling Functions
 
-> **Definition:** This section explains **Defining and Calling Functions** — a core idea you will use throughout the chapter.
+> **Definition:** Define with `def name(params):` and call with `name(args)`.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Definition creates the function; call executes it.
 
-You will use **defining and calling functions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Defining and Calling Functions
-x = chapter_4_demo = True
-print("Defining and Calling Functions", x)
+def greet(name):
+    return f'Hi, {name}'
+print(greet('Sam'))
 ```
-
-### Hands-on: Defining and Calling Functions
-
-1. State **Defining and Calling Functions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Parameters vs Arguments
 
-> **Definition:** This section explains **Parameters vs Arguments** — a core idea you will use throughout the chapter.
+> **Definition:** **Parameters** appear in the `def` line; **arguments** are values you pass at the call.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Positional arguments match parameters in order.
 
-You will use **parameters vs arguments** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Parameters vs Arguments
-x = chapter_4_demo = True
-print("Parameters vs Arguments", x)
+def power(base, exp):
+    return base ** exp
+print(power(2, 8))
 ```
-
-### Hands-on: Parameters vs Arguments
-
-1. State **Parameters vs Arguments** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Return Values
 
-> **Definition:** This section explains **Return Values** — a core idea you will use throughout the chapter.
+> **Definition:** `return` sends a value back; omitting it returns `None`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Return early to simplify logic.
 
-You will use **return values** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Return Values
-x = chapter_4_demo = True
-print("Return Values", x)
+def abs_val(n):
+    if n < 0:
+        return -n
+    return n
 ```
-
-### Hands-on: Return Values
-
-1. State **Return Values** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Default Parameters
 
-> **Definition:** This section explains **Default Parameters** — a core idea you will use throughout the chapter.
+> **Definition:** Defaults apply when an argument is omitted.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Defaults evaluate once at definition — avoid mutable defaults.
 
-You will use **default parameters** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Default Parameters
-x = chapter_4_demo = True
-print("Default Parameters", x)
+def greet(name, greeting='Hello'):
+    return f'{greeting}, {name}'
 ```
-
-### Hands-on: Default Parameters
-
-1. State **Default Parameters** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Keyword Arguments
 
-> **Definition:** This section explains **Keyword Arguments** — a core idea you will use throughout the chapter.
+> **Definition:** Pass `name=value` to skip order.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Improves readability for many parameters.
 
-You will use **keyword arguments** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Keyword Arguments
-x = chapter_4_demo = True
-print("Keyword Arguments", x)
+greet(name='Ada', greeting='Hi')
 ```
-
-### Hands-on: Keyword Arguments
-
-1. State **Keyword Arguments** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Positional-Only and Keyword-Only Parameters
 
-> **Definition:** This section explains **Positional-Only and Keyword-Only Parameters** — a core idea you will use throughout the chapter.
+> **Definition:** `/` marks positional-only parameters; `*` starts keyword-only parameters (PEP 570).
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Library APIs use this to prevent breaking changes.
 
-You will use **positional-only and keyword-only parameters** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Positional-Only and Keyword-Only Parameters
-x = chapter_4_demo = True
-print("Positional-Only and Keyword-Only Parameters", x)
+def f(a, b, /, c, *, d):
+    return a+b+c+d
 ```
-
-### Hands-on: Positional-Only and Keyword-Only Parameters
-
-1. State **Positional-Only and Keyword-Only Parameters** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## *args and **kwargs
 
-> **Definition:** This section explains ***args and **kwargs** — a core idea you will use throughout the chapter.
+> **Definition:** `*args` collects extra positional tuple; `**kwargs` extra keyword dict.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Used in wrappers and decorators.
 
-You will use ***args and **kwargs** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: *args and **kwargs
-x = chapter_4_demo = True
-print("*args and **kwargs", x)
+def log(*args, **kwargs):
+    print(args, kwargs)
 ```
-
-### Hands-on: *args and **kwargs
-
-1. State ***args and **kwargs** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Unpacking at the Call Site
 
-> **Definition:** This section explains **Unpacking at the Call Site** — a core idea you will use throughout the chapter.
+> **Definition:** `*sequence` and `**mapping` spread into positional and keyword arguments.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Useful when arguments live in collections.
 
-You will use **unpacking at the call site** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Unpacking at the Call Site
-x = chapter_4_demo = True
-print("Unpacking at the Call Site", x)
+def f(a, b):
+    return a+b
+print(f(**{'a':1,'b':2}))
 ```
-
-### Hands-on: Unpacking at the Call Site
-
-1. State **Unpacking at the Call Site** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Scope and the LEGB Rule
 
-> **Definition:** This section explains **Scope and the LEGB Rule** — a core idea you will use throughout the chapter.
+> **Definition:** Python looks up names: **L**ocal, **E**nclosing, **G**lobal, **B**uilt-in.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Assignments create or update bindings in the innermost relevant scope.
 
-You will use **scope and the legb rule** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Scope and the LEGB Rule
-x = chapter_4_demo = True
-print("Scope and the LEGB Rule", x)
+x = 'global'
+def outer():
+    x = 'enclosing'
+    def inner():
+        print(x)
+    inner()
+outer()
 ```
-
-### Hands-on: Scope and the LEGB Rule
-
-1. State **Scope and the LEGB Rule** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## global and nonlocal
 
-> **Definition:** This section explains **global and nonlocal** — a core idea you will use throughout the chapter.
+> **Definition:** `global` updates a module-level name; `nonlocal` updates a variable in an enclosing function.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Prefer passing values explicitly when possible.
 
-You will use **global and nonlocal** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: global and nonlocal
-x = chapter_4_demo = True
-print("global and nonlocal", x)
+def counter():
+    n = 0
+    def inc():
+        nonlocal n
+        n += 1
+        return n
+    return inc
 ```
-
-### Hands-on: global and nonlocal
-
-1. State **global and nonlocal** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Lambda Functions
 
-> **Definition:** This section explains **Lambda Functions** — a core idea you will use throughout the chapter.
+> **Definition:** `lambda args: expression` creates a small anonymous function.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Use for short callbacks; use `def` for anything complex.
 
-You will use **lambda functions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Lambda Functions
-x = chapter_4_demo = True
-print("Lambda Functions", x)
+nums = [1,2,3]
+print(list(map(lambda x: x*x, nums)))
 ```
-
-### Hands-on: Lambda Functions
-
-1. State **Lambda Functions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Type Hints
 
-> **Definition:** This section explains **Type Hints** — a core idea you will use throughout the chapter.
+> **Definition:** Annotations like `def f(x: int) -> str:` help static checkers.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Not enforced at runtime in standard Python.
 
-You will use **type hints** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Type Hints
-x = chapter_4_demo = True
-print("Type Hints", x)
+def slugify(text: str) -> str:
+    return text.lower().replace(' ', '-')
 ```
-
-### Hands-on: Type Hints
-
-1. State **Type Hints** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Docstrings and help()
 
-> **Definition:** This section explains **Docstrings and help()** — a core idea you will use throughout the chapter.
+> **Definition:** A string literal right after `def` is the **docstring** — documentation for `help()` and IDEs.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Describe parameters, return value, and raised errors.
 
-You will use **docstrings and help()** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Docstrings and help()
-x = chapter_4_demo = True
-print("Docstrings and help()", x)
+def add(a, b):
+    '''Return the sum of a and b.'''
+    return a + b
+help(add)
 ```
-
-### Hands-on: Docstrings and help()
-
-1. State **Docstrings and help()** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## First-Class Functions
 
-> **Definition:** This section explains **First-Class Functions** — a core idea you will use throughout the chapter.
+> **Definition:** Functions are objects — assign, store in lists, pass as arguments.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Enables functional patterns.
 
-You will use **first-class functions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: First-Class Functions
-x = chapter_4_demo = True
-print("First-Class Functions", x)
+def apply(fn, x):
+    return fn(x)
+print(apply(lambda v: v+1, 10))
 ```
-
-### Hands-on: First-Class Functions
-
-1. State **First-Class Functions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Recursion
 
-> **Definition:** This section explains **Recursion** — a core idea you will use throughout the chapter.
+> **Definition:** A function calls itself with a smaller problem until a base case.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Use when problem is naturally recursive (trees).
 
-You will use **recursion** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Recursion
-x = chapter_4_demo = True
-print("Recursion", x)
+def fact(n):
+    return 1 if n <= 1 else n * fact(n-1)
 ```
-
-### Hands-on: Recursion
-
-1. State **Recursion** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Mutable Default Arguments
 
-> **Definition:** This section explains **Mutable Default Arguments** — a core idea you will use throughout the chapter.
+> **Definition:** Default values like `[]` are created **once** at function definition time.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Shared mutable defaults cause bugs across calls.
 
-You will use **mutable default arguments** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Mutable Default Arguments
-x = chapter_4_demo = True
-print("Mutable Default Arguments", x)
+def bad(x, items=[]):
+    items.append(x)
+    return items
+print(bad(1), bad(2))  # surprise!
+def good(x, items=None):
+    if items is None: items = []
+    items.append(x)
+    return items
 ```
-
-### Hands-on: Mutable Default Arguments
-
-1. State **Mutable Default Arguments** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_4_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Never use mutable default arguments
+- Keep functions small and named clearly
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_4_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Mutable default `def f(x=[])` | Shared list across calls | Use `None` and create inside |
 
 
 ---

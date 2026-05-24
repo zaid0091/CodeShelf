@@ -38,448 +38,305 @@ tags: [python, lists, dicts, sets]
 
 ## What Is a Data Structure?
 
-> **Definition:** This section explains **What Is a Data Structure?** — a core idea you will use throughout the chapter.
+> **Definition:** A **data structure** is how you organize multiple values in memory (list, dict, set, tuple).
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+The right structure makes code simpler and faster.
 
-You will use **what is a data structure?** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: What Is a Data Structure?
-x = chapter_5_demo = True
-print("What Is a Data Structure?", x)
+users = [{'id':1,'name':'Ada'}]
+print(users[0]['name'])
 ```
-
-### Hands-on: What Is a Data Structure?
-
-1. State **What Is a Data Structure?** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Choosing the Right Structure
 
-> **Definition:** This section explains **Choosing the Right Structure** — a core idea you will use throughout the chapter.
+> **Definition:** Use **list** for ordered sequences, **dict** for lookups by key, **set** for uniqueness, **tuple** for fixed records.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Pick based on operations you need most.
 
-You will use **choosing the right structure** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Choosing the Right Structure
-x = chapter_5_demo = True
-print("Choosing the Right Structure", x)
+tags = {'python', 'web'}
+order = ['first', 'second']
+lookup = {'ada': 98}
 ```
-
-### Hands-on: Choosing the Right Structure
-
-1. State **Choosing the Right Structure** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Lists
 
-> **Definition:** A **list** is an ordered, mutable sequence in square brackets. Use lists when you need to grow, shrink, or reorder items.
+> **Definition:** Ordered, mutable sequences in `[...]`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Workhorse collection type.
 
-You will use **lists** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-items = [10, 20, 30]
-items.append(40)
-print(items[0], items[-1])
+nums = [1,2,3]
+nums.append(4)
+print(nums[0], nums[-1])
 ```
-
-### Hands-on: Lists
-
-1. State **Lists** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## List Methods Reference
 
-> **Definition:** This section explains **List Methods Reference** — a core idea you will use throughout the chapter.
+> **Definition:** Common methods: `.append`, `.extend`, `.insert`, `.pop`, `.sort`, `.reverse`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Most list methods mutate in place.
 
-You will use **list methods reference** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: List Methods Reference
-x = chapter_5_demo = True
-print("List Methods Reference", x)
+items = [3,1,2]
+items.sort()
+print(items)
 ```
-
-### Hands-on: List Methods Reference
-
-1. State **List Methods Reference** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Slicing Sequences
 
-> **Definition:** This section explains **Slicing Sequences** — a core idea you will use throughout the chapter.
+> **Definition:** `seq[start:stop:step]` extracts sub-sequences; stop is exclusive.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Works on lists, tuples, and strings.
 
-You will use **slicing sequences** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Slicing Sequences
-x = chapter_5_demo = True
-print("Slicing Sequences", x)
+a = [0,1,2,3,4]
+print(a[1:4], a[::-1])
 ```
-
-### Hands-on: Slicing Sequences
-
-1. State **Slicing Sequences** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Tuples
 
-> **Definition:** This section explains **Tuples** — a core idea you will use throughout the chapter.
+> **Definition:** Ordered, **immutable** sequences in `(...)`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Records, dict keys, return multiple values.
 
-You will use **tuples** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Tuples
-x = chapter_5_demo = True
-print("Tuples", x)
+point = (10, 20)
+x, y = point
 ```
-
-### Hands-on: Tuples
-
-1. State **Tuples** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Dictionaries
 
-> **Definition:** A **dictionary** maps unique keys to values with fast average lookup — perfect for records, caches, and counts.
+> **Definition:** Hash map: unique keys → values.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Fast lookup by key.
 
-You will use **dictionaries** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-user = {"name": "Sam", "role": "admin"}
-user["active"] = True
-print(user.get("phone", "N/A"))
+user = {'name':'Sam','role':'admin'}
+print(user.get('phone', 'n/a'))
 ```
-
-### Hands-on: Dictionaries
-
-1. State **Dictionaries** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Dictionary Methods and Patterns
 
-> **Definition:** This section explains **Dictionary Methods and Patterns** — a core idea you will use throughout the chapter.
+> **Definition:** Use `.get`, `.items`, `.setdefault`, and `.update` for safe, clear dict code.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Iterate with `.items()` when you need both key and value.
 
-You will use **dictionary methods and patterns** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Dictionary Methods and Patterns
-x = chapter_5_demo = True
-print("Dictionary Methods and Patterns", x)
+counts = {}
+for word in ['a','b','a']:
+    counts[word] = counts.get(word, 0) + 1
 ```
-
-### Hands-on: Dictionary Methods and Patterns
-
-1. State **Dictionary Methods and Patterns** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Sets
 
-> **Definition:** This section explains **Sets** — a core idea you will use throughout the chapter.
+> **Definition:** Unordered collection of **unique** hashable items.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Membership and deduplication.
 
-You will use **sets** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Sets
-x = chapter_5_demo = True
-print("Sets", x)
+tags = {'py','web','py'}
+print(tags, len(tags))
 ```
-
-### Hands-on: Sets
-
-1. State **Sets** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Set Operations
 
-> **Definition:** This section explains **Set Operations** — a core idea you will use throughout the chapter.
+> **Definition:** Union `|`, intersection `&`, difference `-`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Compare categories without nested loops.
 
-You will use **set operations** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Set Operations
-x = chapter_5_demo = True
-print("Set Operations", x)
+a, b = {1,2}, {2,3}
+print(a & b, a | b)
 ```
-
-### Hands-on: Set Operations
-
-1. State **Set Operations** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Nested Structures
 
-> **Definition:** This section explains **Nested Structures** — a core idea you will use throughout the chapter.
+> **Definition:** Lists of dicts, dicts of lists — model real JSON-like data.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Access with chained `[][]` carefully.
 
-You will use **nested structures** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Nested Structures
-x = chapter_5_demo = True
-print("Nested Structures", x)
+data = {'users':[{'id':1}]}
+print(data['users'][0]['id'])
 ```
-
-### Hands-on: Nested Structures
-
-1. State **Nested Structures** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Copying: Shallow vs Deep
 
-> **Definition:** This section explains **Copying: Shallow vs Deep** — a core idea you will use throughout the chapter.
+> **Definition:** Assignment copies reference. `copy.copy` shallow; `copy.deepcopy` recursive.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Nested mutations need deep copy.
 
-You will use **copying: shallow vs deep** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Copying: Shallow vs Deep
-x = chapter_5_demo = True
-print("Copying: Shallow vs Deep", x)
+import copy
+a = [[1]]
+b = copy.deepcopy(a)
+a[0][0] = 9
+print(b)
 ```
-
-### Hands-on: Copying: Shallow vs Deep
-
-1. State **Copying: Shallow vs Deep** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Sorting Data
 
-> **Definition:** This section explains **Sorting Data** — a core idea you will use throughout the chapter.
+> **Definition:** `sorted(iterable)` returns new list; `.sort()` mutates list in place.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Pass `key=` for custom order.
 
-You will use **sorting data** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Sorting Data
-x = chapter_5_demo = True
-print("Sorting Data", x)
+print(sorted(['banana','apple'], key=len))
 ```
-
-### Hands-on: Sorting Data
-
-1. State **Sorting Data** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The collections Module
 
-> **Definition:** This section explains **The collections Module** — a core idea you will use throughout the chapter.
+> **Definition:** Specialized containers: `Counter`, `defaultdict`, `deque`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Stdlib batteries for common patterns.
 
-You will use **the collections module** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The collections Module
-x = chapter_5_demo = True
-print("The collections Module", x)
+from collections import Counter
+print(Counter('abracadabra').most_common(2))
 ```
-
-### Hands-on: The collections Module
-
-1. State **The collections Module** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_5_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Use `.get()` on dicts for optional keys
+- Choose tuple for fixed records
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_5_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Shallow copy nested list | Shared inner objects | Use `deepcopy` |
 
 
 ---

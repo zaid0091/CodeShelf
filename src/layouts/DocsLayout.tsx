@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react'
 import { ReactLenis } from 'lenis/react'
 import { Sidebar } from '@/components/Sidebar'
 import { SearchBar } from '@/components/SearchBar'
-import { ButtonLink } from '@/components/ui/Button'
+import { NavbarButtonLink, NavbarIconButton } from '@/components/ui/NavbarButton'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { useLenisScrolled } from '@/hooks/useLenisScrolled'
@@ -28,13 +28,14 @@ function DocsNavbar({
       }`}
     >
       <div className="flex items-center gap-4 px-5 py-4 lg:px-8">
-        <button
+        <NavbarIconButton
+          tone="light"
           onClick={onOpenSidebar}
-          className="lg:hidden flex h-11 w-11 items-center justify-center rounded-pill border border-hairline-light text-shade-50 hover:bg-shade-30/40 transition-colors"
+          className="lg:hidden"
           aria-label="Open sidebar"
         >
           <Menu size={18} strokeWidth={1.5} />
-        </button>
+        </NavbarIconButton>
 
         <Link to="/" className="font-logo text-xl text-ink shrink-0">
           CodeShelf
@@ -44,9 +45,9 @@ function DocsNavbar({
           <SearchBar onNavigate={onNavigate} />
         </div>
 
-        <ButtonLink to="/" variant="outline-on-light" className="!py-2 !px-4 text-sm hidden sm:inline-flex">
+        <NavbarButtonLink to="/" tone="light" className="hidden sm:inline-flex">
           Home
-        </ButtonLink>
+        </NavbarButtonLink>
       </div>
     </header>
   )

@@ -1046,39 +1046,3 @@ def fizzbuzz(n):
         print(out or i)
 ```"""),
 }
-
-
-def filler_appendix(chapter: int, need_lines: int) -> str:
-    """Generate additional study material to reach TARGET_MIN lines."""
-    blocks = []
-    blocks.append(f"## Extended Study Appendix (Chapter {chapter})\n")
-    blocks.append(
-        "> Spaced repetition section — revisit after 24 hours and again after one week.\n"
-    )
-    n = max(1, need_lines // 40)
-    for i in range(1, n + 1):
-        blocks.append(
-            subsection(
-                f"Review drill {i}",
-                f"""**Concept check {i}:** Explain one idea from this chapter without looking at notes.
-
-```python
-# Practice snippet {i} — type and run
-values = list(range({i}, {i} + 5))
-print([v * 2 for v in values if v % 2 == 0])
-```
-
-**Interview mini-prompt:** How would you teach this concept to a junior developer in two minutes?
-
-**Real-world link:** Where would this appear in a web API, data script, or automation task?
-
-""",
-            )
-        )
-    blocks.append(
-        subsection(
-            "Official documentation",
-            "Bookmark [docs.python.org/3/](https://docs.python.org/3/) — the tutorial and library reference are authoritative.\n",
-        )
-    )
-    return "\n".join(blocks)

@@ -40,503 +40,338 @@ tags: [python, comprehensions, generators]
 
 ## What Are Comprehensions?
 
-> **Definition:** This section explains **What Are Comprehensions?** — a core idea you will use throughout the chapter.
+> **Definition:** Comprehensions build collections from iterables in one expression.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+More readable than manual append loops for transforms.
 
-You will use **what are comprehensions?** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: What Are Comprehensions?
-x = chapter_6_demo = True
-print("What Are Comprehensions?", x)
+squares = [n*n for n in range(5)]
+print(squares)
 ```
-
-### Hands-on: What Are Comprehensions?
-
-1. State **What Are Comprehensions?** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Why Comprehensions Exist
 
-> **Definition:** This section explains **Why Comprehensions Exist** — a core idea you will use throughout the chapter.
+> **Definition:** They express map/filter logic declaratively.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Idiomatic Python — reviewers expect them.
 
-You will use **why comprehensions exist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Why Comprehensions Exist
-x = chapter_6_demo = True
-print("Why Comprehensions Exist", x)
+evens = [n for n in range(10) if n % 2 == 0]
 ```
-
-### Hands-on: Why Comprehensions Exist
-
-1. State **Why Comprehensions Exist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## List Comprehensions
 
-> **Definition:** List comprehensions combine a **loop**, optional **filter**, and **expression** into one line — the idiomatic way to transform sequences.
+> **Definition:** `[expr for item in iterable if cond]`.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Filter with trailing `if`; ternary before `for`.
 
-You will use **list comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-squares = [n * n for n in range(8)]
-evens = [n for n in range(20) if n % 2 == 0]
+names = ['ada','bob']
+upper = [n.upper() for n in names]
 ```
-
-### Hands-on: List Comprehensions
-
-1. State **List Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Filtering with if
 
-> **Definition:** This section explains **Filtering with if** — a core idea you will use throughout the chapter.
+> **Definition:** Trailing `if` keeps items matching a condition.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Equivalent to filter + list.
 
-You will use **filtering with if** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Filtering with if
-x = chapter_6_demo = True
-print("Filtering with if", x)
+nums = [1,2,3,4,5]
+print([n for n in nums if n % 2])
 ```
-
-### Hands-on: Filtering with if
-
-1. State **Filtering with if** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Conditional Expressions in Comprehensions
 
-> **Definition:** This section explains **Conditional Expressions in Comprehensions** — a core idea you will use throughout the chapter.
+> **Definition:** `[a if cond else b for x in xs]` chooses per item.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Do not confuse with filter `if`.
 
-You will use **conditional expressions in comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Conditional Expressions in Comprehensions
-x = chapter_6_demo = True
-print("Conditional Expressions in Comprehensions", x)
+labels = ['even' if n%2==0 else 'odd' for n in range(4)]
 ```
-
-### Hands-on: Conditional Expressions in Comprehensions
-
-1. State **Conditional Expressions in Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Dict Comprehensions
 
-> **Definition:** This section explains **Dict Comprehensions** — a core idea you will use throughout the chapter.
+> **Definition:** `{k: v for ...}` builds dicts.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Invert or transform mappings.
 
-You will use **dict comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Dict Comprehensions
-x = chapter_6_demo = True
-print("Dict Comprehensions", x)
+nums = [1,2,3]
+print({n: n*n for n in nums})
 ```
-
-### Hands-on: Dict Comprehensions
-
-1. State **Dict Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Set Comprehensions
 
-> **Definition:** This section explains **Set Comprehensions** — a core idea you will use throughout the chapter.
+> **Definition:** `{expr for ...}` — unique results.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Deduplicate while transforming.
 
-You will use **set comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Set Comprehensions
-x = chapter_6_demo = True
-print("Set Comprehensions", x)
+print({len(w) for w in ['hi','hey','yo']})
 ```
-
-### Hands-on: Set Comprehensions
-
-1. State **Set Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Generator Expressions
 
-> **Definition:** This section explains **Generator Expressions** — a core idea you will use throughout the chapter.
+> **Definition:** `(x for x in it)` like list comp but lazy.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Pass to `sum`, `max`, etc.
 
-You will use **generator expressions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Generator Expressions
-x = chapter_6_demo = True
-print("Generator Expressions", x)
+print(sum(x*x for x in range(1000)))
 ```
-
-### Hands-on: Generator Expressions
-
-1. State **Generator Expressions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Nested Comprehensions
 
-> **Definition:** This section explains **Nested Comprehensions** — a core idea you will use throughout the chapter.
+> **Definition:** Loops read left-to-right like nested fors.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Keep depth ≤ 2 for readability.
 
-You will use **nested comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Nested Comprehensions
-x = chapter_6_demo = True
-print("Nested Comprehensions", x)
+matrix = [[1,2],[3,4]]
+flat = [x for row in matrix for x in row]
 ```
-
-### Hands-on: Nested Comprehensions
-
-1. State **Nested Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Comprehensions vs Loops
 
-> **Definition:** This section explains **Comprehensions vs Loops** — a core idea you will use throughout the chapter.
+> **Definition:** Use comprehension for simple transform/filter; loop for side effects.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+If you need `break`, use a loop.
 
-You will use **comprehensions vs loops** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Comprehensions vs Loops
-x = chapter_6_demo = True
-print("Comprehensions vs Loops", x)
+# side effect -> loop
+for u in users:
+    send_email(u)
 ```
-
-### Hands-on: Comprehensions vs Loops
-
-1. State **Comprehensions vs Loops** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Comprehensions vs map and filter
 
-> **Definition:** This section explains **Comprehensions vs map and filter** — a core idea you will use throughout the chapter.
+> **Definition:** `map`/`filter` return iterators; comprehensions are more Pythonic.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Still useful with existing functions.
 
-You will use **comprehensions vs map and filter** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Comprehensions vs map and filter
-x = chapter_6_demo = True
-print("Comprehensions vs map and filter", x)
+print(list(map(str, [1,2,3])))
 ```
-
-### Hands-on: Comprehensions vs map and filter
-
-1. State **Comprehensions vs map and filter** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Walrus Operator in Comprehensions
 
-> **Definition:** This section explains **Walrus Operator in Comprehensions** — a core idea you will use throughout the chapter.
+> **Definition:** `:=` assigns inside an expression (3.8+).
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Avoid repeating expensive calls.
 
-You will use **walrus operator in comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Walrus Operator in Comprehensions
-x = chapter_6_demo = True
-print("Walrus Operator in Comprehensions", x)
+import random
+nums = [random.random() for _ in range(5)]
+filtered = [y for x in nums if (y := round(x,2)) > 0.5]
 ```
-
-### Hands-on: Walrus Operator in Comprehensions
-
-1. State **Walrus Operator in Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Real-World Examples
 
-> **Definition:** This section explains **Real-World Examples** — a core idea you will use throughout the chapter.
+> **Definition:** Parse logs, normalize CSV rows, build lookup tables.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Comprehensions shine in ETL scripts.
 
-You will use **real-world examples** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Real-World Examples
-x = chapter_6_demo = True
-print("Real-World Examples", x)
+rows = ['1,Ada','2,Bob']
+users = {int(r.split(',')[0]): r.split(',')[1] for r in rows}
 ```
-
-### Hands-on: Real-World Examples
-
-1. State **Real-World Examples** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Performance and Memory
 
-> **Definition:** This section explains **Performance and Memory** — a core idea you will use throughout the chapter.
+> **Definition:** List comps build full list; generators stream.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Profile before micro-optimizing.
 
-You will use **performance and memory** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Performance and Memory
-x = chapter_6_demo = True
-print("Performance and Memory", x)
+import sys
+print(sys.getsizeof([n for n in range(1000)]))
 ```
-
-### Hands-on: Performance and Memory
-
-1. State **Performance and Memory** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_6_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Prefer generator expressions for large streams
+- Do not nest more than two levels
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_6_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Confusing filter if vs ternary | Wrong output | Filter after `for`; ternary before `for` |
 
 
 ---
 
 ## Debugging Comprehensions
 
-> **Definition:** This section explains **Debugging Comprehensions** — a core idea you will use throughout the chapter.
+> **Definition:** Expand to a loop temporarily to print intermediate values.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Read inside-out: result, condition, source.
 
-You will use **debugging comprehensions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Debugging Comprehensions
-x = chapter_6_demo = True
-print("Debugging Comprehensions", x)
+# debug version
+out = []
+for n in range(5):
+    if n % 2: out.append(n)
+print(out)
 ```
-
-### Hands-on: Debugging Comprehensions
-
-1. State **Debugging Comprehensions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Reading Comprehensions Aloud
 
-> **Definition:** This section explains **Reading Comprehensions Aloud** — a core idea you will use throughout the chapter.
+> **Definition:** Say: 'a list of EXPR for ITEM in ITER if COND'.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Practice decoding others' code.
 
-You will use **reading comprehensions aloud** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Reading Comprehensions Aloud
-x = chapter_6_demo = True
-print("Reading Comprehensions Aloud", x)
+result = [c.upper() for c in 'abc' if c != 'b']
 ```
-
-### Hands-on: Reading Comprehensions Aloud
-
-1. State **Reading Comprehensions Aloud** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---

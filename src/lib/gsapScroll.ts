@@ -36,6 +36,10 @@ function initRevealAnimations(scroller?: HTMLElement) {
       x: 0,
       y: 0,
       scale: 1,
+      onComplete: () => {
+        el.classList.add('is-revealed')
+        el.dataset.scrollRevealed = 'true'
+      },
       scrollTrigger: {
         trigger: el,
         scroller: scroller ?? undefined,

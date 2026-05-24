@@ -42,561 +42,406 @@ tags: [python, exceptions, errors]
 
 ## Errors vs Exceptions
 
-> **Definition:** This section explains **Errors vs Exceptions** — a core idea you will use throughout the chapter.
+> **Definition:** **Syntax errors** fail before run; **exceptions** occur at runtime.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Exceptions can be caught and handled.
 
-You will use **errors vs exceptions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Errors vs Exceptions
-x = chapter_10_demo = True
-print("Errors vs Exceptions", x)
+try:
+    1/0
+except ZeroDivisionError:
+    print('handled')
 ```
-
-### Hands-on: Errors vs Exceptions
-
-1. State **Errors vs Exceptions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## How Exceptions Propagate
 
-> **Definition:** This section explains **How Exceptions Propagate** — a core idea you will use throughout the chapter.
+> **Definition:** Uncaught exceptions bubble up the call stack.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Tracebacks show the chain.
 
-You will use **how exceptions propagate** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: How Exceptions Propagate
-x = chapter_10_demo = True
-print("How Exceptions Propagate", x)
+def inner():
+    raise ValueError('bad')
+def outer():
+    inner()
 ```
-
-### Hands-on: How Exceptions Propagate
-
-1. State **How Exceptions Propagate** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## try / except Basics
 
-> **Definition:** Wrap risky code in `try` and handle expected failures in `except` so users see helpful messages instead of crashes.
+> **Definition:** Wrap risky code in `try`; handle in `except`.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Recover or show friendly errors.
 
-You will use **try / except basics** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
 try:
-    value = int(input("Number: "))
+    n = int('x')
 except ValueError:
-    print("Please enter digits only.")
+    n = 0
 ```
-
-### Hands-on: try / except Basics
-
-1. State **try / except Basics** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## else and finally Clauses
 
-> **Definition:** This section explains **else and finally Clauses** — a core idea you will use throughout the chapter.
+> **Definition:** `else` runs if no exception; `finally` always runs.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Use `finally` for cleanup.
 
-You will use **else and finally clauses** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: else and finally Clauses
-x = chapter_10_demo = True
-print("else and finally Clauses", x)
+try:
+    f = open('t.txt')
+except FileNotFoundError:
+    pass
+finally:
+    print('done')
 ```
-
-### Hands-on: else and finally Clauses
-
-1. State **else and finally Clauses** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Catching Multiple Exceptions
 
-> **Definition:** This section explains **Catching Multiple Exceptions** — a core idea you will use throughout the chapter.
+> **Definition:** Tuple of types or multiple `except` blocks.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Catch specific types first.
 
-You will use **catching multiple exceptions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Catching Multiple Exceptions
-x = chapter_10_demo = True
-print("Catching Multiple Exceptions", x)
+try:
+    risky()
+except (ValueError, TypeError) as e:
+    print(e)
 ```
-
-### Hands-on: Catching Multiple Exceptions
-
-1. State **Catching Multiple Exceptions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Exception Objects and as
 
-> **Definition:** This section explains **Exception Objects and as** — a core idea you will use throughout the chapter.
+> **Definition:** `except E as e` binds the instance.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Log `e` or its args.
 
-You will use **exception objects and as** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Exception Objects and as
-x = chapter_10_demo = True
-print("Exception Objects and as", x)
+try:
+    {}
+except KeyError as e:
+    print(repr(e))
 ```
-
-### Hands-on: Exception Objects and as
-
-1. State **Exception Objects and as** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Raising Exceptions
 
-> **Definition:** This section explains **Raising Exceptions** — a core idea you will use throughout the chapter.
+> **Definition:** `raise ValueError('msg')` signals errors.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Validate inputs early.
 
-You will use **raising exceptions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Raising Exceptions
-x = chapter_10_demo = True
-print("Raising Exceptions", x)
+def withdraw(amount):
+    if amount < 0:
+        raise ValueError('negative')
 ```
-
-### Hands-on: Raising Exceptions
-
-1. State **Raising Exceptions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Custom Exception Classes
 
-> **Definition:** This section explains **Custom Exception Classes** — a core idea you will use throughout the chapter.
+> **Definition:** Subclass `Exception` for domain errors.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Callers catch your type specifically.
 
-You will use **custom exception classes** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Custom Exception Classes
-x = chapter_10_demo = True
-print("Custom Exception Classes", x)
+class PaymentError(Exception):
+    pass
+raise PaymentError('declined')
 ```
-
-### Hands-on: Custom Exception Classes
-
-1. State **Custom Exception Classes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The Exception Hierarchy
 
-> **Definition:** This section explains **The Exception Hierarchy** — a core idea you will use throughout the chapter.
+> **Definition:** Catch `Exception` broadly; subclass for precision.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Do not catch `BaseException` unless you know why.
 
-You will use **the exception hierarchy** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The Exception Hierarchy
-x = chapter_10_demo = True
-print("The Exception Hierarchy", x)
+print(issubclass(ValueError, Exception))
 ```
-
-### Hands-on: The Exception Hierarchy
-
-1. State **The Exception Hierarchy** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Re-raising and Exception Chaining
 
-> **Definition:** This section explains **Re-raising and Exception Chaining** — a core idea you will use throughout the chapter.
+> **Definition:** `raise` from `e` preserves context.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Debugging across layers.
 
-You will use **re-raising and exception chaining** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Re-raising and Exception Chaining
-x = chapter_10_demo = True
-print("Re-raising and Exception Chaining", x)
+try:
+    int('x')
+except ValueError as e:
+    raise RuntimeError('bad input') from e
 ```
-
-### Hands-on: Re-raising and Exception Chaining
-
-1. State **Re-raising and Exception Chaining** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Assertions
 
-> **Definition:** This section explains **Assertions** — a core idea you will use throughout the chapter.
+> **Definition:** `assert cond, msg` for developer checks (can be disabled with -O).
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Not for user input validation.
 
-You will use **assertions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Assertions
-x = chapter_10_demo = True
-print("Assertions", x)
+assert 2 + 2 == 4
 ```
-
-### Hands-on: Assertions
-
-1. State **Assertions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## EAFP vs LBYL
 
-> **Definition:** This section explains **EAFP vs LBYL** — a core idea you will use throughout the chapter.
+> **Definition:** **Easier to ask forgiveness** — try/except; **look before you leap** — check first.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Python culture prefers EAFP.
 
-You will use **eafp vs lbyl** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: EAFP vs LBYL
-x = chapter_10_demo = True
-print("EAFP vs LBYL", x)
+try:
+    return d[key]
+except KeyError:
+    return default
 ```
-
-### Hands-on: EAFP vs LBYL
-
-1. State **EAFP vs LBYL** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Context Managers
 
-> **Definition:** This section explains **Context Managers** — a core idea you will use throughout the chapter.
+> **Definition:** `with` ensures setup/teardown.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Files, locks, DB connections.
 
-You will use **context managers** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Context Managers
-x = chapter_10_demo = True
-print("Context Managers", x)
+with open('f.txt') as f:
+    use(f)
 ```
-
-### Hands-on: Context Managers
-
-1. State **Context Managers** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## contextlib Utilities
 
-> **Definition:** This section explains **contextlib Utilities** — a core idea you will use throughout the chapter.
+> **Definition:** `contextlib.contextmanager` builds managers from generators.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Reuse cleanup patterns.
 
-You will use **contextlib utilities** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: contextlib Utilities
-x = chapter_10_demo = True
-print("contextlib Utilities", x)
+from contextlib import contextmanager
+@contextmanager
+def tag(name):
+    print(f'<{name}>')
+    yield
+    print(f'</{name}>')
 ```
-
-### Hands-on: contextlib Utilities
-
-1. State **contextlib Utilities** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Exceptions in Real Applications
 
-> **Definition:** This section explains **Exceptions in Real Applications** — a core idea you will use throughout the chapter.
+> **Definition:** Map errors to HTTP status or user messages.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Log stack traces server-side only.
 
-You will use **exceptions in real applications** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Exceptions in Real Applications
-x = chapter_10_demo = True
-print("Exceptions in Real Applications", x)
+def api_handler():
+    try:
+        return process()
+    except ValidationError as e:
+        return {'error': str(e)}, 400
 ```
-
-### Hands-on: Exceptions in Real Applications
-
-1. State **Exceptions in Real Applications** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_10_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Catch specific exceptions
+- Use finally for cleanup
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_10_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Bare except: | Hides bugs | except Exception as e: |
 
 
 ---
 
 ## Reading Tracebacks
 
-> **Definition:** This section explains **Reading Tracebacks** — a core idea you will use throughout the chapter.
+> **Definition:** Read **bottom** line first (where it started), then up.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Search the message and line number.
 
-You will use **reading tracebacks** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Reading Tracebacks
-x = chapter_10_demo = True
-print("Reading Tracebacks", x)
+# practice reading Traceback in REPL
 ```
-
-### Hands-on: Reading Tracebacks
-
-1. State **Reading Tracebacks** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Exception Handling in APIs
 
-> **Definition:** This section explains **Exception Handling in APIs** — a core idea you will use throughout the chapter.
+> **Definition:** Return structured errors; never bare 500 without logging.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Consistent JSON error shape.
 
-You will use **exception handling in apis** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Exception Handling in APIs
-x = chapter_10_demo = True
-print("Exception Handling in APIs", x)
+{'error': {'code': 'NOT_FOUND', 'message': '...'}}
 ```
-
-### Hands-on: Exception Handling in APIs
-
-1. State **Exception Handling in APIs** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Logging Exceptions
 
-> **Definition:** This section explains **Logging Exceptions** — a core idea you will use throughout the chapter.
+> **Definition:** Use `logging.exception` inside `except` to include traceback.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Better than `print` in production.
 
-You will use **logging exceptions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Logging Exceptions
-x = chapter_10_demo = True
-print("Logging Exceptions", x)
+import logging
+log = logging.getLogger(__name__)
+try:
+    1/0
+except ZeroDivisionError:
+    log.exception('failed')
 ```
-
-### Hands-on: Logging Exceptions
-
-1. State **Logging Exceptions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
@@ -755,36 +600,6 @@ def set_age(age):
 
 </details>
 
-
-## Extended Study Appendix (Chapter 10)
-
-> Spaced repetition section — revisit after 24 hours and again after one week.
-
-### Review drill 1
-
-**Concept check 1:** Explain one idea from this chapter without looking at notes.
-
-```python
-# Practice snippet 1 — type and run
-values = list(range(1, 1 + 5))
-print([v * 2 for v in values if v % 2 == 0])
-```
-
-**Interview mini-prompt:** How would you teach this concept to a junior developer in two minutes?
-
-**Real-world link:** Where would this appear in a web API, data script, or automation task?
-
-
-
-
-### Official documentation
-
-Bookmark [docs.python.org/3/](https://docs.python.org/3/) — the tutorial and library reference are authoritative.
-
-
-
-
----
 
 ## Chapter Summary
 

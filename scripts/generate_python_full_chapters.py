@@ -17,10 +17,10 @@ from python_chapter_utils import (
     walkthrough,
     welcome,
 )
-from python_expansions import EXERCISES_BY_CHAPTER, INTERVIEWS_BY_CHAPTER, filler_appendix
+from python_expansions import EXERCISES_BY_CHAPTER, INTERVIEWS_BY_CHAPTER
 
-TARGET_MIN = 800
-TARGET_MAX = 1200
+TARGET_MIN = 400
+TARGET_MAX = 2500
 
 OUT = Path(__file__).resolve().parents[1] / "content" / "python"
 
@@ -637,37 +637,39 @@ TOPIC_INTROS: dict[str, str] = {
 }
 
 
+_TOPIC_CACHE: tuple[dict[str, str], dict[int, str], dict[int, str]] | None = None
+
+
+def _topic_content() -> tuple[dict[str, str], dict[int, str], dict[int, str]]:
+    global _TOPIC_CACHE
+    if _TOPIC_CACHE is None:
+        from make_python_bodies import get_topic_content
+
+        _TOPIC_CACHE = get_topic_content()
+    return _TOPIC_CACHE
+
+
 def topic_body(chapter: int, topic: str) -> str:
-    """Generate rich section body for a topic (~35-55 lines)."""
-    code = CODE_SNIPPETS.get(topic, f'''```python
-# Example related to: {topic}
-x = chapter_{chapter}_demo = True
-print("{topic}", x)
-```'''.replace("chapter_{chapter}_demo", "True"))
+    """Return real educational content for a topic section."""
+    topic_bodies, best_practices, common_mistakes = _topic_content()
 
-    analogies = [
-        "Think of this like a **labeled drawer** in a desk — you know exactly where to look.",
-        "Like a **recipe step** in a cookbook — order and clarity prevent mistakes.",
-        "Like traffic **signals** — rules keep many moving parts safe and predictable.",
-        "Like LEGO **instruction booklets** — small standard pieces combine into big systems.",
-    ]
-    analogy = analogies[hash(topic) % len(analogies)]
+    if topic == "Best Practices" and chapter in best_practices:
+        return best_practices[chapter]
+    if topic == "Common Mistakes" and chapter in common_mistakes:
+        return common_mistakes[chapter]
 
-    steps = [
-        f"State **{topic}** in your own words.",
-        "Type the example; change one value and predict the output.",
-        "Note one real project where this concept appears.",
-    ]
+    if topic in topic_bodies:
+        return topic_bodies[topic]
 
-    intro = TOPIC_INTROS.get(topic, f"This section explains **{topic}** — a core idea you will use throughout the chapter.")
-    return (
-        defn(intro)
-        + subsection(
-            "Real-world analogy",
-            f"{analogy}\n\nYou will use **{topic.lower()}** in scripts, APIs, and data tasks.",
+    if topic in TOPIC_INTROS and topic in CODE_SNIPPETS:
+        return (
+            defn(TOPIC_INTROS[topic])
+            + subsection("Example", CODE_SNIPPETS[topic])
         )
-        + subsection("Example", code)
-        + walkthrough(f"Hands-on: {topic}", steps)
+
+    raise KeyError(
+        f"Missing topic body for chapter {chapter}: {topic!r}. "
+        "Add it to scripts/python_body_data.py (or CH1 in make_python_bodies.py)"
     )
 
 
@@ -705,17 +707,16 @@ def build_chapter(num: int) -> str:
     elif nxt:
         parts.append(f"## Next Chapter\n\n**➡️ [Next: {nxt[1]} →](./{nxt[0]})**\n\n---\n\n")
     parts.append("\n*Chapter of the Complete Python Guide | CodeShelf*\n")
-    text = "".join(parts)
-    lines = text.count("\n") + 1
-    if lines < TARGET_MIN:
-        appendix = filler_appendix(num, TARGET_MIN - lines + 30)
-        marker = "## Chapter Summary"
-        text = text.replace(marker, appendix + "\n\n---\n\n" + marker, 1)
-    return text
+    return "".join(parts)
 
 
 def main() -> None:
     for num in range(1, 15):
+        if num == 8:
+            ch8 = OUT / "ch08-modules-packages.md"
+            if ch8.exists() and "chapter_8_demo" not in ch8.read_text(encoding="utf-8"):
+                print(f"{ch8.name}: skipped (hand-written)")
+                continue
         text = build_chapter(num)
         slug = {
             1: "python-basics",

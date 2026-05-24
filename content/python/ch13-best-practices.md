@@ -43,588 +43,408 @@ tags: [python, best-practices, testing]
 
 ## The Zen of Python
 
-> **Definition:** This section explains **The Zen of Python** — a core idea you will use throughout the chapter.
+> **Definition:** Run `import this` for design principles.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Readability counts.
 
-You will use **the zen of python** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The Zen of Python
-x = chapter_13_demo = True
-print("The Zen of Python", x)
+import this
 ```
-
-### Hands-on: The Zen of Python
-
-1. State **The Zen of Python** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Readability and Maintainability
 
-> **Definition:** This section explains **Readability and Maintainability** — a core idea you will use throughout the chapter.
+> **Definition:** Code is read more than written.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Clear beats clever.
 
-You will use **readability and maintainability** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Readability and Maintainability
-x = chapter_13_demo = True
-print("Readability and Maintainability", x)
+# prefer explicit names over cryptic abbreviations
 ```
-
-### Hands-on: Readability and Maintainability
-
-1. State **Readability and Maintainability** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## PEP 8 Style Guide
 
-> **Definition:** This section explains **PEP 8 Style Guide** — a core idea you will use throughout the chapter.
+> **Definition:** Official conventions for layout and naming.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Use black/ruff to automate.
 
-You will use **pep 8 style guide** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: PEP 8 Style Guide
-x = chapter_13_demo = True
-print("PEP 8 Style Guide", x)
+# 4 spaces, two blank lines between top-level defs
 ```
-
-### Hands-on: PEP 8 Style Guide
-
-1. State **PEP 8 Style Guide** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Naming Conventions
 
-> **Definition:** This section explains **Naming Conventions** — a core idea you will use throughout the chapter.
+> **Definition:** snake_case functions, CapWords classes, UPPER constants.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Consistency across modules.
 
-You will use **naming conventions** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Naming Conventions
-x = chapter_13_demo = True
-print("Naming Conventions", x)
+MAX_RETRIES = 3
+def fetch_data(): ...
 ```
-
-### Hands-on: Naming Conventions
-
-1. State **Naming Conventions** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Imports and Module Structure
 
-> **Definition:** This section explains **Imports and Module Structure** — a core idea you will use throughout the chapter.
+> **Definition:** stdlib, third-party, local — blank line between groups.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Absolute imports preferred.
 
-You will use **imports and module structure** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Imports and Module Structure
-x = chapter_13_demo = True
-print("Imports and Module Structure", x)
+import os
+from pathlib import Path
+from myapp import utils
 ```
-
-### Hands-on: Imports and Module Structure
-
-1. State **Imports and Module Structure** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Formatting Tools: black and ruff
 
-> **Definition:** This section explains **Formatting Tools: black and ruff** — a core idea you will use throughout the chapter.
+> **Definition:** Auto-format and lint.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Run in CI and pre-commit.
 
-You will use **formatting tools: black and ruff** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Formatting Tools: black and ruff
-x = chapter_13_demo = True
-print("Formatting Tools: black and ruff", x)
+# ruff check .
+# black .
 ```
-
-### Hands-on: Formatting Tools: black and ruff
-
-1. State **Formatting Tools: black and ruff** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Type Hints Fundamentals
 
-> **Definition:** This section explains **Type Hints Fundamentals** — a core idea you will use throughout the chapter.
+> **Definition:** Annotate parameters and returns.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+mypy catches bugs early.
 
-You will use **type hints fundamentals** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Type Hints Fundamentals
-x = chapter_13_demo = True
-print("Type Hints Fundamentals", x)
+def greet(name: str) -> str:
+    return f'Hi {name}'
 ```
-
-### Hands-on: Type Hints Fundamentals
-
-1. State **Type Hints Fundamentals** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Static Analysis with mypy
 
-> **Definition:** This section explains **Static Analysis with mypy** — a core idea you will use throughout the chapter.
+> **Definition:** Type checker without running code.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Add gradually to legacy projects.
 
-You will use **static analysis with mypy** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Static Analysis with mypy
-x = chapter_13_demo = True
-print("Static Analysis with mypy", x)
+# mypy src/
 ```
-
-### Hands-on: Static Analysis with mypy
-
-1. State **Static Analysis with mypy** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Project Layout Patterns
 
-> **Definition:** This section explains **Project Layout Patterns** — a core idea you will use throughout the chapter.
+> **Definition:** src layout, tests beside or under tests/.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Document in README.
 
-You will use **project layout patterns** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Project Layout Patterns
-x = chapter_13_demo = True
-print("Project Layout Patterns", x)
+src/myapp/__init__.py
 ```
-
-### Hands-on: Project Layout Patterns
-
-1. State **Project Layout Patterns** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Documentation and Docstrings
 
-> **Definition:** This section explains **Documentation and Docstrings** — a core idea you will use throughout the chapter.
+> **Definition:** Google or NumPy docstring styles.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Generate docs with Sphinx/MkDocs.
 
-You will use **documentation and docstrings** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Documentation and Docstrings
-x = chapter_13_demo = True
-print("Documentation and Docstrings", x)
+def fn():
+    """One-line summary.
+
+    Args:
+        x: description
+    """
 ```
-
-### Hands-on: Documentation and Docstrings
-
-1. State **Documentation and Docstrings** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Testing with pytest
 
-> **Definition:** This section explains **Testing with pytest** — a core idea you will use throughout the chapter.
+> **Definition:** Functions named `test_*` discovered automatically.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Assertions use plain `assert`.
 
-You will use **testing with pytest** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Testing with pytest
-x = chapter_13_demo = True
-print("Testing with pytest", x)
+def test_add():
+    assert add(1,2) == 3
 ```
-
-### Hands-on: Testing with pytest
-
-1. State **Testing with pytest** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Fixtures and Test Organization
 
-> **Definition:** This section explains **Fixtures and Test Organization** — a core idea you will use throughout the chapter.
+> **Definition:** `@pytest.fixture` shares setup.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Keep tests fast and isolated.
 
-You will use **fixtures and test organization** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Fixtures and Test Organization
-x = chapter_13_demo = True
-print("Fixtures and Test Organization", x)
+import pytest
+@pytest.fixture
+def user():
+    return {'id':1}
 ```
-
-### Hands-on: Fixtures and Test Organization
-
-1. State **Fixtures and Test Organization** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Logging vs print
 
-> **Definition:** This section explains **Logging vs print** — a core idea you will use throughout the chapter.
+> **Definition:** `logging` levels and handlers for production.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+print is for quick debugging only.
 
-You will use **logging vs print** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Logging vs print
-x = chapter_13_demo = True
-print("Logging vs print", x)
+import logging
+logging.basicConfig(level=logging.INFO)
+logging.info('started')
 ```
-
-### Hands-on: Logging vs print
-
-1. State **Logging vs print** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Configuration and Secrets
 
-> **Definition:** This section explains **Configuration and Secrets** — a core idea you will use throughout the chapter.
+> **Definition:** Environment variables via `os.environ` or `.env` files.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Never commit API keys.
 
-You will use **configuration and secrets** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Configuration and Secrets
-x = chapter_13_demo = True
-print("Configuration and Secrets", x)
+import os
+api_key = os.environ['API_KEY']
 ```
-
-### Hands-on: Configuration and Secrets
-
-1. State **Configuration and Secrets** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Error Handling Discipline
 
-> **Definition:** This section explains **Error Handling Discipline** — a core idea you will use throughout the chapter.
+> **Definition:** Catch specific exceptions; log context.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Fail fast on programmer errors.
 
-You will use **error handling discipline** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Error Handling Discipline
-x = chapter_13_demo = True
-print("Error Handling Discipline", x)
+except ValueError as e:
+    logger.warning('bad input %s', e)
 ```
-
-### Hands-on: Error Handling Discipline
-
-1. State **Error Handling Discipline** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Performance: Measure First
 
-> **Definition:** This section explains **Performance: Measure First** — a core idea you will use throughout the chapter.
+> **Definition:** Profile with `cProfile` before optimizing.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Big-O beats micro-opts.
 
-You will use **performance: measure first** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Performance: Measure First
-x = chapter_13_demo = True
-print("Performance: Measure First", x)
+import cProfile
+cProfile.run('sum(range(100000))')
 ```
-
-### Hands-on: Performance: Measure First
-
-1. State **Performance: Measure First** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Security Basics
 
-> **Definition:** This section explains **Security Basics** — a core idea you will use throughout the chapter.
+> **Definition:** No `eval` on user input; validate paths; use HTTPS.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Dependabot/pip-audit for deps.
 
-You will use **security basics** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Security Basics
-x = chapter_13_demo = True
-print("Security Basics", x)
+path = user_input  # validate before open
 ```
-
-### Hands-on: Security Basics
-
-1. State **Security Basics** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Code Review Checklist
 
-> **Definition:** This section explains **Code Review Checklist** — a core idea you will use throughout the chapter.
+> **Definition:** Tests pass, types check, docs updated, no secrets.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Review for design not just style.
 
-You will use **code review checklist** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Code Review Checklist
-x = chapter_13_demo = True
-print("Code Review Checklist", x)
+# PR template checklist
 ```
-
-### Hands-on: Code Review Checklist
-
-1. State **Code Review Checklist** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices Summary Table
 
-> **Definition:** This section explains **Best Practices Summary Table** — a core idea you will use throughout the chapter.
+> **Definition:** See chapter summary table.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Revisit when starting new repos.
 
-You will use **best practices summary table** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Best Practices Summary Table
-x = chapter_13_demo = True
-print("Best Practices Summary Table", x)
+# team wiki link
 ```
-
-### Hands-on: Best Practices Summary Table
-
-1. State **Best Practices Summary Table** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_13_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Skipping tests | Regressions ship | pytest on every PR |
 
 
 ---
 
 ## Pre-commit Hooks
 
-> **Definition:** This section explains **Pre-commit Hooks** — a core idea you will use throughout the chapter.
+> **Definition:** Run ruff/black/tests before each commit.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Catches issues early.
 
-You will use **pre-commit hooks** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Pre-commit Hooks
-x = chapter_13_demo = True
-print("Pre-commit Hooks", x)
+# .pre-commit-config.yaml hooks
 ```
-
-### Hands-on: Pre-commit Hooks
-
-1. State **Pre-commit Hooks** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---

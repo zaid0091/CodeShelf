@@ -42,560 +42,393 @@ tags: [python, files, io]
 
 ## Why File I/O Matters
 
-> **Definition:** This section explains **Why File I/O Matters** — a core idea you will use throughout the chapter.
+> **Definition:** Programs read config, logs, and user uploads from disk.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Persistence survives process restarts.
 
-You will use **why file i/o matters** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Why File I/O Matters
-x = chapter_9_demo = True
-print("Why File I/O Matters", x)
+from pathlib import Path
+p = Path('notes.txt')
+print(p.exists())
 ```
-
-### Hands-on: Why File I/O Matters
-
-1. State **Why File I/O Matters** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Files vs File Objects
 
-> **Definition:** This section explains **Files vs File Objects** — a core idea you will use throughout the chapter.
+> **Definition:** Open files return **file objects** with `.read()`, `.write()`, `.close()`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Always close files — use `with`.
 
-You will use **files vs file objects** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Files vs File Objects
-x = chapter_9_demo = True
-print("Files vs File Objects", x)
+with open('out.txt','w') as f:
+    f.write('hi')
 ```
-
-### Hands-on: Files vs File Objects
-
-1. State **Files vs File Objects** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Opening Files with open()
 
-> **Definition:** This section explains **Opening Files with open()** — a core idea you will use throughout the chapter.
+> **Definition:** `open(path, mode='r', encoding='utf-8')`.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Text modes need encoding on Windows.
 
-You will use **opening files with open()** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Opening Files with open()
-x = chapter_9_demo = True
-print("Opening Files with open()", x)
+with open('data.txt', encoding='utf-8') as f:
+    text = f.read()
 ```
-
-### Hands-on: Opening Files with open()
-
-1. State **Opening Files with open()** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## File Modes Explained
 
-> **Definition:** This section explains **File Modes Explained** — a core idea you will use throughout the chapter.
+> **Definition:** `r` read, `w` write (truncate), `a` append, `x` exclusive create, `b` binary.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Wrong mode corrupts or truncates data.
 
-You will use **file modes explained** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: File Modes Explained
-x = chapter_9_demo = True
-print("File Modes Explained", x)
+with open('log.txt','a') as f:
+    f.write('line\n')
 ```
-
-### Hands-on: File Modes Explained
-
-1. State **File Modes Explained** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## The with Statement
 
-> **Definition:** This section explains **The with Statement** — a core idea you will use throughout the chapter.
+> **Definition:** Context manager closes file even on exceptions.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Preferred over manual `close()`.
 
-You will use **the with statement** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: The with Statement
-x = chapter_9_demo = True
-print("The with Statement", x)
+with open('f.txt') as f:
+    data = f.read()
 ```
-
-### Hands-on: The with Statement
-
-1. State **The with Statement** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Reading Text Files
 
-> **Definition:** This section explains **Reading Text Files** — a core idea you will use throughout the chapter.
+> **Definition:** `.read()`, `.readline()`, `.readlines()` or iterate lines.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Iterate large files line by line.
 
-You will use **reading text files** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Reading Text Files
-x = chapter_9_demo = True
-print("Reading Text Files", x)
+with open('f.txt') as f:
+    for line in f:
+        print(line.strip())
 ```
-
-### Hands-on: Reading Text Files
-
-1. State **Reading Text Files** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Writing and Appending Text
 
-> **Definition:** This section explains **Writing and Appending Text** — a core idea you will use throughout the chapter.
+> **Definition:** `.write()` and `.writelines()`.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Append mode preserves existing content.
 
-You will use **writing and appending text** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Writing and Appending Text
-x = chapter_9_demo = True
-print("Writing and Appending Text", x)
+lines = ['a\n','b\n']
+with open('f.txt','w') as f:
+    f.writelines(lines)
 ```
-
-### Hands-on: Writing and Appending Text
-
-1. State **Writing and Appending Text** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Encoding and Unicode
 
-> **Definition:** This section explains **Encoding and Unicode** — a core idea you will use throughout the chapter.
+> **Definition:** Specify `encoding='utf-8'` for text files.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Avoid mojibake on international text.
 
-You will use **encoding and unicode** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Encoding and Unicode
-x = chapter_9_demo = True
-print("Encoding and Unicode", x)
+text = 'café'
+open('u.txt','w',encoding='utf-8').write(text)
 ```
-
-### Hands-on: Encoding and Unicode
-
-1. State **Encoding and Unicode** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Line Endings and newline
 
-> **Definition:** This section explains **Line Endings and newline** — a core idea you will use throughout the chapter.
+> **Definition:** `newline=''` lets Python normalize `\r\n` vs `\n`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Important for cross-platform CSV.
 
-You will use **line endings and newline** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Line Endings and newline
-x = chapter_9_demo = True
-print("Line Endings and newline", x)
+import csv
+with open('r.csv',newline='') as f:
+    rows = list(csv.reader(f))
 ```
-
-### Hands-on: Line Endings and newline
-
-1. State **Line Endings and newline** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Binary Files
 
-> **Definition:** This section explains **Binary Files** — a core idea you will use throughout the chapter.
+> **Definition:** Mode `rb`/`wb` for images, pickles, compressed data.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Do not decode binary as text.
 
-You will use **binary files** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Binary Files
-x = chapter_9_demo = True
-print("Binary Files", x)
+data = b'\x00\x01'
+with open('b.bin','wb') as f:
+    f.write(data)
 ```
-
-### Hands-on: Binary Files
-
-1. State **Binary Files** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Path Handling with pathlib
 
-> **Definition:** This section explains **Path Handling with pathlib** — a core idea you will use throughout the chapter.
+> **Definition:** `Path` objects replace `os.path` string juggling.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Use `/` operator to join paths.
 
-You will use **path handling with pathlib** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Path Handling with pathlib
-x = chapter_9_demo = True
-print("Path Handling with pathlib", x)
+from pathlib import Path
+root = Path('project')
+print(root / 'src' / 'app.py')
 ```
-
-### Hands-on: Path Handling with pathlib
-
-1. State **Path Handling with pathlib** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Working with JSON
 
-> **Definition:** This section explains **Working with JSON** — a core idea you will use throughout the chapter.
+> **Definition:** `json.load`/`dump` for files; `loads`/`dumps` for strings.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+JSON keys are always strings.
 
-You will use **working with json** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Working with JSON
-x = chapter_9_demo = True
-print("Working with JSON", x)
+import json
+obj = {'ok': True}
+print(json.dumps(obj))
 ```
-
-### Hands-on: Working with JSON
-
-1. State **Working with JSON** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Working with CSV
 
-> **Definition:** This section explains **Working with CSV** — a core idea you will use throughout the chapter.
+> **Definition:** `csv` module reads/writes tabular text.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Use `DictReader` for header rows.
 
-You will use **working with csv** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Working with CSV
-x = chapter_9_demo = True
-print("Working with CSV", x)
+import csv
+with open('t.csv',newline='') as f:
+    print(list(csv.reader(f)))
 ```
-
-### Hands-on: Working with CSV
-
-1. State **Working with CSV** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Reading Large Files Efficiently
 
-> **Definition:** This section explains **Reading Large Files Efficiently** — a core idea you will use throughout the chapter.
+> **Definition:** Stream line-by-line or in chunks.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Never `read()` multi-GB files into RAM.
 
-You will use **reading large files efficiently** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Reading Large Files Efficiently
-x = chapter_9_demo = True
-print("Reading Large Files Efficiently", x)
+with open('big.log') as f:
+    for i, line in enumerate(f):
+        if i > 2: break
+        print(line[:80])
 ```
-
-### Hands-on: Reading Large Files Efficiently
-
-1. State **Reading Large Files Efficiently** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Copying, Moving, and Deleting
 
-> **Definition:** This section explains **Copying, Moving, and Deleting** — a core idea you will use throughout the chapter.
+> **Definition:** `shutil.copy`, `Path.rename`, `Path.unlink`.
 
-### Real-world analogy
+### Why it matters
 
-Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+Automate file housekeeping.
 
-You will use **copying, moving, and deleting** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Copying, Moving, and Deleting
-x = chapter_9_demo = True
-print("Copying, Moving, and Deleting", x)
+import shutil
+shutil.copy('a.txt', 'backup/a.txt')
 ```
-
-### Hands-on: Copying, Moving, and Deleting
-
-1. State **Copying, Moving, and Deleting** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Temporary Files and Directories
 
-> **Definition:** This section explains **Temporary Files and Directories** — a core idea you will use throughout the chapter.
+> **Definition:** `tempfile` for safe scratch space.
 
-### Real-world analogy
+### Why it matters
 
-Like traffic **signals** — rules keep many moving parts safe and predictable.
+Cleaned up automatically.
 
-You will use **temporary files and directories** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Temporary Files and Directories
-x = chapter_9_demo = True
-print("Temporary Files and Directories", x)
+import tempfile
+with tempfile.TemporaryDirectory() as d:
+    print(d)
 ```
-
-### Hands-on: Temporary Files and Directories
-
-1. State **Temporary Files and Directories** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Error Handling for I/O
 
-> **Definition:** This section explains **Error Handling for I/O** — a core idea you will use throughout the chapter.
+> **Definition:** Catch `FileNotFoundError`, `PermissionError`.
 
-### Real-world analogy
+### Why it matters
 
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+Tell users what path failed.
 
-You will use **error handling for i/o** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Error Handling for I/O
-x = chapter_9_demo = True
-print("Error Handling for I/O", x)
+try:
+    open('missing.txt')
+except FileNotFoundError:
+    print('not found')
 ```
-
-### Hands-on: Error Handling for I/O
-
-1. State **Error Handling for I/O** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Context Managers Recap
 
-> **Definition:** This section explains **Context Managers Recap** — a core idea you will use throughout the chapter.
+> **Definition:** Objects with `__enter__`/`__exit__` work with `with`.
 
-### Real-world analogy
+### Why it matters
 
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+Files are the classic example.
 
-You will use **context managers recap** in scripts, APIs, and data tasks.
+### How it works
 
-### Example
+Read the example, run it in a REPL or script, then change one value and predict the output before you execute.
 
 ```python
-# Example related to: Context Managers Recap
-x = chapter_9_demo = True
-print("Context Managers Recap", x)
+class Ctx:
+    def __enter__(self): return self
+    def __exit__(self, *a): pass
 ```
-
-### Hands-on: Context Managers Recap
-
-1. State **Context Managers Recap** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
 
 
 ---
 
 ## Best Practices
 
-> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+### Guidelines
 
-### Real-world analogy
-
-Like LEGO **instruction booklets** — small standard pieces combine into big systems.
-
-You will use **best practices** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Best Practices
-x = chapter_9_demo = True
-print("Best Practices", x)
-```
-
-### Hands-on: Best Practices
-
-1. State **Best Practices** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+- Always specify UTF-8 for text
+- Use pathlib for paths
 
 
 ---
 
 ## Common Mistakes
 
-> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
-
-### Real-world analogy
-
-Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
-
-You will use **common mistakes** in scripts, APIs, and data tasks.
-
-### Example
-
-```python
-# Example related to: Common Mistakes
-x = chapter_9_demo = True
-print("Common Mistakes", x)
-```
-
-### Hands-on: Common Mistakes
-
-1. State **Common Mistakes** in your own words.
-2. Type the example; change one value and predict the output.
-3. Note one real project where this concept appears.
-
+| Mistake | Why it hurts | Fix |
+|---------|--------------|-----|
+| Forgetting encoding on Windows | UnicodeDecodeError | encoding='utf-8' |
 
 
 ---

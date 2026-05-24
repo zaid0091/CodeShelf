@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Python
+__pycache__/
+*.py[cod]
+.Python
+
+# One-off extraction / build artifacts
+_extract/
+scripts/python_topic_bodies.py
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
