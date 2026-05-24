@@ -26,19 +26,6 @@ export function DocPage() {
         >
           {page.topicLabel}
         </Link>
-        {page.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {page.tags.map((tag) => (
-              <Link
-                key={tag}
-                to={`/tags/${encodeURIComponent(tag)}`}
-                className="text-eyebrow !normal-case px-3 py-1 rounded-pill bg-aloe text-ink hover:brightness-95 transition-all"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </div>
-        )}
       </header>
 
       <MarkdownContent content={page.content} topic={page.topic} />

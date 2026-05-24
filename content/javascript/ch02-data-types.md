@@ -2828,6 +2828,6 @@ Now that you understand what kinds of data JavaScript can work with, we are read
 
 *Last updated: 2024 | Chapter 2 of the Complete JavaScript Guide*
 
-*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/example/js-guide/issues)*
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*
 
 *← [Previous Chapter: JavaScript Basics](./ch01-javascript-basics.md)*

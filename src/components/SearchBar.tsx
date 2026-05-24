@@ -83,17 +83,9 @@ export function SearchBar({ onNavigate }: SearchBarProps) {
                     }}
                     className="block px-5 py-4 hover:bg-canvas-cream transition-colors border-b border-hairline-light last:border-0"
                   >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-eyebrow !normal-case text-shade-60">{page.topicLabel}</span>
-                      {page.tags.slice(0, 2).map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-eyebrow !normal-case px-2 py-0.5 rounded-pill bg-aloe text-ink"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                    <span className="text-eyebrow !normal-case text-shade-60 mb-1.5 block">
+                      {page.topicLabel}
+                    </span>
                     <p className="text-sm font-medium text-ink">{page.title}</p>
                     <p className="text-caption text-shade-50 mt-1 line-clamp-2">{snippet}</p>
                   </Link>

@@ -10,7 +10,6 @@ A personal documentation and notes website for quick revision of programming con
 - **Search** — find notes instantly (Ctrl+K)
 - **Dark mode** toggle with persistence
 - **Syntax highlighting** and copy-to-clipboard for code blocks
-- **Tag system** for cross-topic browsing
 - **Fully frontend** — no backend or database required
 
 ## Getting Started
@@ -44,7 +43,6 @@ Each file supports YAML frontmatter:
 title: My Note Title
 description: Short description for search results
 order: 1
-tags: [basics, types]
 ---
 
 # My Note Title
@@ -55,9 +53,8 @@ Your markdown content here...
 | Field | Required | Description |
 |-------|----------|-------------|
 | `title` | Yes | Display title in sidebar and page |
-| `description` | No | Shown in search results and tag pages |
+| `description` | No | Shown in search results |
 | `order` | No | Sort order within topic (default: 99) |
-| `tags` | No | Tags for cross-topic filtering |
 
 To add a new topic, create a folder under `content/` and register it in `src/lib/content.ts` under `TOPIC_LABELS`.
 

@@ -1,17 +1,23 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Search } from 'lucide-react'
-import { getTopics, getAllTags, getCourseStartPath } from '@/lib/content'
+import { getTopics, getCourseStartPath } from '@/lib/content'
 import { ButtonLink } from '@/components/ui/Button'
+import { TopicIcon } from '@/components/TopicIcon'
+import { useWindowScrolled } from '@/hooks/useScrolled'
 
 export function HomePage() {
   const topics = getTopics()
-  const tags = getAllTags()
+  const scrolled = useWindowScrolled(1)
 
   return (
     <div className="track-cinematic min-h-screen">
-      <header className="sticky top-0 z-50 bg-canvas-night/80 backdrop-blur-md border-b border-white/5">
+      <header
+        className={`navbar navbar--dark fixed top-0 left-0 right-0 z-50 border-b ${
+          scrolled ? 'navbar--scrolled' : 'navbar--transparent'
+        }`}
+      >
         <div className="max-w-[90rem] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
-          <Link to="/" className="font-display text-lg tracking-wide text-on-primary">
+          <Link to="/" className="font-logo text-xl text-on-primary">
             CodeShelf
           </Link>
           <div className="flex items-center gap-3">
@@ -33,21 +39,120 @@ export function HomePage() {
         </div>
       </header>
 
-      <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pt-24 pb-32 lg:pt-32 lg:pb-40">
-        <p className="text-eyebrow text-link-cool-1 mb-8">Personal documentation</p>
-        <h1 className="font-display text-display-hero text-on-primary max-w-4xl mb-8">
-          Your coding notes,
-          <br />
-          beautifully organized.
-        </h1>
-        <p className="text-body-lg text-link-cool-2 max-w-xl mb-12 leading-relaxed">
-          Quick revision for TypeScript, JavaScript, React, Python, Django, and Django REST Framework.
-          No backend — just your notes, ready when you are.
-        </p>
-        <ButtonLink to="/docs/typescript/ch00-course-overview" variant="outline-on-dark">
-          Start learning
-          <ArrowRight size={18} strokeWidth={1.5} />
-        </ButtonLink>
+      <section className="hero-section hero-section--advanced relative overflow-hidden border-b border-white/[0.06]">
+        <div aria-hidden="true" className="hero-ambient">
+          <div className="hero-mesh" />
+          <div className="hero-glow hero-glow--aloe" />
+          <div className="hero-glow hero-glow--cool" />
+          <div className="hero-glow hero-glow--accent" />
+          <div className="hero-grid" />
+          <div className="hero-noise" />
+          <div className="hero-beam" />
+          <div className="hero-vignette" />
+        </div>
+
+        <div className="hero-inner relative z-10 max-w-[90rem] mx-auto px-6 lg:px-10 w-full">
+          <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(300px,440px)] xl:grid-cols-[minmax(0,1fr)_460px] gap-16 xl:gap-20 items-start lg:items-center">
+            <div className="hero-copy min-w-0">
+              <div className="hero-copy-rail" aria-hidden="true" />
+              <div className="hero-eyebrow">
+                <span className="hero-eyebrow-shine" aria-hidden="true" />
+                <span className="hero-eyebrow-dot" />
+                <p className="text-eyebrow text-link-cool-1 mb-0">Personal documentation</p>
+              </div>
+              <div className="hero-title-wrap">
+                <h1 className="hero-title font-display text-display-hero text-on-primary max-w-4xl mb-8">
+                  Your coding notes,
+                  <br />
+                  beautifully organized.
+                </h1>
+              </div>
+              <p className="hero-desc text-body-lg text-link-cool-2 max-w-xl mb-12 leading-relaxed">
+                Quick revision for TypeScript, JavaScript, React, Python, Django, and Django REST Framework.
+                No backend — just your notes, ready when you are.
+              </p>
+              <div className="hero-actions">
+                <ButtonLink
+                  to="/docs/typescript/ch00-course-overview"
+                  variant="hero-cta"
+                  className="!px-8 !py-3.5"
+                >
+                  Start learning
+                  <ArrowRight size={18} strokeWidth={1.5} />
+                </ButtonLink>
+                <div className="hero-actions-glow" aria-hidden="true" />
+              </div>
+              <div className="hero-metrics" aria-hidden="true">
+                {topics.map((topic) => (
+                  <span key={topic.id} className="hero-metric">
+                    <TopicIcon topicId={topic.id} size={18} />
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div aria-hidden="true" className="hero-visual hidden lg:block">
+              <div className="hero-orbit hero-orbit--outer" />
+              <div className="hero-orbit hero-orbit--inner" />
+              {topics.slice(0, 4).map((topic, i) => (
+                <div key={topic.id} className={`hero-float-badge hero-float-badge--${i + 1}`}>
+                  <TopicIcon topicId={topic.id} size={20} />
+                </div>
+              ))}
+              <div className="hero-preview-stage">
+                <div className="hero-preview-float-wrap">
+                  <div className="hero-preview">
+                    <div className="hero-preview-glow" />
+                    <div className="hero-preview-card hero-preview-card--back" />
+                    <div className="hero-preview-card hero-preview-card--mid" />
+                    <div className="hero-preview-card hero-preview-card--front">
+                      <div className="hero-preview-shine" />
+                      <div className="hero-preview-chrome">
+                        <span className="hero-preview-dot hero-preview-dot--red" />
+                        <span className="hero-preview-dot hero-preview-dot--amber" />
+                        <span className="hero-preview-dot hero-preview-dot--green" />
+                        <span className="hero-preview-url" />
+                      </div>
+                      <div className="hero-preview-body">
+                        <div className="hero-preview-sidebar">
+                          <div className="hero-preview-search" />
+                          <div className="hero-preview-sidebar-title" />
+                          {topics.slice(0, 5).map((topic, index) => (
+                            <div
+                              key={topic.id}
+                              className={`hero-preview-nav-item${index === 0 ? ' hero-preview-nav-item--active' : ''}`}
+                            >
+                              <TopicIcon topicId={topic.id} size={14} className="hero-preview-nav-icon" />
+                              <span className="hero-preview-nav-line" />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="hero-preview-main">
+                          <div className="hero-preview-accent" />
+                          <div className="hero-preview-line hero-preview-line--lg" />
+                          <div className="hero-preview-line hero-preview-line--md" />
+                          <div className="hero-preview-line hero-preview-line--sm" />
+                          <div className="hero-preview-code">
+                            <div className="hero-preview-code-line hero-preview-code-line--kw" />
+                            <div className="hero-preview-code-line" />
+                            <div className="hero-preview-code-line hero-preview-code-line--short" />
+                            <div className="hero-preview-code-line hero-preview-code-line--accent" />
+                            <span className="hero-preview-cursor" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="hero-preview-scanline" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="hero-floor" aria-hidden="true">
+          <div className="hero-floor-line" />
+        </div>
       </section>
 
       <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
@@ -66,7 +171,7 @@ export function HomePage() {
                   '0 1px 2px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04)',
               }}
             >
-              <span className="text-3xl mb-6 block">{topic.icon}</span>
+              <TopicIcon topicId={topic.id} size={40} className="mb-6" />
               <h3 className="font-display text-2xl text-on-primary mb-2">{topic.label}</h3>
               <p className="text-caption text-link-cool-2">
                 {topic.pages.length} note{topic.pages.length !== 1 ? 's' : ''}
@@ -80,23 +185,6 @@ export function HomePage() {
           ))}
         </div>
       </section>
-
-      {tags.length > 0 && (
-        <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
-          <p className="text-eyebrow text-link-cool-1 mb-4">Browse by tag</p>
-          <div className="flex flex-wrap gap-2">
-            {tags.slice(0, 20).map((tag) => (
-              <Link
-                key={tag}
-                to={`/tags/${encodeURIComponent(tag)}`}
-                className="text-eyebrow px-4 py-2 rounded-pill border border-white/20 text-on-primary hover:bg-white/5 transition-colors"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
         <div className="border border-white/[0.08] rounded-xl p-10 bg-canvas-night-elevated flex items-start gap-6">

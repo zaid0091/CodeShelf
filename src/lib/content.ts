@@ -1,13 +1,13 @@
 import { parseFrontmatter } from './frontmatter'
 import type { DocPage, TopicGroup } from './types'
 
-const TOPIC_LABELS: Record<string, { label: string; icon: string }> = {
-  typescript: { label: 'TypeScript', icon: 'TS' },
-  javascript: { label: 'JavaScript', icon: 'JS' },
-  react: { label: 'React', icon: '⚛' },
-  python: { label: 'Python', icon: '🐍' },
-  django: { label: 'Django', icon: '🎸' },
-  drf: { label: 'Django REST Framework', icon: '🔌' },
+const TOPIC_LABELS: Record<string, { label: string }> = {
+  typescript: { label: 'TypeScript' },
+  javascript: { label: 'JavaScript' },
+  react: { label: 'React' },
+  python: { label: 'Python' },
+  django: { label: 'Django' },
+  drf: { label: 'Django REST Framework' },
 }
 
 const modules = import.meta.glob('../../content/**/*.md', {
@@ -27,7 +27,7 @@ function buildPages(): DocPage[] {
   return Object.entries(modules).map(([path, raw]) => {
     const { topic, slug } = parseDocPath(path)
     const { data, content } = parseFrontmatter(raw)
-    const meta = TOPIC_LABELS[topic] ?? { label: topic, icon: '📄' }
+    const meta = TOPIC_LABELS[topic] ?? { label: topic }
 
     return {
       slug,
@@ -36,7 +36,6 @@ function buildPages(): DocPage[] {
       title: (data.title as string) ?? slug,
       description: data.description as string | undefined,
       order: (data.order as number) ?? 99,
-      tags: (data.tags as string[]) ?? [],
       content: content.trim(),
       path: `/docs/${topic}/${slug}`,
     }
@@ -63,11 +62,10 @@ export function getTopics(): TopicGroup[] {
   }
 
   return Array.from(topicMap.entries()).map(([id, topicPages]) => {
-    const meta = TOPIC_LABELS[id] ?? { label: id, icon: '📄' }
+    const meta = TOPIC_LABELS[id] ?? { label: id }
     return {
       id,
       label: meta.label,
-      icon: meta.icon,
       pages: topicPages.sort((a, b) => a.order - b.order),
     }
   })
@@ -88,18 +86,6 @@ export function getCourseStartPath(topicId: string): string {
   return first?.path ?? `/docs/${topicId}`
 }
 
-export function getAllTags(): string[] {
-  const tags = new Set<string>()
-  for (const page of allPages) {
-    for (const tag of page.tags) tags.add(tag)
-  }
-  return [...tags].sort()
-}
-
-export function getPagesByTag(tag: string): DocPage[] {
-  return allPages.filter((p) => p.tags.includes(tag))
-}
-
 export function searchPages(query: string): DocPage[] {
   const q = query.toLowerCase().trim()
   if (!q) return []
@@ -109,7 +95,6 @@ export function searchPages(query: string): DocPage[] {
       page.title,
       page.description ?? '',
       page.topicLabel,
-      page.tags.join(' '),
       page.content,
     ]
       .join(' ')

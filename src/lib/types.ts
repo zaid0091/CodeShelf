@@ -2,7 +2,6 @@ export interface DocFrontmatter {
   title: string
   description?: string
   order?: number
-  tags?: string[]
 }
 
 export interface DocPage {
@@ -12,7 +11,6 @@ export interface DocPage {
   title: string
   description?: string
   order: number
-  tags: string[]
   content: string
   path: string
 }
@@ -20,7 +18,6 @@ export interface DocPage {
 export interface TopicGroup {
   id: string
   label: string
-  icon: string
   pages: DocPage[]
 }
 

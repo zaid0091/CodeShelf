@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { getTopics } from '@/lib/content'
+import { TopicIcon } from '@/components/TopicIcon'
 
 interface SidebarProps {
   onNavigate?: () => void
@@ -35,7 +36,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                   : 'text-shade-60 hover:text-ink hover:bg-shade-30/50'
               }`}
             >
-              <span className="text-base leading-none">{topic.icon}</span>
+              <TopicIcon topicId={topic.id} size={18} />
               <span className="flex-1 text-left">{topic.label}</span>
               {isOpen ? (
                 <ChevronDown size={14} strokeWidth={1.5} />
