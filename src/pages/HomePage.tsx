@@ -86,7 +86,7 @@ function HomePageContent() {
               </p>
               <div className="hero-actions">
                 <ButtonLink
-                  to="/docs/typescript/ch00-course-overview"
+                  to="/docs"
                   variant="hero-cta"
                   className="!px-8 !py-3.5"
                 >

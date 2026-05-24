@@ -1,56 +1,21 @@
-import { useRef, useState, type RefObject } from 'react'
-import { Link, Outlet } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
-import { ReactLenis } from 'lenis/react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
+import { Outlet } from 'react-router-dom'
+import { X } from 'lucide-react'
+import { ReactLenis, useLenis } from 'lenis/react'
 import { Sidebar } from '@/components/Sidebar'
-import { SearchBar } from '@/components/SearchBar'
-import { NavbarButtonLink, NavbarIconButton } from '@/components/ui/NavbarButton'
+import { DocsNavbar } from '@/components/DocsNavbar'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { useLenisScrolled } from '@/hooks/useLenisScrolled'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useElementScrolled } from '@/hooks/useScrolled'
 import { getLenisOptions } from '@/lib/lenisConfig'
 
-function DocsNavbar({
-  scrolled,
-  onOpenSidebar,
-  onNavigate,
-}: {
-  scrolled: boolean
-  onOpenSidebar: () => void
-  onNavigate: () => void
-}) {
-  return (
-    <header
-      className={`navbar navbar--light shrink-0 z-40 border-b ${
-        scrolled ? 'navbar--scrolled' : 'navbar--transparent'
-      }`}
-    >
-      <div className="flex items-center gap-4 px-5 py-4 lg:px-8">
-        <NavbarIconButton
-          tone="light"
-          onClick={onOpenSidebar}
-          className="lg:hidden"
-          aria-label="Open sidebar"
-        >
-          <Menu size={18} strokeWidth={1.5} />
-        </NavbarIconButton>
-
-        <Link to="/" className="font-logo text-xl text-ink shrink-0">
-          CodeShelf
-        </Link>
-
-        <div className="flex-1 flex justify-center max-w-xl mx-auto">
-          <SearchBar onNavigate={onNavigate} />
-        </div>
-
-        <NavbarButtonLink to="/" tone="light" className="hidden sm:inline-flex">
-          Home
-        </NavbarButtonLink>
-      </div>
-    </header>
-  )
+function defaultSidebarOpen() {
+  if (typeof window === 'undefined') return true
+  return window.matchMedia('(min-width: 1024px)').matches
 }
 
 function DocsMain({
@@ -64,63 +29,126 @@ function DocsMain({
     <main
       ref={scrollRef}
       data-docs-scroll
-      className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain bg-canvas-cream"
+      className="docs-main flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain bg-canvas-cream"
     >
       <div className="w-full px-6 py-10 lg:px-10 xl:px-14 lg:py-14">{children}</div>
     </main>
   )
 }
 
-function DocsSidebarPanel() {
+function DocsSidebarPanel({ open }: { open: boolean }) {
   return (
     <aside
+      id="docs-sidebar"
       data-lenis-prevent
-      className="hidden lg:flex w-72 shrink-0 min-h-0 flex-col border-r border-hairline-light bg-canvas-light overflow-y-auto overscroll-contain"
+      aria-hidden={!open}
+      className={[
+        'docs-sidebar-panel',
+        open ? 'docs-sidebar-panel--open' : 'docs-sidebar-panel--closed',
+      ].join(' ')}
     >
-      <Sidebar />
+      <div className="docs-sidebar-panel__inner">
+        <Sidebar />
+      </div>
     </aside>
   )
+}
+
+function DocsMobileSidebar({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!open) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [open])
+
+  if (!open) return null
+
+  return createPortal(
+    <div className="docs-mobile-sidebar lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
+      <button
+        type="button"
+        className="docs-mobile-sidebar__backdrop"
+        onClick={onClose}
+        aria-label="Close navigation"
+      />
+      <aside data-lenis-prevent className="docs-mobile-sidebar__panel">
+        <div className="docs-mobile-sidebar__header">
+          <span className="font-display text-ink">Navigation</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="docs-mobile-sidebar__close"
+            aria-label="Close sidebar"
+          >
+            <X size={18} strokeWidth={1.5} />
+          </button>
+        </div>
+        <Sidebar onNavigate={onClose} />
+      </aside>
+    </div>,
+    document.body,
+  )
+}
+
+function DocsLenisResizeOnSidebar({ sidebarOpen }: { sidebarOpen: boolean }) {
+  const lenis = useLenis()
+
+  useEffect(() => {
+    if (!lenis) return
+    const id = requestAnimationFrame(() => lenis.resize())
+    return () => cancelAnimationFrame(id)
+  }, [sidebarOpen, lenis])
+
+  return null
 }
 
 function DocsLayoutShell({
   scrolled,
   main,
+  lenisResize = false,
 }: {
   scrolled: boolean
   main: React.ReactNode
+  lenisResize?: boolean
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen)
+
+  const toggleSidebar = () => setSidebarOpen((open) => !open)
   const closeSidebar = () => setSidebarOpen(false)
 
+  const showDesktopSidebar = isDesktop && sidebarOpen
+  const showMobileOverlay = !isDesktop && sidebarOpen
+
   return (
-    <div className="track-light flex h-full min-h-0 flex-col overflow-hidden">
-      <DocsNavbar scrolled={scrolled} onOpenSidebar={() => setSidebarOpen(true)} onNavigate={closeSidebar} />
+    <div
+      className={[
+        'track-light flex h-full min-h-0 flex-col overflow-hidden',
+        showDesktopSidebar ? 'docs-layout--sidebar-open' : 'docs-layout--sidebar-closed',
+      ].join(' ')}
+    >
+      {lenisResize && <DocsLenisResizeOnSidebar sidebarOpen={sidebarOpen} />}
 
-      <div className="flex min-h-0 flex-1">
-        <DocsSidebarPanel />
+      <DocsNavbar
+        scrolled={scrolled}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={toggleSidebar}
+        onNavigate={closeSidebar}
+      />
 
-        {sidebarOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            <div className="absolute inset-0 bg-ink/40" onClick={closeSidebar} aria-hidden />
-            <aside
-              data-lenis-prevent
-              className="relative flex w-80 max-w-[88vw] flex-col overflow-y-auto overscroll-contain border-r border-hairline-light bg-canvas-light shadow-card-light"
-            >
-              <div className="flex items-center justify-between border-b border-hairline-light px-5 py-4">
-                <span className="font-display text-ink">Navigation</span>
-                <button
-                  onClick={closeSidebar}
-                  className="flex h-9 w-9 items-center justify-center rounded-pill text-shade-50 hover:bg-shade-30/50"
-                  aria-label="Close sidebar"
-                >
-                  <X size={18} strokeWidth={1.5} />
-                </button>
-              </div>
-              <Sidebar onNavigate={closeSidebar} />
-            </aside>
-          </div>
-        )}
+      <DocsMobileSidebar open={showMobileOverlay} onClose={closeSidebar} />
 
+      <div className="docs-layout__body flex min-h-0 flex-1">
+        <DocsSidebarPanel open={showDesktopSidebar} />
         {main}
       </div>
     </div>
@@ -136,6 +164,7 @@ function DocsLayoutSmooth() {
       <ScrollToTop />
       <DocsLayoutShell
         scrolled={scrolled}
+        lenisResize
         main={
           <ReactLenis
             root="asChild"

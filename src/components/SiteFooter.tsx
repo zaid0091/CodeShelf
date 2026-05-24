@@ -50,7 +50,7 @@ export function SiteFooter() {
                   ))}
                 </div>
                 <NavbarButtonLink
-                  to="/docs/typescript/ch00-course-overview"
+                  to="/docs"
                   tone="dark"
                   emphasis="accent"
                   className="site-footer__cta"

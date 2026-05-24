@@ -54,6 +54,7 @@ export function NavbarIconButton({
   tone = 'light',
   children,
   className = '',
+  style,
   ...props
 }: NavbarIconButtonProps) {
   return (
@@ -62,6 +63,7 @@ export function NavbarIconButton({
       className={['navbar-btn navbar-btn--icon', toneClass[tone], className]
         .filter(Boolean)
         .join(' ')}
+      style={{ position: 'relative', zIndex: 2, ...style }}
       {...props}
     >
       <span className="navbar-btn__border" aria-hidden />

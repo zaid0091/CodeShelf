@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, type PointerEvent } from 'react'
 const LERP = 0.11
 const EPSILON = 0.5
 
-export function useSmoothCardGlow() {
+export function useSmoothCardGlow(hoverClass = 'topic-card--hover') {
   const cardRef = useRef<HTMLAnchorElement>(null)
   const targetRef = useRef({ x: 0, y: 0 })
   const currentRef = useRef({ x: 0, y: 0 })
@@ -83,15 +83,15 @@ export function useSmoothCardGlow() {
 
   const onPointerEnter = useCallback(() => {
     hoveringRef.current = true
-    cardRef.current?.classList.add('topic-card--hover')
+    cardRef.current?.classList.add(hoverClass)
     startLoop()
-  }, [startLoop])
+  }, [hoverClass, startLoop])
 
   const onPointerLeave = useCallback(() => {
     hoveringRef.current = false
-    cardRef.current?.classList.remove('topic-card--hover')
+    cardRef.current?.classList.remove(hoverClass)
     resetToCenter()
-  }, [resetToCenter])
+  }, [hoverClass, resetToCenter])
 
   const onPointerMove = useCallback(
     (e: PointerEvent<HTMLAnchorElement>) => {

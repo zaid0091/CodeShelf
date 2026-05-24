@@ -21,13 +21,9 @@ export function DocPage() {
   return (
     <article>
       <ScrollReveal animation="fade-up" duration={0.85} distance={32}>
-        <header className="mb-10">
-          <Link
-            to={`/docs/${topic}/${pages[0]?.slug ?? slug}`}
-            className="text-eyebrow !normal-case text-shade-50 hover:text-ink transition-colors"
-          >
-            {page.topicLabel}
-          </Link>
+        <header className="doc-page__header mb-10">
+          <p className="text-eyebrow text-shade-50 mb-2">Chapter</p>
+          <h1 className="font-display text-display-xl text-ink max-w-4xl">{page.title}</h1>
         </header>
       </ScrollReveal>
 
