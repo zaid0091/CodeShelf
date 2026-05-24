@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom'
 import { ReactLenis } from 'lenis/react'
-import { ArrowRight, Search } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { InstantSearchFeature } from '@/components/InstantSearchFeature'
 import { getTopics } from '@/lib/content'
 import { ButtonLink } from '@/components/ui/Button'
 import { NavbarButtonLink } from '@/components/ui/NavbarButton'
 import { TopicIcon } from '@/components/TopicIcon'
 import { TopicsSection } from '@/components/TopicsSection'
 import { SiteFooter } from '@/components/SiteFooter'
-import { ScrollReveal } from '@/components/ScrollReveal'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { useLenisScrolled } from '@/hooks/useLenisScrolled'
@@ -170,23 +170,7 @@ function HomePageContent() {
 
       <TopicsSection />
 
-      <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
-        <ScrollReveal animation="fade-scale" duration={0.95} distance={24}>
-          <div className="border border-white/[0.08] rounded-xl p-10 bg-canvas-night-elevated flex items-start gap-6">
-            <Search size={22} className="text-link-cool-1 shrink-0 mt-1" strokeWidth={1.5} />
-            <div>
-              <h3 className="font-display text-xl text-on-primary mb-2">Instant search</h3>
-              <p className="text-caption text-link-cool-2">
-                Press{' '}
-                <kbd className="px-2 py-0.5 rounded-md border border-white/15 bg-white/5 text-on-primary text-xs font-mono">
-                  Ctrl+K
-                </kbd>{' '}
-                anywhere in the docs to search across all your notes.
-              </p>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
+      <InstantSearchFeature />
 
       <SiteFooter />
     </div>

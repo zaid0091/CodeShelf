@@ -11,7 +11,13 @@ import { useLenisScrolled } from '@/hooks/useLenisScrolled'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useElementScrolled } from '@/hooks/useScrolled'
+import { useRegisterSearchNavigate } from '@/contexts/SearchUIContext'
+import { useTheme } from '@/hooks/useTheme'
 import { getLenisOptions } from '@/lib/lenisConfig'
+
+function docsThemeClass(theme: 'light' | 'dark') {
+  return theme === 'dark' ? 'dark' : ''
+}
 
 function defaultSidebarOpen() {
   if (typeof window === 'undefined') return true
@@ -57,9 +63,11 @@ function DocsSidebarPanel({ open }: { open: boolean }) {
 function DocsMobileSidebar({
   open,
   onClose,
+  themeClass,
 }: {
   open: boolean
   onClose: () => void
+  themeClass: string
 }) {
   useEffect(() => {
     if (!open) return
@@ -73,7 +81,12 @@ function DocsMobileSidebar({
   if (!open) return null
 
   return createPortal(
-    <div className="docs-mobile-sidebar lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
+    <div
+      className={['docs-mobile-sidebar lg:hidden', themeClass].filter(Boolean).join(' ')}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation"
+    >
       <button
         type="button"
         className="docs-mobile-sidebar__backdrop"
@@ -126,6 +139,11 @@ function DocsLayoutShell({
   const toggleSidebar = () => setSidebarOpen((open) => !open)
   const closeSidebar = () => setSidebarOpen(false)
 
+  useRegisterSearchNavigate(closeSidebar)
+
+  const { theme } = useTheme()
+  const themeClass = docsThemeClass(theme)
+
   const showDesktopSidebar = isDesktop && sidebarOpen
   const showMobileOverlay = !isDesktop && sidebarOpen
 
@@ -142,10 +160,13 @@ function DocsLayoutShell({
         scrolled={scrolled}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={toggleSidebar}
-        onNavigate={closeSidebar}
       />
 
-      <DocsMobileSidebar open={showMobileOverlay} onClose={closeSidebar} />
+      <DocsMobileSidebar
+        open={showMobileOverlay}
+        onClose={closeSidebar}
+        themeClass={themeClass}
+      />
 
       <div className="docs-layout__body flex min-h-0 flex-1">
         <DocsSidebarPanel open={showDesktopSidebar} />
@@ -202,9 +223,11 @@ function DocsLayoutNativeScroll() {
 
 export function DocsLayout() {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const { theme } = useTheme()
+  const themeClass = docsThemeClass(theme)
 
   return (
-    <div className="track-light h-screen overflow-hidden">
+    <div className={['track-light h-screen overflow-hidden', themeClass].filter(Boolean).join(' ')}>
       {prefersReducedMotion ? <DocsLayoutNativeScroll /> : <DocsLayoutSmooth />}
     </div>
   )

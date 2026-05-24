@@ -1,0 +1,35 @@
+/* Dark palette — scoped to .dark (docs shell only, not global html) */
+.dark {
+  color-scheme: dark;
+
+  --color-canvas-cream: #0a0d0f;
+  --color-canvas-light: #12181c;
+  --color-surface: #0a0d0f;
+  --color-surface-elevated: #12181c;
+  --color-surface-muted: #1a2228;
+  --color-border: #2a343c;
+
+  --color-hairline-light: #252f36;
+  --color-hairline-dark: #3d4a54;
+
+  --color-shade-30: #2e383f;
+  --color-shade-40: #5c6a73;
+  --color-shade-50: #8b98a0;
+  --color-shade-60: #b4bec4;
+  --color-shade-70: #d4dade;
+
+  --color-ink: #f0f2f4;
+  --color-on-primary: #0a0d0f;
+  --color-text: #f0f2f4;
+  --color-text-muted: #8b98a0;
+  --color-heading: #fafbfc;
+  --color-accent: #f0f2f4;
+  --color-accent-hover: #d4dade;
+
+  --color-code-bg: #060809;
+
+  --shadow-card-light:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    0 12px 32px rgba(0, 0, 0, 0.25);
+}

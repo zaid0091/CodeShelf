@@ -3,13 +3,14 @@ import { ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { getPage, getCourseStartPath } from '@/lib/content'
 import { SearchBar } from '@/components/SearchBar'
 import { TopicIcon } from '@/components/TopicIcon'
+import { DocsThemeToggle } from '@/components/DocsThemeToggle'
+import { useTheme } from '@/hooks/useTheme'
 import { NavbarButtonLink, NavbarIconButton } from '@/components/ui/NavbarButton'
 
 interface DocsNavbarProps {
   scrolled: boolean
   sidebarOpen: boolean
   onToggleSidebar: () => void
-  onNavigate: () => void
 }
 
 function DocsBreadcrumb() {
@@ -40,9 +41,9 @@ function DocsBreadcrumb() {
     <nav className="docs-navbar__crumb" aria-label="Breadcrumb">
       <ol className="docs-navbar__crumb-list">
         <li className="docs-navbar__crumb-item docs-navbar__crumb-item--topic">
-          <Link to={overviewPath} className="docs-navbar__crumb-link">
+          <Link to={overviewPath} className="docs-navbar__crumb-link docs-navbar__crumb-link--topic min-w-0">
             <TopicIcon topicId={topic} size={18} className="docs-navbar__crumb-icon" />
-            <span className="docs-navbar__crumb-topic">{page.topicLabel}</span>
+            <span className="docs-navbar__crumb-topic truncate">{page.topicLabel}</span>
           </Link>
         </li>
         <li className="docs-navbar__crumb-sep" aria-hidden>
@@ -63,8 +64,9 @@ export function DocsNavbar({
   scrolled,
   sidebarOpen,
   onToggleSidebar,
-  onNavigate,
 }: DocsNavbarProps) {
+  const { theme } = useTheme()
+  const navTone = theme === 'dark' ? 'dark' : 'light'
   const location = useLocation()
   const isDocPage = /^\/docs\/[^/]+\/[^/]+/.test(location.pathname)
 
@@ -87,7 +89,7 @@ export function DocsNavbar({
       <div className="docs-navbar__inner">
         <div className="docs-navbar__start">
           <NavbarIconButton
-            tone="light"
+            tone={navTone}
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -117,16 +119,17 @@ export function DocsNavbar({
         </div>
 
         <div className="docs-navbar__search">
-          <SearchBar onNavigate={onNavigate} variant="premium" />
+          <SearchBar variant="premium" />
         </div>
 
         <div className="docs-navbar__actions shrink-0">
+          <DocsThemeToggle />
           {isDocPage && (
-            <NavbarButtonLink to="/docs" tone="light" className="hidden md:inline-flex">
+            <NavbarButtonLink to="/docs" tone={navTone} className="hidden md:inline-flex">
               All topics
             </NavbarButtonLink>
           )}
-          <NavbarButtonLink to="/" tone="light" emphasis="accent" className="hidden sm:inline-flex">
+          <NavbarButtonLink to="/" tone={navTone} emphasis="accent" className="hidden sm:inline-flex">
             Home
           </NavbarButtonLink>
         </div>

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { SearchUIProvider } from '@/contexts/SearchUIContext'
 import { DocsLayout } from '@/layouts/DocsLayout'
 import { HomePage } from '@/pages/HomePage'
 import { DocPage } from '@/pages/DocPage'
@@ -8,6 +9,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 export default function App() {
   return (
     <BrowserRouter>
+      <SearchUIProvider>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route element={<DocsLayout />}>
@@ -16,6 +18,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </SearchUIProvider>
     </BrowserRouter>
   )
 }

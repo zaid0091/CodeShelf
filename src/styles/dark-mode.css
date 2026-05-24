@@ -1,0 +1,371 @@
+/* CodeShelf — dark mode component overrides (tokens in theme-tokens.css) */
+
+.dark .track-light {
+  background: var(--color-canvas-cream);
+  color: var(--color-ink);
+}
+
+.dark .track-light .topic-icon[src*='drf.svg'] {
+  filter: brightness(1.15) contrast(1.05);
+}
+
+/* Docs navbar */
+.dark .navbar--light.navbar--scrolled {
+  background-color: rgba(18, 24, 28, 0.82);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dark .navbar--premium-docs.navbar--scrolled {
+  background-color: rgba(18, 24, 28, 0.85);
+  backdrop-filter: blur(32px) saturate(1.15);
+  -webkit-backdrop-filter: blur(32px) saturate(1.15);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dark .docs-navbar__beam {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(193, 251, 212, 0.35) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(193, 251, 212, 0.28) 70%,
+    transparent
+  );
+}
+
+.dark .docs-navbar__glow {
+  background: radial-gradient(
+    ellipse 80% 120% at 50% -20%,
+    rgba(193, 251, 212, 0.08),
+    transparent 55%
+  );
+}
+
+.dark a.docs-navbar__crumb-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark .docs-navbar__mobile-crumb {
+  border-top-color: rgba(255, 255, 255, 0.06);
+  background: rgba(18, 24, 28, 0.55);
+}
+
+.dark .docs-mobile-sidebar__backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.dark .docs-mobile-sidebar__close:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Search trigger & palette */
+.dark .search-bar--premium .search-bar__border {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.04),
+    rgba(193, 251, 212, 0.22)
+  );
+}
+
+.dark .search-bar__trigger--premium {
+  background: rgba(24, 32, 38, 0.85);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.dark .search-bar__trigger--premium:hover {
+  background: rgba(30, 40, 48, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(193, 251, 212, 0.25) inset,
+    0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.dark .search-bar__kbd {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--color-shade-50) !important;
+}
+
+.dark .search-palette__backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.dark .search-palette__panel {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(18, 24, 28, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.dark .search-palette__input-wrap {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .search-palette__clear:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .search-palette__kbd,
+.dark .search-palette__hint kbd,
+.dark .search-palette__footer kbd {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark .search-palette__result:hover,
+.dark .search-palette__result--active {
+  background: rgba(193, 251, 212, 0.12);
+}
+
+.dark .search-palette__result-icon {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark .search-palette__footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Docs index */
+.dark .docs-index__glow--aloe {
+  background: radial-gradient(circle, rgba(193, 251, 212, 0.12), transparent 68%);
+}
+
+.dark .docs-index__glow--warm {
+  background: radial-gradient(circle, rgba(30, 44, 49, 0.65), transparent 70%);
+}
+
+.dark .docs-index__mesh {
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.dark .docs-index__hero-rail {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(193, 251, 212, 0.5) 25%,
+    rgba(255, 255, 255, 0.12) 75%,
+    transparent
+  );
+}
+
+.dark .docs-index__title {
+  text-shadow: none;
+}
+
+.dark .docs-index__stat {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dark .docs-index__kbd {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark .docs-index-card {
+  background: linear-gradient(
+    155deg,
+    rgba(28, 36, 42, 0.95) 0%,
+    rgba(20, 26, 30, 0.88) 45%,
+    rgba(16, 22, 26, 0.92) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dark .docs-index-card__border {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(193, 251, 212, 0.2) 100%
+  );
+}
+
+.dark .docs-index-card__shine {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 48%,
+    transparent 56%
+  );
+}
+
+.dark .docs-index-card--hover,
+.dark .docs-index-card:hover,
+.dark .docs-index-card:focus-visible {
+  background: linear-gradient(
+    155deg,
+    rgba(34, 44, 52, 0.98) 0%,
+    rgba(26, 34, 40, 0.95) 50%,
+    rgba(20, 28, 34, 0.98) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(193, 251, 212, 0.15) inset,
+    0 0 40px rgba(193, 251, 212, 0.06),
+    0 20px 48px rgba(0, 0, 0, 0.45);
+}
+
+.dark .docs-index-card__icon-well {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dark .docs-index-card--hover .docs-index-card__icon-well,
+.dark .docs-index-card:hover .docs-index-card__icon-well,
+.dark .docs-index-card:focus-visible .docs-index-card__icon-well {
+  background: rgba(193, 251, 212, 0.08);
+  border-color: rgba(193, 251, 212, 0.2);
+}
+
+.dark .docs-index-card__count {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .docs-index-card--hover .docs-index-card__count,
+.dark .docs-index-card:hover .docs-index-card__count,
+.dark .docs-index-card:focus-visible .docs-index-card__count {
+  background: rgba(193, 251, 212, 0.12);
+  border-color: rgba(193, 251, 212, 0.25);
+  color: var(--color-aloe);
+}
+
+.dark .docs-index-card__cta {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .docs-index-card--hover .docs-index-card__cta,
+.dark .docs-index-card:hover .docs-index-card__cta,
+.dark .docs-index-card:focus-visible .docs-index-card__cta {
+  background: rgba(193, 251, 212, 0.14);
+  border-color: rgba(193, 251, 212, 0.3);
+  color: var(--color-aloe);
+}
+
+.dark .docs-index__tip {
+  background: linear-gradient(
+    135deg,
+    rgba(28, 36, 42, 0.6) 0%,
+    rgba(18, 24, 28, 0.8) 100%
+  );
+}
+
+.dark .docs-index__tip-border {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(193, 251, 212, 0.15)
+  );
+}
+
+/* Prose — inline code on dark canvas */
+.dark .prose-docs :not(pre) > code {
+  background: var(--color-shade-30);
+  color: var(--color-ink);
+}
+
+.dark .prose-docs blockquote {
+  border-left-color: rgba(193, 251, 212, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dark .prose-docs th {
+  background: var(--color-canvas-light);
+}
+
+.dark .prose-docs td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dark .code-block {
+  border-color: var(--color-hairline-light);
+}
+
+.dark .code-block-header {
+  background: var(--color-canvas-light);
+}
+
+/* Navbar buttons on docs (light tone → dark surface) */
+.dark .navbar-btn--light {
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.dark .navbar-btn--light .navbar-btn__border {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 55%,
+    rgba(193, 251, 212, 0.12) 100%
+  );
+}
+
+.dark .navbar-btn--light:hover,
+.dark .navbar-btn--light:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 0 1px rgba(193, 251, 212, 0.2) inset,
+    0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.dark .navbar--scrolled .navbar-btn--light {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .navbar-btn--light.navbar-btn--accent {
+  color: var(--color-aloe);
+  background: rgba(193, 251, 212, 0.08);
+}
+
+.dark .navbar-btn--light.navbar-btn--accent:hover,
+.dark .navbar-btn--light.navbar-btn--accent:focus-visible {
+  color: var(--color-on-primary);
+  background: var(--color-aloe);
+}
+
+/* Dark-mode docs: use dark glass buttons on dark navbar */
+.dark .navbar-btn--dark {
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.dark .navbar-btn--dark:hover,
+.dark .navbar-btn--dark:focus-visible {
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark .navbar-btn--dark.navbar-btn--accent {
+  color: var(--color-aloe);
+}
+
+.dark .navbar-btn--dark.navbar-btn--accent:hover,
+.dark .navbar-btn--dark.navbar-btn--accent:focus-visible {
+  color: var(--color-on-primary);
+  background: var(--color-aloe);
+}

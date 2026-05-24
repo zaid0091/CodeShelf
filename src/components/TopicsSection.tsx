@@ -16,7 +16,8 @@ function TopicCard({
   noteCount: number
   index: number
 }) {
-  const { cardRef, onPointerEnter, onPointerMove, onPointerLeave } = useSmoothCardGlow()
+  const { cardRef, onPointerEnter, onPointerMove, onPointerLeave } =
+    useSmoothCardGlow<HTMLAnchorElement>()
 
   return (
     <div className="h-full min-w-0">

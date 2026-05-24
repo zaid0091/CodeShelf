@@ -1,4 +1,5 @@
 import { parseFrontmatter } from './frontmatter'
+import { rankSearchPages } from './searchRank'
 import type { DocPage, TopicGroup } from './types'
 
 const TOPIC_LABELS: Record<string, { label: string }> = {
@@ -87,18 +88,5 @@ export function getCourseStartPath(topicId: string): string {
 }
 
 export function searchPages(query: string): DocPage[] {
-  const q = query.toLowerCase().trim()
-  if (!q) return []
-
-  return allPages.filter((page) => {
-    const haystack = [
-      page.title,
-      page.description ?? '',
-      page.topicLabel,
-      page.content,
-    ]
-      .join(' ')
-      .toLowerCase()
-    return haystack.includes(q)
-  })
+  return rankSearchPages(allPages, query)
 }

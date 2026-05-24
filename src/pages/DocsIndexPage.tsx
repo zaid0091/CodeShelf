@@ -16,7 +16,7 @@ function DocsIndexCard({
   index: number
 }) {
   const { cardRef, onPointerEnter, onPointerMove, onPointerLeave } =
-    useSmoothCardGlow('docs-index-card--hover')
+    useSmoothCardGlow<HTMLAnchorElement>('docs-index-card--hover')
 
   return (
     <li
