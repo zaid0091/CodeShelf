@@ -6,6 +6,7 @@ import { ButtonLink } from '@/components/ui/Button'
 import { NavbarButtonLink } from '@/components/ui/NavbarButton'
 import { TopicIcon } from '@/components/TopicIcon'
 import { TopicsSection } from '@/components/TopicsSection'
+import { SiteFooter } from '@/components/SiteFooter'
 import { ScrollReveal } from '@/components/ScrollReveal'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
@@ -187,19 +188,7 @@ function HomePageContent() {
         </ScrollReveal>
       </section>
 
-      <ScrollReveal
-        animation="fade-up"
-        duration={0.85}
-        as="footer"
-        className="border-t border-white/5 py-16 px-6 lg:px-10"
-      >
-        <div className="max-w-[90rem] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <span className="font-display text-on-primary">CodeShelf</span>
-          <p className="text-caption text-link-cool-3">
-            Built for learning. Frontend-only. Always yours.
-          </p>
-        </div>
-      </ScrollReveal>
+      <SiteFooter />
     </div>
   )
 }
