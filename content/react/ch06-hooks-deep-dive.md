@@ -7,260 +7,651 @@ tags: [react, hooks, useRef, useMemo, useCallback, custom-hooks]
 
 # Chapter 6: Hooks Deep Dive
 
-## 6.1 Rules of Hooks
+> **Hooks are how function components hold state and effects. This chapter goes beyond useState and useEffect.**
+> Take your time with each section — understanding beats speed.
 
-All hooks must follow two rules:
+---
 
-1. **Only call hooks at the top level** — not inside loops, conditions, or nested functions.
-2. **Only call hooks from React functions** — components or custom hooks.
+## Table of Contents
 
-```jsx
-// ❌ Conditional hook
-if (loggedIn) {
-  useEffect(() => { ... }, []);
-}
+1. [Rules of Hooks](#rules-of-hooks)
+2. [Why Order Matters](#why-order-matters)
+3. [useRef Basics](#useref-basics)
+4. [DOM Refs](#dom-refs)
+5. [Ref Without Re-render](#ref-without-re-render)
+6. [Previous Value Pattern](#previous-value-pattern)
+7. [useMemo](#usememo)
+8. [When useMemo Helps](#when-usememo-helps)
+9. [When useMemo Hurts](#when-usememo-hurts)
+10. [useCallback](#usecallback)
+11. [useCallback with memo](#usecallback-with-memo)
+12. [Custom Hooks Intro](#custom-hooks-intro)
+13. [useLocalStorage Hook](#uselocalstorage-hook)
+14. [useFetch Hook](#usefetch-hook)
+15. [useToggle / useDebounce](#usetoggle-usedebounce)
+16. [Hook Composition](#hook-composition)
+17. [Debugging Hooks](#debugging-hooks)
+18. [Common Mistakes](#common-mistakes)
+19. [Interview Points](#interview-points)
+20. [Exercises](#exercises)
+21. [Chapter Summary](#chapter-summary)
 
-// ✅ Hook always runs
-useEffect(() => {
-  if (loggedIn) { ... }
-}, [loggedIn]);
-```
+---
 
-React relies on call order to associate state with each hook instance.
+## Rules of Hooks
 
-## 6.2 useRef
+1. Top level only. 2. React functions only.
 
-`useRef` returns a mutable object `{ current: value }` that **persists across renders** without causing re-renders when updated.
+#### Why this matters for `Rules of Hooks`
 
-```jsx
-import { useRef } from 'react';
+Understanding **Rules of Hooks** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-function TextInput() {
-  const inputRef = useRef(null);
+#### Quick recap
 
-  function focusInput() {
-    inputRef.current?.focus();
-  }
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-  return (
-    <>
-      <input ref={inputRef} type="text" />
-      <button onClick={focusInput}>Focus</button>
-    </>
-  );
-}
-```
+#### Connection to other chapters
 
-### useRef use cases
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-| Use case | Example |
-|----------|---------|
-| DOM access | Focus, scroll, measure element |
-| Mutable instance value | Previous prop, timer id |
-| Avoid stale closure | Store latest callback in ref |
+---
 
-### Storing previous value
+## Why Order Matters
 
-```jsx
-function usePrevious(value) {
-  const ref = useRef();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
-```
+React matches hooks by call order per component.
 
-### Ref vs state
+#### Why this matters for `Why Order Matters`
 
-| | `useState` | `useRef` |
-|---|-----------|----------|
-| Update triggers re-render | Yes | No |
-| Value in JSX | Yes | Usually no |
-| Persist across renders | Yes | Yes |
+Understanding **Why Order Matters** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 6.3 useMemo
+#### Quick recap
 
-`useMemo` **caches a computed value** between renders when dependencies unchanged.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-import { useMemo } from 'react';
+#### Connection to other chapters
 
-function ProductList({ products, sortBy }) {
-  const sorted = useMemo(() => {
-    return [...products].sort((a, b) => a[sortBy] - b[sortBy]);
-  }, [products, sortBy]);
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  return (
-    <ul>
-      {sorted.map(p => (
-        <li key={p.id}>{p.name}</li>
-      ))}
-    </ul>
-  );
-}
-```
+---
 
-### When to use useMemo
+## useRef Basics
 
-- Expensive calculations (large arrays, complex filtering)
-- Referential equality needed for child `memo` optimization
-- **Not** for every simple expression — adds overhead
+`const ref = useRef(initial)` → `{ current }`.
 
-```jsx
-// Usually unnecessary
-const doubled = useMemo(() => count * 2, [count]);
+#### Why this matters for `useRef Basics`
 
-// Fine without memo
-const doubled = count * 2;
-```
+Understanding **useRef Basics** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 6.4 useCallback
+#### Quick recap
 
-`useCallback` **caches a function reference** between renders.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-import { useCallback, useState } from 'react';
+#### Connection to other chapters
 
-function TodoList({ todos, onToggle }) {
-  return (
-    <ul>
-      {todos.map(todo => (
-        <TodoItem key={todo.id} todo={todo} onToggle={onToggle} />
-      ))}
-    </ul>
-  );
-}
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-function App() {
-  const [todos, setTodos] = useState([]);
+---
 
-  const handleToggle = useCallback((id) => {
-    setTodos(prev =>
-      prev.map(t => t.id === id ? { ...t, done: !t.done } : t)
-    );
-  }, []);
+## DOM Refs
 
-  return <TodoList todos={todos} onToggle={handleToggle} />;
-}
-```
+`<input ref={inputRef} />` then `inputRef.current.focus()`.
 
-### useCallback vs useMemo
+#### Why this matters for `DOM Refs`
 
-```jsx
-const memoizedValue = useMemo(() => compute(a, b), [a, b]);
-const memoizedFn = useCallback(() => doSomething(a, b), [a, b]);
+Understanding **DOM Refs** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-// Equivalent:
-const memoizedFn = useMemo(() => () => doSomething(a, b), [a, b]);
-```
+#### Quick recap
 
-Use `useCallback` when passing callbacks to optimized child components wrapped in `React.memo`.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 6.5 Custom hooks
+#### Connection to other chapters
 
-A **custom hook** extracts reusable stateful logic. Name must start with `use`.
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-function useLocalStorage(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : initialValue;
-  });
+---
 
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
+## Ref Without Re-render
 
-  return [value, setValue];
-}
+Updating `.current` does not re-render.
 
-// Usage
-function Settings() {
-  const [theme, setTheme] = useLocalStorage('theme', 'light');
-  return (
-    <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>
-      Toggle theme ({theme})
-    </button>
-  );
-}
-```
+#### Why this matters for `Ref Without Re-render`
 
-### useFetch custom hook
+Understanding **Ref Without Re-render** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```jsx
-function useFetch(url) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+#### Quick recap
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-    fetch(url)
-      .then(res => {
-        if (!res.ok) throw new Error(res.statusText);
-        return res.json();
-      })
-      .then(json => {
-        if (!cancelled) setData(json);
-      })
-      .catch(err => {
-        if (!cancelled) setError(err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+#### Connection to other chapters
 
-    return () => { cancelled = true; };
-  }, [url]);
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  return { data, loading, error };
-}
-```
+---
 
-See [Chapter 10](./ch10-data-fetching.md) for production data patterns.
+## Previous Value Pattern
 
-## 6.6 Hook composition patterns
+Store prior prop/state in ref via effect.
 
-| Custom hook | Encapsulates |
-|-------------|--------------|
-| `useToggle` | Boolean state + toggle function |
-| `useDebounce` | Delayed value updates for search |
-| `useMediaQuery` | Responsive breakpoint matching |
-| `useOnClickOutside` | Close dropdown on outside click |
+#### Why this matters for `Previous Value Pattern`
 
-```jsx
-function useToggle(initial = false) {
-  const [on, setOn] = useState(initial);
-  const toggle = useCallback(() => setOn(v => !v), []);
-  return [on, toggle];
-}
-```
+Understanding **Previous Value Pattern** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 6.7 Debugging hooks
+#### Quick recap
 
-- React DevTools shows hook state per component
-- Log dependency changes when effects fire unexpectedly
-- Prefer extracting complex logic into named custom hooks for testability
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useMemo
+
+Cache expensive computed values.
+
+#### Why this matters for `useMemo`
+
+Understanding **useMemo** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## When useMemo Helps
+
+Heavy filter/sort; referential equality for memo children.
+
+#### Why this matters for `When useMemo Helps`
+
+Understanding **When useMemo Helps** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## When useMemo Hurts
+
+Trivial math — overhead not worth it.
+
+#### Why this matters for `When useMemo Hurts`
+
+Understanding **When useMemo Hurts** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useCallback
+
+Cache function identity.
+
+#### Why this matters for `useCallback`
+
+Understanding **useCallback** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useCallback with memo
+
+Stable `onDelete` for `React.memo` list items.
+
+#### Why this matters for `useCallback with memo`
+
+Understanding **useCallback with memo** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Custom Hooks Intro
+
+> **Definition:** Function starting with `use` that calls other hooks.
+
+#### Why this matters for `Custom Hooks Intro`
+
+Understanding **Custom Hooks Intro** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useLocalStorage Hook
+
+Encapsulate get/set + JSON parse.
+
+#### Why this matters for `useLocalStorage Hook`
+
+Understanding **useLocalStorage Hook** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useFetch Hook
+
+data, loading, error + abort cleanup.
+
+#### Why this matters for `useFetch Hook`
+
+Understanding **useFetch Hook** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useToggle / useDebounce
+
+Common patterns.
+
+#### Why this matters for `useToggle / useDebounce`
+
+Understanding **useToggle / useDebounce** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Hook Composition
+
+Combine small hooks into larger ones.
+
+#### Why this matters for `Hook Composition`
+
+Understanding **Hook Composition** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Debugging Hooks
+
+DevTools shows hook state per component.
+
+#### Why this matters for `Debugging Hooks`
+
+Understanding **Debugging Hooks** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Hooks Deep Dive
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| Conditional hooks | Crash/wrong state | Move condition inside hook body |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: useRef vs useState?**
+
+Ref: no re-render on update.
+
+---
 
 ## Exercises
 
-1. **useRef focus** — Build a form where "Edit" button focuses the first invalid field.
-2. **useMemo** — Filter/sort 1000+ items; compare with and without `useMemo` in DevTools Profiler.
-3. **useCallback** — Memoize `onDelete` passed to list items; wrap items in `memo`.
-4. **Custom hook** — Write `useWindowSize()` returning `{ width, height }`.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Hook | Purpose |
-|------|---------|
-| `useRef` | Mutable box; DOM refs; no re-render |
-| `useMemo` | Cache expensive computed values |
-| `useCallback` | Cache function references |
-| Custom hooks | Reuse stateful logic across components |
+### Exercise 1: Focus form ⭐
 
-## Next chapter
+**Task:** useRef to focus input.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **useRef** | Mutable box |
+| **Custom hooks** | Reuse logic |
+
+## Next Chapter
 
 Continue to [Chapter 7: Context API](./ch07-context-api.md).
+

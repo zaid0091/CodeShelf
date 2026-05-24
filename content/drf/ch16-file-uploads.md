@@ -1,5 +1,5 @@
 ---
-title: Chapter 16 — File Uploads
+title: File Uploads
 description: ImageField, FileField, parsers, and serving media in Django REST Framework
 order: 16
 tags: [drf, file-upload, media, parsers]
@@ -7,308 +7,594 @@ tags: [drf, file-upload, media, parsers]
 
 # Chapter 16: File Uploads
 
-APIs often accept images, documents, and attachments. DRF builds on Django's **FileField** / **ImageField** and uses **parser classes** to handle `multipart/form-data` and raw uploads.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **Parser** | Converts HTTP body into `request.data` / `request.FILES`. |
-| **MultiPartParser** | Parses `multipart/form-data` (forms with files). |
-| **FileUploadParser** | Parses raw file uploads to a single field. |
-| **MEDIA_ROOT** | Filesystem path where uploads are stored. |
-| **MEDIA_URL** | URL prefix to serve uploaded files in development. |
+> **Welcome!** This chapter covers **File uploads and parsers** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 16.1 ImageField and FileField
+## Table of Contents
 
-### Model
+1. [Introduction to File uploads and parsers](#intro-file-uploads-and-parsers)
+2. [Core concepts](#core-file-uploads-and-parsers)
+3. [Step-by-step example](#example-file-uploads-and-parsers)
+4. [HTTP and curl examples](#curl-file-uploads-and-parsers)
+5. [Configuration in settings.py](#settings-file-uploads-and-parsers)
+6. [Advanced patterns](#advanced-file-uploads-and-parsers)
+7. [Testing this feature](#testing-file-uploads-and-parsers)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
+
+---
+
+## Introduction to File uploads and parsers
+
+> **Definition:** **File uploads and parsers** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **File uploads and parsers**.
 
 ```python
-# models.py
+# models.py — example domain for this chapter
 from django.db import models
 
-def user_avatar_path(instance, filename):
-    return f'avatars/user_{instance.user_id}/{filename}'
+class Document(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-class Profile(models.Model):
-    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
-    bio = models.TextField(blank=True)
-    avatar = models.ImageField(upload_to=user_avatar_path, blank=True, null=True)
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    def __str__(self):
+        return self.name
 ```
+---
 
-Install Pillow for `ImageField`:
+### File uploads and parsers — Mental Model
+
+When learning **File uploads and parsers**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
 
 ```bash
-pip install Pillow
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Serializer
+### File uploads and parsers — Step By Step Flow
+
+When learning **File uploads and parsers**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### File uploads and parsers — Comparison Table
+
+When learning **File uploads and parsers**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### File uploads and parsers — Real World Analogy
+
+When learning **File uploads and parsers**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### File uploads and parsers — Security Angle
+
+When learning **File uploads and parsers**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### File uploads and parsers — Testing Angle
+
+When learning **File uploads and parsers**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### File uploads and parsers — Production Tip
+
+When learning **File uploads and parsers**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### File uploads and parsers — Debugging Checklist
+
+When learning **File uploads and parsers**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for File uploads and parsers
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
 
 ```python
+# serializers.py
 from rest_framework import serializers
-from .models import Profile
+from .models import Document
 
-class ProfileSerializer(serializers.ModelSerializer):
+class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile
-        fields = ['id', 'user', 'bio', 'avatar', 'resume']
-        read_only_fields = ['user']
+        model = Document
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Document
+from .serializers import DocumentSerializer
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
 ```
+---
 
-### ViewSet
+## HTTP and curl examples
 
-```python
-from rest_framework import viewsets, permissions
-from rest_framework.parsers import MultiPartParser, FormParser
-
-class ProfileViewSet(viewsets.ModelViewSet):
-    serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
-
-    def get_queryset(self):
-        return Profile.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-```
-
-### Upload with curl
+Test every endpoint from the terminal before wiring the frontend.
 
 ```bash
-curl -X PATCH http://127.0.0.1:8000/api/profiles/1/ \
-  -H "Authorization: Bearer <token>" \
-  -F "avatar=@/path/to/photo.jpg" \
-  -F "bio=Hello world"
+# 
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/ \
+  -H "Content-Type: application/json"
 ```
 
-### JSON response (avatar URL)
 
-```json
-{
-    "id": 1,
-    "user": 1,
-    "bio": "Hello world",
-    "avatar": "http://127.0.0.1:8000/media/avatars/user_1/photo.jpg",
-    "resume": null
-}
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/file-uploads-and-parsers/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
 ```
 
-### Validation (size, extension)
 
-```python
-class ProfileSerializer(serializers.ModelSerializer):
-    def validate_avatar(self, value):
-        if value.size > 2 * 1024 * 1024:  # 2 MB
-            raise serializers.ValidationError('Image must be under 2 MB.')
-        if not value.content_type.startswith('image/'):
-            raise serializers.ValidationError('File must be an image.')
-        return value
 
-    class Meta:
-        model = Profile
-        fields = ['id', 'bio', 'avatar', 'resume']
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Interview points
 
-- File data lives in **`request.FILES`**, not JSON body — use **multipart** requests.
-- `ImageField` requires **Pillow**; validates image format on save.
-- Never trust client **content-type** alone — validate magic bytes in production.
-- Store paths in DB, files on disk/S3 — not in the database BLOB (usually).
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/file-uploads-and-parsers/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/file-uploads-and-parsers/1/ \
+  -H "Content-Type: application/json"
+```
+
+
 
 ---
 
-## 16.2 Parser Classes
-
-Parsers determine how incoming request bodies are parsed.
-
-### Default parsers
+## Configuration in settings.py
 
 ```python
-# settings.py
 REST_FRAMEWORK = {
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.MultiPartParser',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
 ```
 
-| Parser | Content-Type | Use |
-|--------|--------------|-----|
-| `JSONParser` | `application/json` | Normal JSON APIs |
-| `FormParser` | `application/x-www-form-urlencoded` | HTML forms |
-| `MultiPartParser` | `multipart/form-data` | File uploads |
-| `FileUploadParser` | `multipart/form-data`, `application/octet-stream` | Raw file to `request.data['file']` |
-
-### FileUploadParser example
-
-```python
-from rest_framework.views import APIView
-from rest_framework.parsers import FileUploadParser
-from rest_framework.response import Response
-from rest_framework import status
-
-class FileUploadView(APIView):
-    parser_classes = [FileUploadParser]
-
-    def put(self, request, filename, format=None):
-        file_obj = request.data['file']
-        with open(f'/tmp/{filename}', 'wb+') as f:
-            for chunk in file_obj.chunks():
-                f.write(chunk)
-        return Response({'filename': filename}, status=status.HTTP_201_CREATED)
-```
-
-```bash
-curl -X PUT http://127.0.0.1:8000/upload/example.txt \
-  -H "Content-Type: application/octet-stream" \
-  --data-binary @example.txt
-```
-
-### Per-action parsers on ViewSet
-
-```python
-class DocumentViewSet(viewsets.ModelViewSet):
-    queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
-
-    def get_parsers(self):
-        if self.action in ('create', 'update', 'partial_update'):
-            return [MultiPartParser(), FormParser()]
-        return super().get_parsers()
-```
-
-### Base64 upload (alternative pattern)
-
-Some mobile clients send base64 in JSON — handle in serializer (not built-in):
-
-```python
-import base64
-from django.core.files.base import ContentFile
-
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f'upload.{ext}')
-        return super().to_internal_value(data)
-```
-
-### Interview points
-
-- Wrong parser → **Unsupported media type** (415) or empty `request.data`.
-- **Order matters:** first matching parser wins.
-- Large uploads: configure **nginx** `client_max_body_size`, Django `DATA_UPLOAD_MAX_MEMORY_SIZE`.
+Tune defaults for **File uploads and parsers** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
 ---
 
-## 16.3 Serving Media Files
+## Advanced patterns
 
-### Development settings
+Combine **File uploads and parsers** with permissions, filtering, and pagination from other chapters.
 
-```python
-# settings.py
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-```
-
-```python
-# urls.py (project root — development only)
-from django.conf import settings
-from django.conf.urls.static import static
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('myapp.urls')),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-```
-
-### Production: never use Django to serve media
-
-Use **AWS S3**, **Cloudinary**, **Azure Blob**, or nginx/CDN:
-
-```bash
-pip install django-storages boto3
-```
-
-```python
-# settings.py (production)
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_STORAGE_BUCKET_NAME = 'my-bucket'
-AWS_S3_REGION_NAME = 'us-east-1'
-AWS_DEFAULT_ACL = 'public-read'
-AWS_QUERYSTRING_AUTH = False
-```
-
-```python
-# Serializer returns full S3 URL automatically when using default storage
-class ProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(use_url=True)
-
-    class Meta:
-        model = Profile
-        fields = ['avatar']
-```
-
-### Absolute URI in serializers
-
-```python
-class ProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.SerializerMethodField()
-
-    def get_avatar(self, obj):
-        if obj.avatar:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.avatar.url)
-            return obj.avatar.url
-        return None
-
-    class Meta:
-        model = Profile
-        fields = ['avatar']
-```
-
-### Secure private files
-
-For private documents, use **signed URLs** or an authenticated download view — do not expose `MEDIA_URL` publicly.
-
-```python
-class PrivateDocumentView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        doc = get_object_or_404(Document, pk=pk, owner=request.user)
-        return FileResponse(doc.file.open('rb'), as_attachment=True)
-```
-
-### Interview points
-
-- **`DEBUG=True` + static()** is for development only.
-- Use **django-storages** + CDN in production.
-- Separate **user-generated media** from **static assets** (`STATIC_URL`).
-- Consider **virus scanning** and **content moderation** for user uploads.
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
 
 ---
 
-## Chapter summary
+## Testing this feature
 
-1. Model: `FileField` / `ImageField` with `upload_to`.
-2. API: `MultiPartParser` + `FormParser` on the view.
-3. Client: `multipart/form-data` with `-F` or `FormData`.
-4. Deploy: S3/CDN for media; validate size and type server-side.
+```python
+from rest_framework.test import APITestCase
+
+class DocumentTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/file-uploads-and-parsers/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: File uploads and parsers in practice
+
+Scenario 1: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: File uploads and parsers in practice
+
+Scenario 2: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: File uploads and parsers in practice
+
+Scenario 3: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: File uploads and parsers in practice
+
+Scenario 4: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: File uploads and parsers in practice
+
+Scenario 5: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: File uploads and parsers in practice
+
+Scenario 6: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: File uploads and parsers in practice
+
+Scenario 7: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: File uploads and parsers in practice
+
+Scenario 8: A mobile app consumes your **File uploads and parsers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/file-uploads-and-parsers/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping File uploads and parsers docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is File uploads and parsers in DRF?
+
+It is part of the request/response pipeline for File uploads and parsers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is File uploads and parsers in DRF?
+
+It is part of the request/response pipeline for File uploads and parsers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is File uploads and parsers in DRF?
+
+It is part of the request/response pipeline for File uploads and parsers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is File uploads and parsers in DRF?
+
+It is part of the request/response pipeline for File uploads and parsers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Document` API using File uploads and parsers.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of File uploads and parsers in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of File uploads and parsers in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch17-signals.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

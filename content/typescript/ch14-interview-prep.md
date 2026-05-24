@@ -1,11 +1,35 @@
 ---
 title: Chapter 14 — Interview Preparation
-description: Common TypeScript interview questions and answers — types, generics, narrowing, utilities, and design.
+description: Common TypeScript interview questions, whiteboard challenges, and study strategies.
 order: 14
 tags: [typescript, interview, qa]
 ---
 
+
 # Chapter 14: Interview Preparation
+
+> **This capstone chapter consolidates interview topics across the course with sample answers and practice challenges.**
+> Take your time with each section. TypeScript rewards patience — read compiler errors carefully and experiment in a small project as you go.
+
+---
+
+
+## Table of Contents
+
+1. [How to Use This Chapter](#how-to-use-this-chapter)
+2. [Core Concepts Q&A](#core-concepts-qa)
+3. [Generics and Utilities Q&A](#generics-and-utilities-qa)
+4. [Narrowing and Unions Q&A](#narrowing-and-unions-qa)
+5. [Tooling Q&A](#tooling-qa)
+6. [React TS Q&A](#react-ts-qa)
+7. [Whiteboard Challenges](#whiteboard-challenges)
+8. [Behavioral Tips](#behavioral-tips)
+9. [Study Plan](#study-plan)
+10. [Interview Points](#interview-points)
+11. [Exercises](#exercises)
+12. [Chapter Summary](#chapter-summary)
+
+---
 
 ## 14.1 How to use this chapter
 
@@ -262,3 +286,519 @@ Discuss auth headers, retry, timeout, and OpenAPI/codegen as scale increases.
 ## Back to course index
 
 Return to [Course Overview](./ch00-course-overview.md) for the full chapter list.
+<!-- codeshelf:generated-appendix -->
+
+---
+
+## How to answer 'Why TypeScript?'
+
+Structure your answer in three parts:
+
+1. **Problem:** Dynamic JS allows silent bugs in large codebases.
+2. **Solution:** Compile-time types + IDE tooling catch errors early.
+3. **Proof:** One real bug you prevented (wrong property, null access, bad refactor).
+
+Avoid saying only "it's industry standard" — interviewers want reasoning.
+
+---
+
+## Mock interview rubric
+
+| Score | You demonstrate |
+|-------|-----------------|
+| 1 | Syntax only |
+| 2 | Correct definitions |
+| 3 | Trade-offs (any vs unknown, enum vs union) |
+| 4 | Real project examples |
+| 5 | System design + validation at boundaries |
+
+---
+
+## Core interview questions (detailed answers)
+
+### Q1: What is TypeScript and why use it?
+
+**Short answer:** A typed superset of JavaScript that compiles to JS for early error detection and better tooling.
+
+**Deep answer:** TypeScript adds optional static typing, interfaces, enums, and modern ECMAScript features via compilation. Teams adopt it to reduce production bugs, improve refactor safety, and document APIs. Types erase at runtime — there is no performance penalty from annotations themselves.
+
+```typescript
+// Compile-time safety
+function add(a: number, b: number): number {
+  return a + b;
+}
+add(1, "2"); // Error before deploy
+```
+
+---
+
+### Q2: What is the difference between `any` and `unknown`?
+
+| | `any` | `unknown` |
+|---|-------|-----------|
+| Assign in | Anything | Anything |
+| Assign out | No check | Must narrow first |
+| Safe default | No | Yes |
+
+```typescript
+let a: any = 1;
+let b: number = a; // allowed — dangerous
+
+let u: unknown = 1;
+let n: number = u; // Error — must narrow
+if (typeof u === "number") n = u;
+```
+
+---
+
+### Q3: Explain type inference.
+
+The compiler deduces types when you omit annotations:
+
+```typescript
+const x = [1, 2, 3]; // number[]
+let y = "hi"; // string
+```
+
+Inference uses:
+
+- Initializer types
+- Return flow in functions
+- Contextual typing (e.g. callback parameters)
+
+---
+
+### Q4: What are union and intersection types?
+
+**Union (`|`):** value is **one of** the types.
+
+```typescript
+type Id = string | number;
+```
+
+**Intersection (`&`):** value must satisfy **all** types.
+
+```typescript
+type Employee = Person & { employeeId: string };
+```
+
+---
+
+### Q5: What is a discriminated union?
+
+Members share a literal field (discriminant) for narrowing:
+
+```typescript
+type Result =
+  | { ok: true; data: string }
+  | { ok: false; error: string };
+
+function handle(r: Result) {
+  if (r.ok) console.log(r.data);
+  else console.log(r.error);
+}
+```
+
+---
+
+### Q6: What is a type predicate?
+
+A function that narrows types for the compiler:
+
+```typescript
+function isString(x: unknown): x is string {
+  return typeof x === "string";
+}
+```
+
+---
+
+### Q7: What is `never` used for?
+
+Functions that never return, and exhaustiveness checks:
+
+```typescript
+function assertNever(x: never): never {
+  throw new Error(`Unexpected: ${x}`);
+}
+```
+
+---
+
+### Q8: interface vs type alias?
+
+- **interface:** object shapes, extends, declaration merging
+- **type:** unions, tuples, mapped/conditional types
+
+---
+
+### Q9: What is structural typing?
+
+Types match by shape, not name:
+
+```typescript
+interface Point { x: number; y: number }
+function log(p: { x: number; y: number }) {
+  console.log(p.x);
+}
+const pt: Point = { x: 1, y: 2 };
+log(pt); // OK
+```
+
+---
+
+### Q10: What does `strict` enable?
+
+`strict` turns on a family of checks including:
+
+- `strictNullChecks`
+- `strictFunctionTypes`
+- `strictBindCallApply`
+- `strictPropertyInitialization`
+- `noImplicitAny`
+- `noImplicitThis`
+- `alwaysStrict`
+
+---
+
+### Q11: What is `Pick` / `Omit` / `Partial`?
+
+Utility types that transform object types:
+
+```typescript
+type User = { id: string; name: string; email: string };
+type Preview = Pick<User, "id" | "name">;
+type Update = Partial<Omit<User, "id">>;
+```
+
+---
+
+### Q12: How do generics work?
+
+Type parameters let APIs stay reusable and typed:
+
+```typescript
+function first<T>(arr: T[]): T | undefined {
+  return arr[0];
+}
+```
+
+Constraints limit `T`:
+
+```typescript
+function len<T extends { length: number }>(x: T): number {
+  return x.length;
+}
+```
+
+---
+
+### Q13: What is `ReturnType`?
+
+Extracts a function's return type:
+
+```typescript
+function createUser() {
+  return { id: "1", name: "Ada" };
+}
+type User = ReturnType<typeof createUser>;
+```
+
+---
+
+### Q14: How do you type `Promise` and `async`?
+
+```typescript
+async function fetchId(): Promise<string> {
+  return "abc";
+}
+```
+
+Use `Awaited` for nested promises.
+
+---
+
+### Q15: How do you type React props?
+
+```typescript
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+function Button({ label, onClick, disabled }: ButtonProps) {
+  return (
+    <button disabled={disabled} onClick={onClick}>
+      {label}
+    </button>
+  );
+}
+```
+
+---
+
+## Whiteboard challenges
+
+### Challenge 1: Implement `DeepPartial<T>` (recursive)
+
+Sketch a mapped type that makes all properties optional recursively for plain objects.
+
+### Challenge 2: Event emitter types
+
+Design `on(event, handler)` and `emit(event, payload)` so event names map to payload types.
+
+### Challenge 3: Tuple to union
+
+Convert `['a', 'b', 'c']` type to `'a' | 'b' | 'c'`.
+
+### Challenge 4: Exclude properties by type
+
+Given `User`, create a type without function-valued properties.
+
+### Challenge 5: Promise timeout wrapper
+
+Type a function `withTimeout<T>(p: Promise<T>, ms: number): Promise<T>`.
+
+---
+
+## Behavioral interview tips
+
+- Explain **trade-offs**, not only syntax.
+- Mention **runtime validation** at system boundaries.
+- Describe a bug TypeScript caught in a real project.
+- Admit when you would choose JavaScript (small scripts).
+- Show curiosity about compiler options and team conventions.
+
+---
+
+## 30-day study plan
+
+| Week | Focus | Chapters |
+|------|-------|----------|
+| 1 | Foundations | 1–3 |
+| 2 | Functions & generics | 4–6 |
+| 3 | OOP & narrowing | 7–9 |
+| 4 | Tooling & React | 10–12 |
+| 5 | Practice & interviews | 13–14 |
+
+Daily: 45 min reading, 45 min coding exercises, 15 min flashcards.
+
+## Answer structure
+
+
+Use **Problem → TypeScript tool → Outcome** when answering behavioral questions.
+
+
+---
+
+## Whiteboard tips
+
+
+Start with concrete usage, then generalize to the type definition. Narrate trade-offs.
+
+
+---
+
+## STAR method for TS stories
+
+
+- **Situation:** Large React codebase, frequent null errors
+- **Task:** Introduce strictNullChecks
+- **Action:** Enabled flag, fixed modules incrementally, added CI `tsc --noEmit`
+- **Result:** Fewer production incidents, faster onboarding
+
+
+---
+
+## Review Q1
+
+**Q:** How to answer 'Is TypeScript worth it?' **A:** Trade-off: upfront cost vs fewer bugs, better refactors, IDE support — cite team size and codebase age.
+
+---
+
+## Best Practices
+
+- ✅ Explain trade-offs, not buzzwords.
+- ✅ Link answers to bugs prevented in real projects.
+
+---
+
+## Common Mistakes
+
+Watch for these patterns — they cost hours in real projects.
+
+### Mistake 1: Memorizing only syntax
+
+Cannot explain why unknown > any
+
+Study rationale and examples.
+
+---
+
+### Mistake 2: Ignoring JavaScript fundamentals
+
+Cannot explain event loop but knows Pick<Omit>
+
+Balance TS with JS depth.
+
+---
+
+## Interview Points
+
+> **📌 Interview Point 1: Most common TS question?**
+
+Often: difference any vs unknown, or what is generics.
+
+---
+
+> **📌 Interview Point 2: How to answer system design with TS?**
+
+Mention API contracts, shared types, validation at boundaries.
+
+---
+
+## Exercises
+
+Practice with `npx tsc --noEmit` after each exercise.
+
+### Exercise 14.1: Flashcards ⭐
+
+**Task:** Write 20 flashcards from this chapter.
+
+<details><summary>💡 Hint</summary>
+
+spaced repetition.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Create 20 flashcards from Q&A sections; review daily with spaced repetition.
+
+</details>
+
+---
+
+### Exercise 14.2: Mock interview ⭐⭐
+
+**Task:** Pair practice 45 minutes.
+
+<details><summary>💡 Hint</summary>
+
+explain aloud.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Pair with a friend: alternate asking and answering for 45 minutes without notes.
+
+</details>
+
+---
+
+### Exercise 14.3: Whiteboard deepPartial ⭐⭐⭐
+
+**Task:** Sketch recursive Partial type.
+
+<details><summary>💡 Hint</summary>
+
+advanced.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+```
+
+</details>
+
+---
+
+### Exercise 14.4: Implement get ⭐⭐
+
+**Task:** Type-safe API client sketch.
+
+<details><summary>💡 Hint</summary>
+
+generics + unknown.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Sketch `get<T>(path, parser)` returning `ApiResult<T>` with unknown JSON and runtime parse function.
+
+</details>
+
+---
+
+### Exercise 14.5: Narrowing live ⭐⭐⭐
+
+**Task:** Given union code, narrate narrowing steps.
+
+<details><summary>💡 Hint</summary>
+
+Chapter 8.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Narrate each branch: typeof, discriminant check, default never.
+
+</details>
+
+---
+
+### Exercise 14.6: strict flags ⭐⭐
+
+**Task:** List strict family and one benefit each.
+
+<details><summary>💡 Hint</summary>
+
+Chapter 10/13.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+List: strictNullChecks, noImplicitAny, strictFunctionTypes, strictBindCallApply, strictPropertyInitialization, noImplicitThis, alwaysStrict.
+
+</details>
+
+---
+
+## Chapter Summary
+
+You covered a lot in this chapter. Here is a concise recap:
+
+- Interviewers test inference, unions, generics, narrowing, and pragmatic strictness.
+- Practice explaining out loud.
+
+---
+
+---
+
+## Navigation
+
+**⬅️ [Previous: Best Practices](./ch13-best-practices.md)**  
+
+---
+## Quick glossary (review)
+
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+
+*Last updated: 2025 | TypeScript course — CodeShelf*
+
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*

@@ -1,5 +1,5 @@
 ---
-title: Chapter 13 — Throttling
+title: Throttling
 description: Rate limiting API requests with DRF throttle classes
 order: 13
 tags: [drf, throttling, rate-limiting, security]
@@ -7,255 +7,594 @@ tags: [drf, throttling, rate-limiting, security]
 
 # Chapter 13: Throttling
 
-**Throttling** limits how often a client may call an API within a time window. Unlike **permissions** (whether you may access a resource), throttling answers **how often** you may request.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **Throttle** | Rate limiter that delays or rejects excess requests. |
-| **Rate** | String like `'100/hour'`, `'10/minute'`, `'1000/day'`. |
-| **Scope** | Named bucket for scoped throttles (e.g. `'uploads'`). |
-| **Cache** | Throttle state is stored in Django's cache framework. |
+> **Welcome!** This chapter covers **Throttling** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 13.1 Why Throttling
+## Table of Contents
 
-Use throttling to:
-
-- Prevent **abuse** and brute-force attacks (login, OTP).
-- Protect **server resources** (DB, CPU, third-party quotas).
-- Enforce **fair usage** on multi-tenant or public APIs.
-- Comply with **SLA tiers** (free vs paid rate limits).
-
-Throttling runs **after** authentication — you can throttle per user, per IP, or per API key.
-
-```python
-# When throttled, DRF returns:
-# HTTP 429 Too Many Requests
-# {
-#     "detail": "Request was throttled. Expected available in 42 seconds."
-# }
-```
-
-### Throttling vs permissions
-
-| | Permissions | Throttling |
-|---|-------------|------------|
-| Question | Can you do this? | How often? |
-| Failure code | 403 Forbidden | 429 Too Many Requests |
-| Typical use | Role-based access | Rate limits |
-
-### Interview points
-
-- Throttles use **Django cache** — use Redis in production for consistent limits across workers.
-- Throttling is checked **per view** before the main handler runs.
-- Does not replace **network-level** rate limiting (nginx, API gateway) — complement it.
+1. [Introduction to Throttling](#intro-throttling)
+2. [Core concepts](#core-throttling)
+3. [Step-by-step example](#example-throttling)
+4. [HTTP and curl examples](#curl-throttling)
+5. [Configuration in settings.py](#settings-throttling)
+6. [Advanced patterns](#advanced-throttling)
+7. [Testing this feature](#testing-throttling)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
 ---
 
-## 13.2 Setting Up Throttling
+## Introduction to Throttling
 
-### Global defaults
+> **Definition:** **Throttling** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Throttling**.
 
 ```python
-# settings.py
-REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day',
-    },
-}
+# models.py — example domain for this chapter
+from django.db import models
+
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+```
+---
+
+### Throttling — Mental Model
+
+When learning **Throttling**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-Ensure cache is configured:
+### Throttling — Step By Step Flow
 
-```python
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-    }
-}
+When learning **Throttling**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
 ```
 
-### Built-in throttle classes
+### Throttling — Comparison Table
 
-| Class | Identifies client by |
-|-------|----------------------|
-| `AnonRateThrottle` | IP address (unauthenticated) |
-| `UserRateThrottle` | User PK (authenticated) |
-| `ScopedRateThrottle` | User + scope string from view |
+When learning **Throttling**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
 
-### Per-view throttling
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Throttling — Real World Analogy
+
+When learning **Throttling**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Throttling — Security Angle
+
+When learning **Throttling**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Throttling — Testing Angle
+
+When learning **Throttling**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Throttling — Production Tip
+
+When learning **Throttling**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Throttling — Debugging Checklist
+
+When learning **Throttling**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Throttling
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
 
 ```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
 from rest_framework import viewsets
-from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+from .models import Book
+from .serializers import BookSerializer
 
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/throttling/ \
+  -H "Content-Type: application/json"
 ```
 
-### Scoped throttle
 
-```python
-# settings.py
-REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '20/minute',
-        'user': '60/minute',
-        'uploads': '10/hour',
-    },
-}
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/throttling/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
 ```
 
-```python
-from rest_framework.throttling import ScopedRateThrottle
-from rest_framework.views import APIView
 
-class FileUploadView(APIView):
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'uploads'
 
-    def post(self, request):
-        ...
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/throttling/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Disable throttling on a view
 
-```python
-class HealthCheckView(APIView):
-    throttle_classes = []  # no throttling
 
-    def get(self, request):
-        return Response({'status': 'ok'})
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/throttling/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
 ```
 
-### Testing throttles
 
-```python
-from django.core.cache import cache
-from rest_framework.test import APIClient
 
-def test_throttle():
-    cache.clear()
-    client = APIClient()
-    for _ in range(100):
-        response = client.get('/api/products/')
-    assert response.status_code in (200, 429)
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/throttling/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Interview points
 
-- Rate format: **`number/period`** — `s`, `sec`, `m`, `min`, `h`, `hour`, `d`, `day`.
-- Multiple throttle classes: **all** must allow the request (most restrictive wins).
-- `ScopedRateThrottle` requires `throttle_scope` on the view and matching key in `DEFAULT_THROTTLE_RATES`.
 
 ---
 
-## 13.3 Custom Throttle Classes
-
-Subclass `SimpleRateThrottle` or `UserRateThrottle` and implement `get_cache_key()`.
-
-### Throttle by API key header
+## Configuration in settings.py
 
 ```python
-from rest_framework.throttling import SimpleRateThrottle
-
-class APIKeyRateThrottle(SimpleRateThrottle):
-    scope = 'api_key'
-
-    def get_cache_key(self, request, view):
-        api_key = request.headers.get('X-API-Key')
-        if not api_key:
-            return None  # skip this throttle
-        return self.cache_format % {
-            'scope': self.scope,
-            'ident': api_key,
-        }
-```
-
-```python
-# settings.py
 REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_RATES': {
-        'api_key': '5000/day',
-    },
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
 }
 ```
 
-### Premium user higher limits
-
-```python
-class TieredUserRateThrottle(UserRateThrottle):
-    def get_rate(self):
-        user = self.request.user
-        if user.is_authenticated and getattr(user, 'is_premium', False):
-            return '10000/day'
-        return '1000/day'
-
-    def allow_request(self, request, view):
-        self.rate = self.get_rate()
-        self.num_requests, self.duration = self.parse_rate(self.rate)
-        return super().allow_request(request, view)
-```
-
-### Burst + sustained (conceptual pattern)
-
-```python
-class BurstRateThrottle(SimpleRateThrottle):
-    scope = 'burst'
-
-    def get_cache_key(self, request, view):
-        if request.user.is_authenticated:
-            ident = request.user.pk
-        else:
-            ident = self.get_ident(request)
-        return self.cache_format % {'scope': self.scope, 'ident': ident}
-```
-
-```python
-# settings.py — apply burst on sensitive views only
-REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_RATES': {
-        'burst': '5/minute',
-        'login': '5/minute',
-    },
-}
-```
-
-```python
-class LoginView(APIView):
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'login'
-```
-
-### `wait()` and Retry-After
-
-When throttled, `Throttle.wait()` returns seconds until the next allowed request — used in the `429` response message.
-
-### Interview points
-
-- `get_cache_key()` returning **None** skips that throttle for the request.
-- Custom throttles must call **`parse_rate()`** if you override `get_rate()` dynamically.
-- For distributed systems, share **Redis** cache; locmem breaks limits across processes.
-- Combine with **authentication** so anonymous users get stricter `anon` limits.
+Tune defaults for **Throttling** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
 ---
 
-## Chapter summary
+## Advanced patterns
 
-1. Configure **DEFAULT_THROTTLE_CLASSES** and **DEFAULT_THROTTLE_RATES**.
-2. Use **ScopedRateThrottle** for endpoint-specific limits (login, uploads).
-3. Implement **custom throttles** for API keys, tiers, or tenants.
-4. Always use a **shared cache** in production.
+Combine **Throttling** with permissions, filtering, and pagination from other chapters.
 
-Throttling protects your API; permissions protect your data — use both.
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/throttling/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: Throttling in practice
+
+Scenario 1: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: Throttling in practice
+
+Scenario 2: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Throttling in practice
+
+Scenario 3: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Throttling in practice
+
+Scenario 4: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Throttling in practice
+
+Scenario 5: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Throttling in practice
+
+Scenario 6: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Throttling in practice
+
+Scenario 7: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Throttling in practice
+
+Scenario 8: A mobile app consumes your **Throttling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/throttling/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Throttling docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Throttling in DRF?
+
+It is part of the request/response pipeline for Throttling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Throttling in DRF?
+
+It is part of the request/response pipeline for Throttling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Throttling in DRF?
+
+It is part of the request/response pipeline for Throttling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Throttling in DRF?
+
+It is part of the request/response pipeline for Throttling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Throttling.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Throttling in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Throttling in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch14-serializer-relations.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

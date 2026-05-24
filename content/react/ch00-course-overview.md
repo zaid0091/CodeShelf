@@ -103,3 +103,32 @@ Build these mini-projects as you progress:
 ## Next chapter
 
 Start with [Chapter 1: Introduction — What is React?](./ch01-introduction.md).
+
+---
+
+## What you will build
+
+By the end of this course you will have built mental models and mini-projects covering:
+
+- Interactive UI with **state** and **events**
+- Lists, forms, and **data fetching**
+- **Routing** and **global state** with Context
+- **Performance** and **testing** fundamentals
+- **Interview-ready** explanations of hooks and rendering
+
+## Study tips
+
+| Tip | Why |
+|-----|-----|
+| Type every example | Muscle memory beats copy-paste |
+| Use React DevTools | See state and re-renders live |
+| Read error messages | React links to docs |
+| Build one project across chapters | Concepts stick when reused |
+
+## Time estimate
+
+| Pace | Duration |
+|------|----------|
+| Part-time (1–2 hrs/day) | 4–6 weeks |
+| Full-time focus | 1–2 weeks |
+

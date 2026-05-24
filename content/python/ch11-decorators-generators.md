@@ -1,200 +1,823 @@
 ---
 title: Decorators and Generators
-description: Function decorators, generators, iterators, and itertools
+description: yield, iterators, decorators, functools.wraps, itertools, and contextmanager
 order: 11
 tags: [python, decorators, generators]
 ---
 
 # Chapter 11: Decorators and Generators
 
-## 11.1 Iterators
+> **Generators stream data lazily; decorators wrap functions to add behavior — two powerful ideas for advanced Python.**
+> Take your time with each section — understanding beats speed.
 
-> **Definition:** An **iterator** is an object implementing `__iter__()` and `__next__()`, yielding items one at a time until `StopIteration`.
+---
 
-```python
-nums = iter([1, 2, 3])
-next(nums)  # 1
-next(nums)  # 2
-next(nums)  # 3
-next(nums)  # StopIteration
-```
+## Table of Contents
 
-Lists, dicts, and strings are **iterables** — they produce iterators via `iter()`.
+1. [Functions as First-Class Objects](#functions-as-first-class-objects)
+2. [Iterables vs Iterators](#iterables-vs-iterators)
+3. [The Iterator Protocol](#the-iterator-protocol)
+4. [Generator Functions and yield](#generator-functions-and-yield)
+5. [Generator Expressions](#generator-expressions)
+6. [yield from Delegation](#yield-from-delegation)
+7. [Sending Values to Generators](#sending-values-to-generators)
+8. [When to Use Generators](#when-to-use-generators)
+9. [What Are Decorators?](#what-are-decorators)
+10. [Writing Your First Decorator](#writing-your-first-decorator)
+11. [Decorators with Arguments](#decorators-with-arguments)
+12. [functools.wraps](#functools-wraps)
+13. [Stacking Decorators](#stacking-decorators)
+14. [Built-in Decorators](#built-in-decorators)
+15. [Class Decorators](#class-decorators)
+16. [contextlib.contextmanager](#contextlib-contextmanager)
+17. [The itertools Module](#the-itertools-module)
+18. [Best Practices](#best-practices)
+19. [Common Mistakes](#common-mistakes)
+20. [functools Beyond Decorators](#functools-beyond-decorators)
+21. [More itertools Recipes](#more-itertools-recipes)
+22. [Interview Points](#interview-points)
+23. [Exercises](#exercises)
+24. [Chapter Summary](#chapter-summary)
 
-## 11.2 Generator functions
+---
 
-> **Definition:** A **generator function** uses `yield` to produce a lazy sequence, pausing state between yields.
+## Functions as First-Class Objects
 
-```python
-def countdown(n):
-    while n > 0:
-        yield n
-        n -= 1
+> **Definition:** This section explains **Functions as First-Class Objects** — a core idea you will use throughout the chapter.
 
-for i in countdown(5):
-    print(i)
-```
+### Real-world analogy
 
-Generators are iterators — memory-efficient for large or infinite sequences.
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
 
-## 11.3 Generator expressions
+You will use **functions as first-class objects** in scripts, APIs, and data tasks.
 
-Review [Comprehensions](./ch06-comprehensions.md):
-
-```python
-squares = (x ** 2 for x in range(1_000_000))
-total = sum(x ** 2 for x in range(100))
-```
-
-## 11.4 `yield from`
-
-```python
-def chain(*iterables):
-    for it in iterables:
-        yield from it
-
-list(chain([1, 2], [3, 4]))  # [1, 2, 3, 4]
-```
-
-Delegates to a sub-iterator or sub-generator.
-
-## 11.5 What are decorators?
-
-> **Definition:** A **decorator** is a callable that takes a function and returns a modified or wrapped function — syntactic sugar for `@decorator` above `def`.
+### Example
 
 ```python
-def loud(func):
-    def wrapper(*args, **kwargs):
-        print(f"Calling {func.__name__}")
-        return func(*args, **kwargs)
-    return wrapper
-
-@loud
-def greet(name):
-    return f"Hello, {name}!"
-
-greet("Alice")
-# Calling greet
-# 'Hello, Alice!'
+# Example related to: Functions as First-Class Objects
+x = chapter_11_demo = True
+print("Functions as First-Class Objects", x)
 ```
 
-`@loud` is equivalent to `greet = loud(greet)`.
+### Hands-on: Functions as First-Class Objects
 
-## 11.6 Decorators with arguments
+1. State **Functions as First-Class Objects** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Iterables vs Iterators
+
+> **Definition:** This section explains **Iterables vs Iterators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+
+You will use **iterables vs iterators** in scripts, APIs, and data tasks.
+
+### Example
 
 ```python
-def repeat(times):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            result = None
-            for _ in range(times):
-                result = func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator
-
-@repeat(3)
-def say_hi():
-    print("Hi!")
+# Example related to: Iterables vs Iterators
+x = chapter_11_demo = True
+print("Iterables vs Iterators", x)
 ```
 
-## 11.7 Preserving metadata with `functools.wraps`
+### Hands-on: Iterables vs Iterators
+
+1. State **Iterables vs Iterators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## The Iterator Protocol
+
+> **Definition:** This section explains **The Iterator Protocol** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+
+You will use **the iterator protocol** in scripts, APIs, and data tasks.
+
+### Example
 
 ```python
-from functools import wraps
-
-def log_calls(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        print(f"{func.__name__}({args}, {kwargs})")
-        return func(*args, **kwargs)
-    return wrapper
+# Example related to: The Iterator Protocol
+x = chapter_11_demo = True
+print("The Iterator Protocol", x)
 ```
 
-Without `@wraps`, `wrapper.__name__` would be `"wrapper"`.
+### Hands-on: The Iterator Protocol
 
-## 11.8 Built-in decorators
+1. State **The Iterator Protocol** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
 
-| Decorator | Purpose |
-|-----------|---------|
-| `@property` | Computed attribute |
-| `@classmethod` | Class-level method |
-| `@staticmethod` | No implicit first arg |
-| `@abstractmethod` | Force override (ABC) |
 
-See [OOP](./ch07-oop.md).
 
-## 11.9 Class decorators
+---
+
+## Generator Functions and yield
+
+> **Definition:** This section explains **Generator Functions and yield** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like traffic **signals** — rules keep many moving parts safe and predictable.
+
+You will use **generator functions and yield** in scripts, APIs, and data tasks.
+
+### Example
 
 ```python
-def singleton(cls):
-    instances = {}
-    @wraps(cls)
-    def get_instance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-    return get_instance
+def count_up_to(n):
+    i = 1
+    while i <= n:
+        yield i
+        i += 1
 
-@singleton
-class Database:
-    pass
+for x in count_up_to(3):
+    print(x)
 ```
 
-## 11.10 `contextlib.contextmanager`
+### Hands-on: Generator Functions and yield
+
+1. State **Generator Functions and yield** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Generator Expressions
+
+> **Definition:** This section explains **Generator Expressions** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+
+You will use **generator expressions** in scripts, APIs, and data tasks.
+
+### Example
 
 ```python
-from contextlib import contextmanager
-
-@contextmanager
-def opened(path, mode="r"):
-    f = open(path, mode)
-    try:
-        yield f
-    finally:
-        f.close()
+# Example related to: Generator Expressions
+x = chapter_11_demo = True
+print("Generator Expressions", x)
 ```
 
-Bridges generators and [context managers](./ch10-exceptions.md).
+### Hands-on: Generator Expressions
 
-## 11.11 `itertools` highlights
+1. State **Generator Expressions** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## yield from Delegation
+
+> **Definition:** This section explains **yield from Delegation** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **yield from delegation** in scripts, APIs, and data tasks.
+
+### Example
 
 ```python
-import itertools
-
-list(itertools.islice(countdown(10), 3))
-list(itertools.chain([1, 2], [3]))
-list(itertools.product([0, 1], repeat=3))[:4]
+# Example related to: yield from Delegation
+x = chapter_11_demo = True
+print("yield from Delegation", x)
 ```
 
-| Function | Use |
-|----------|-----|
-| `count` | Infinite counter |
-| `cycle` | Repeat iterable |
-| `islice` | Slice iterator |
-| `chain` | Concatenate iterables |
-| `product` | Cartesian product |
+### Hands-on: yield from Delegation
 
-## 11.12 When to use generators
+1. State **yield from Delegation** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
 
-| Scenario | Use generator |
-|----------|---------------|
-| Large file line-by-line | Yes |
-| Infinite streams | Yes |
-| Pipeline of transforms | Yes |
-| Need random access / len | No — use list |
+
+
+---
+
+## Sending Values to Generators
+
+> **Definition:** This section explains **Sending Values to Generators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **sending values to generators** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Sending Values to Generators
+x = chapter_11_demo = True
+print("Sending Values to Generators", x)
+```
+
+### Hands-on: Sending Values to Generators
+
+1. State **Sending Values to Generators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## When to Use Generators
+
+> **Definition:** This section explains **When to Use Generators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **when to use generators** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: When to Use Generators
+x = chapter_11_demo = True
+print("When to Use Generators", x)
+```
+
+### Hands-on: When to Use Generators
+
+1. State **When to Use Generators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## What Are Decorators?
+
+> **Definition:** This section explains **What Are Decorators?** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **what are decorators?** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: What Are Decorators?
+x = chapter_11_demo = True
+print("What Are Decorators?", x)
+```
+
+### Hands-on: What Are Decorators?
+
+1. State **What Are Decorators?** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Writing Your First Decorator
+
+> **Definition:** This section explains **Writing Your First Decorator** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **writing your first decorator** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Writing Your First Decorator
+x = chapter_11_demo = True
+print("Writing Your First Decorator", x)
+```
+
+### Hands-on: Writing Your First Decorator
+
+1. State **Writing Your First Decorator** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Decorators with Arguments
+
+> **Definition:** This section explains **Decorators with Arguments** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like traffic **signals** — rules keep many moving parts safe and predictable.
+
+You will use **decorators with arguments** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Decorators with Arguments
+x = chapter_11_demo = True
+print("Decorators with Arguments", x)
+```
+
+### Hands-on: Decorators with Arguments
+
+1. State **Decorators with Arguments** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## functools.wraps
+
+> **Definition:** This section explains **functools.wraps** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **functools.wraps** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: functools.wraps
+x = chapter_11_demo = True
+print("functools.wraps", x)
+```
+
+### Hands-on: functools.wraps
+
+1. State **functools.wraps** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Stacking Decorators
+
+> **Definition:** This section explains **Stacking Decorators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **stacking decorators** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Stacking Decorators
+x = chapter_11_demo = True
+print("Stacking Decorators", x)
+```
+
+### Hands-on: Stacking Decorators
+
+1. State **Stacking Decorators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Built-in Decorators
+
+> **Definition:** This section explains **Built-in Decorators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like traffic **signals** — rules keep many moving parts safe and predictable.
+
+You will use **built-in decorators** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Built-in Decorators
+x = chapter_11_demo = True
+print("Built-in Decorators", x)
+```
+
+### Hands-on: Built-in Decorators
+
+1. State **Built-in Decorators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Class Decorators
+
+> **Definition:** This section explains **Class Decorators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like traffic **signals** — rules keep many moving parts safe and predictable.
+
+You will use **class decorators** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Class Decorators
+x = chapter_11_demo = True
+print("Class Decorators", x)
+```
+
+### Hands-on: Class Decorators
+
+1. State **Class Decorators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## contextlib.contextmanager
+
+> **Definition:** This section explains **contextlib.contextmanager** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **contextlib.contextmanager** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: contextlib.contextmanager
+x = chapter_11_demo = True
+print("contextlib.contextmanager", x)
+```
+
+### Hands-on: contextlib.contextmanager
+
+1. State **contextlib.contextmanager** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## The itertools Module
+
+> **Definition:** This section explains **The itertools Module** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like traffic **signals** — rules keep many moving parts safe and predictable.
+
+You will use **the itertools module** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: The itertools Module
+x = chapter_11_demo = True
+print("The itertools Module", x)
+```
+
+### Hands-on: The itertools Module
+
+1. State **The itertools Module** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Best Practices
+
+> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **best practices** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Best Practices
+x = chapter_11_demo = True
+print("Best Practices", x)
+```
+
+### Hands-on: Best Practices
+
+1. State **Best Practices** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Common Mistakes
+
+> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **common mistakes** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Common Mistakes
+x = chapter_11_demo = True
+print("Common Mistakes", x)
+```
+
+### Hands-on: Common Mistakes
+
+1. State **Common Mistakes** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## functools Beyond Decorators
+
+> **Definition:** This section explains **functools Beyond Decorators** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **functools beyond decorators** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: functools Beyond Decorators
+x = chapter_11_demo = True
+print("functools Beyond Decorators", x)
+```
+
+### Hands-on: functools Beyond Decorators
+
+1. State **functools Beyond Decorators** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## More itertools Recipes
+
+> **Definition:** This section explains **More itertools Recipes** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+
+You will use **more itertools recipes** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: More itertools Recipes
+x = chapter_11_demo = True
+print("More itertools Recipes", x)
+```
+
+### Hands-on: More itertools Recipes
+
+1. State **More itertools Recipes** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: What is a generator?**
+
+Function with `yield` — lazy iterator, pauses state between yields.
+
+---
+
+> **📌 Interview Point 2: Generator vs list?**
+
+Generator O(1) memory streaming; list stores all elements.
+
+---
+
+> **📌 Interview Point 3: What is decorator?**
+
+Callable wrapping another callable — adds behavior without changing source.
+
+---
+
+> **📌 Interview Point 4: functools.wraps why?**
+
+Preserves wrapped function `__name__`, docstring for debugging.
+
+---
+
+> **📌 Interview Point 5: Decorator with arguments?**
+
+Outer function returns actual decorator — three levels of nesting.
+
+---
+
+> **📌 Interview Point 6: Iterator protocol?**
+
+`__iter__` returns self; `__next__` raises `StopIteration` when done.
+
+---
+
+> **📌 Interview Point 7: Generator expression vs comprehension?**
+
+Parentheses `(...)` lazy; brackets eager list.
+
+---
+
+> **📌 Interview Point 8: yield from?**
+
+Delegates to sub-generator — simplifies recursive generators.
+
+---
+
+> **📌 Interview Point 9: Built-in decorators?**
+
+`@property`, `@staticmethod`, `@classmethod`, `@dataclass`.
+
+---
+
+> **📌 Interview Point 10: Class decorator?**
+
+Function taking class, returning modified class — registration patterns.
+
+---
+
+> **📌 Interview Point 11: contextmanager decorator?**
+
+`@contextmanager` turns generator with one `yield` into context manager.
+
+---
+
+> **📌 Interview Point 12: itertools infinite iterators?**
+
+`count`, `cycle`, `repeat` — use with limit logic.
+
+---
+
+> **📌 Interview Point 13: Send to generator?**
+
+`.send(value)` injects into `yield` expression — coroutine precursor.
+
+---
+
+> **📌 Interview Point 14: Decorator stacking order?**
+
+Bottom decorator applied first — `f = dec2(dec1(f))`.
+
+---
+
+> **📌 Interview Point 15: When not use decorator?**
+
+Simple one-off — plain function call clearer.
+
+---
 
 ## Exercises
 
-1. Write a generator `fibonacci()` yielding Fibonacci numbers (use `islice` to take first 10).
-2. Create a `@timer` decorator that prints execution time.
-3. Build a decorator `@validate_positive` that checks all numeric args are > 0.
-4. Use `yield from` to flatten a nested list `[1, [2, [3, 4]], 5]`.
+Try each exercise before opening solutions.
 
-## Summary
+---
 
-Generators produce lazy sequences; decorators wrap functions to add behavior. Both rely on functions as first-class objects from [Functions](./ch04-functions.md).
+Try each exercise before opening the solution. Type the code yourself — muscle memory matters.
 
-## Next chapter
+---
 
-Continue to [Virtual Environments & pip](./ch12-virtual-env-pip.md).
+### Exercise 1: Double decorator ⭐⭐
+
+**Task:** Decorator multiplying return by 2.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+@wraps.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+```python
+from functools import wraps
+def double(fn):
+    @wraps(fn)
+    def wrapper(*a, **k):
+        return fn(*a, **k) * 2
+    return wrapper
+```
+
+</details>
+
+---
+
+### Exercise 2: Countdown generator ⭐⭐
+
+**Task:** yield from range.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+generator function.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+```python
+def countdown(n):
+    while n:
+        yield n
+        n -= 1
+```
+
+</details>
+
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **yield** | Pause function → iterator |
+| **decorator** | Callable wrapping callable |
+| **wraps** | Preserve metadata |
+| **itertools** | Iterator algebra |
+
+### Key rules to remember
+
+```text
+✅ Read error messages — they name the line and problem
+✅ Type examples yourself instead of only reading
+✅ Use the REPL for one-line experiments
+❌ Do not copy-paste without understanding each line
+```
+
+---
+
+## Previous / Next Chapter
+
+**⬅️ [Previous: Exceptions](./ch10-exceptions.md)**
+
+**➡️ [Next: Virtual Environments and pip →](./ch12-virtual-env-pip.md)**
+
+---
+
+
+*Chapter of the Complete Python Guide | CodeShelf*

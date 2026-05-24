@@ -7,293 +7,647 @@ tags: [react, data-fetching, fetch, loading, react-query, tanstack]
 
 # Chapter 10: Data Fetching
 
-## 10.1 Where data lives
+> **Most apps show remote data. Learn to fetch safely and show honest UI while waiting.**
+> Take your time with each section — understanding beats speed.
 
-React components need data from APIs, databases, or files. **Server state** (remote data) differs from **client state** (UI toggles, form inputs).
+---
 
-| Client state | Server state |
-|--------------|--------------|
-| Owned locally | Owned by server |
-| Synchronous updates | Async fetch/mutate |
-| `useState`, Context | fetch, React Query |
+## Table of Contents
 
-## 10.2 Basic fetch with useEffect
+1. [Client vs Server State](#client-vs-server-state)
+2. [fetch + useEffect](#fetch-useeffect)
+3. [AbortController](#abortcontroller)
+4. [POST Requests](#post-requests)
+5. [Custom useFetch](#custom-usefetch)
+6. [TanStack Query Setup](#tanstack-query-setup)
+7. [useQuery](#usequery)
+8. [useMutation](#usemutation)
+9. [Stale Time and Cache](#stale-time-and-cache)
+10. [Pagination](#pagination)
+11. [Error Boundaries Brief](#error-boundaries-brief)
+12. [Environment Variables](#environment-variables)
+13. [Best Practices](#best-practices)
+14. [Common Mistakes](#common-mistakes)
+15. [Interview Points](#interview-points)
+16. [Exercises](#exercises)
+17. [Chapter Summary](#chapter-summary)
 
-```jsx
-import { useState, useEffect } from 'react';
+---
 
-function UserProfile({ userId }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+## Client vs Server State
 
-  useEffect(() => {
-    const controller = new AbortController();
+UI toggles vs API data.
 
-    async function loadUser() {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await fetch(`/api/users/${userId}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        if (err.name !== 'AbortError') setError(err);
-      } finally {
-        setLoading(false);
-      }
-    }
+#### Why this matters for `Client vs Server State`
 
-    loadUser();
-    return () => controller.abort();
-  }, [userId]);
+Understanding **Client vs Server State** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  if (loading) return <p>Loading user...</p>;
-  if (error) return <p className="error">Error: {error.message}</p>;
-  if (!user) return null;
+#### Quick recap
 
-  return (
-    <article>
-      <h1>{user.name}</h1>
-      <p>{user.email}</p>
-    </article>
-  );
-}
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-### The async state trio
+#### Connection to other chapters
 
-Always model three states:
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-| State | UI |
-|-------|-----|
-| `loading` | Spinner, skeleton |
-| `error` | Error message, retry button |
-| `data` | Success content |
+---
 
-## 10.3 POST requests
+## fetch + useEffect
 
-```jsx
-async function createPost(payload) {
-  const res = await fetch('/api/posts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+loading, error, data trio.
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || 'Failed to create post');
-  }
+#### Why this matters for `fetch + useEffect`
 
-  return res.json();
-}
+Understanding **fetch + useEffect** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-function CreatePostForm() {
-  const [title, setTitle] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+#### Quick recap
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      const post = await createPost({ title });
-      console.log('Created:', post);
-      setTitle('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input value={title} onChange={e => setTitle(e.target.value)} />
-      {error && <p className="error">{error}</p>}
-      <button disabled={submitting}>{submitting ? 'Saving...' : 'Create'}</button>
-    </form>
-  );
-}
-```
+#### Connection to other chapters
 
-## 10.4 Custom useFetch hook (recap)
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-function useFetch(url) {
-  const [state, setState] = useState({
-    data: null,
-    loading: true,
-    error: null,
-  });
+---
 
-  useEffect(() => {
-    let cancelled = false;
+## AbortController
 
-    fetch(url)
-      .then(r => {
-        if (!r.ok) throw new Error(r.statusText);
-        return r.json();
-      })
-      .then(data => {
-        if (!cancelled) setState({ data, loading: false, error: null });
-      })
-      .catch(error => {
-        if (!cancelled) setState({ data: null, loading: false, error });
-      });
+Cancel on unmount.
 
-    return () => { cancelled = true; };
-  }, [url]);
+#### Why this matters for `AbortController`
 
-  return state;
-}
-```
+Understanding **AbortController** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-See [Chapter 6](./ch06-hooks-deep-dive.md) for hook details.
+#### Quick recap
 
-## 10.5 TanStack Query (React Query)
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-TanStack Query manages caching, refetching, deduplication, and background updates.
+#### Connection to other chapters
 
-```bash
-npm install @tanstack/react-query
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-// main.jsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+---
 
-const queryClient = new QueryClient();
+## POST Requests
 
-createRoot(document.getElementById('root')).render(
-  <QueryClientProvider client={queryClient}>
-    <App />
-  </QueryClientProvider>
-);
-```
+method, headers, body JSON.
 
-```jsx
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+#### Why this matters for `POST Requests`
 
-function PostList() {
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => fetch('/api/posts').then(r => r.json()),
-  });
+Understanding **POST Requests** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+#### Quick recap
 
-  return (
-    <ul>
-      {data.map(post => (
-        <li key={post.id}>{post.title}</li>
-      ))}
-      <button onClick={() => refetch()}>Refresh</button>
-    </ul>
-  );
-}
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-function CreatePost() {
-  const queryClient = useQueryClient();
+#### Connection to other chapters
 
-  const mutation = useMutation({
-    mutationFn: (newPost) =>
-      fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPost),
-      }).then(r => r.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    },
-  });
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  return (
-    <button
-      onClick={() => mutation.mutate({ title: 'New Post' })}
-      disabled={mutation.isPending}
-    >
-      {mutation.isPending ? 'Creating...' : 'Add Post'}
-    </button>
-  );
-}
-```
+---
 
-### React Query benefits
+## Custom useFetch
 
-| Feature | Benefit |
-|---------|---------|
-| `queryKey` | Cache identity and invalidation |
-| Stale-while-revalidate | Show cached data while refetching |
-| Deduping | One request for same key |
-| `useMutation` | Optimistic updates, rollback |
+Encapsulate pattern.
 
-## 10.6 Pagination pattern
+#### Why this matters for `Custom useFetch`
 
-```jsx
-function PaginatedUsers() {
-  const [page, setPage] = useState(1);
+Understanding **Custom useFetch** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['users', page],
-    queryFn: () =>
-      fetch(`/api/users?page=${page}`).then(r => r.json()),
-    keepPreviousData: true,
-  });
+#### Quick recap
 
-  return (
-    <div>
-      {isLoading && !data ? <p>Loading...</p> : (
-        <ul>
-          {data.results.map(u => (
-            <li key={u.id}>{u.name}</li>
-          ))}
-        </ul>
-      )}
-      <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-        Previous
-      </button>
-      <button onClick={() => setPage(p => p + 1)}>Next</button>
-    </div>
-  );
-}
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 10.7 Error boundaries (brief)
+#### Connection to other chapters
 
-Fetch errors in render should be handled in component state. For unexpected render errors, wrap routes in an **Error Boundary** class component or use `react-error-boundary`.
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-## 10.8 Best practices
+---
 
-- Always handle loading and error UI
-- Abort fetches on unmount or dependency change
-- Do not fetch in render — use effect, event, or React Query
-- Normalize API responses when shapes vary
-- Use environment variables for API base URLs (`import.meta.env.VITE_API_URL`)
+## TanStack Query Setup
+
+QueryClientProvider.
+
+#### Why this matters for `TanStack Query Setup`
+
+Understanding **TanStack Query Setup** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useQuery
+
+queryKey + queryFn.
+
+#### Why this matters for `useQuery`
+
+Understanding **useQuery** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useMutation
+
+POST/PUT/DELETE + invalidate.
+
+#### Why this matters for `useMutation`
+
+Understanding **useMutation** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Stale Time and Cache
+
+Why React Query reduces boilerplate.
+
+#### Why this matters for `Stale Time and Cache`
+
+Understanding **Stale Time and Cache** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Pagination
+
+queryKey includes page.
+
+#### Why this matters for `Pagination`
+
+Understanding **Pagination** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Error Boundaries Brief
+
+Unexpected render errors.
+
+#### Why this matters for `Error Boundaries Brief`
+
+Understanding **Error Boundaries Brief** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Environment Variables
+
+import.meta.env.VITE_*
+
+#### Why this matters for `Environment Variables`
+
+Understanding **Environment Variables** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Best Practices
+
+No fetch in render; handle all states.
+
+#### Why this matters for `Best Practices`
+
+Understanding **Best Practices** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 13 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice13.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice13')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 14 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice14.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice14')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 15 — Data Fetching
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice15.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice15')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| No loading state | Blank screen | Show spinner |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: React Query benefit?**
+
+Cache, dedupe, mutations.
+
+---
 
 ## Exercises
 
-1. **User list** — Fetch users from JSONPlaceholder; show loading/error/empty states.
-2. **Search** — Debounce search input; refetch when query changes.
-3. **React Query** — Convert a `useEffect` fetch to `useQuery` with cache invalidation after create.
-4. **Retry** — Add a "Try again" button that refetches on error.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| fetch + useEffect | Manual loading/error/data state |
-| AbortController | Cancel in-flight requests |
-| React Query | Cache, mutations, invalidation |
-| queryKey | Identifies cached queries |
-| Server state | Separate from UI client state |
+### Exercise 1: User list ⭐
 
-## Next chapter
+**Task:** JSONPlaceholder + states.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **fetch** | Async HTTP |
+| **React Query** | Server state cache |
+
+## Next Chapter
 
 Continue to [Chapter 11: Performance](./ch11-performance.md).
+

@@ -1,5 +1,5 @@
 ---
-title: Chapter 18 — Testing
+title: Testing
 description: Testing Django REST Framework APIs with APITestCase, APIClient, and authentication
 order: 18
 tags: [drf, testing, pytest, api]
@@ -7,263 +7,638 @@ tags: [drf, testing, pytest, api]
 
 # Chapter 18: Testing
 
-Reliable APIs need automated tests for status codes, response shape, permissions, and edge cases. DRF provides **`APIClient`** and **`APITestCase`** — extensions of Django's test tools with HTTP method helpers and JSON encoding.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **APIClient** | Test client with `.get()`, `.post()`, `.patch()`, etc. |
-| **APITestCase** | TestCase with `client` as APIClient and JSON helpers. |
-| **force_authenticate** | Attach a user to the request without logging in. |
-| **format='json'** | Encodes body as JSON and sets content type. |
+> **Welcome!** This chapter covers **API testing** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 18.1 Testing API Endpoints
+## Table of Contents
 
-### Setup
+1. [Introduction to API testing](#intro-api-testing)
+2. [Core concepts](#core-api-testing)
+3. [Step-by-step example](#example-api-testing)
+4. [HTTP and curl examples](#curl-api-testing)
+5. [Configuration in settings.py](#settings-api-testing)
+6. [Advanced patterns](#advanced-api-testing)
+7. [Testing this feature](#testing-api-testing)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
-```python
-# tests/test_products.py
-from django.contrib.auth.models import User
-from rest_framework.test import APITestCase
-from rest_framework import status
-from products.models import Product, Category
+---
 
-class ProductAPITests(APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.category = Category.objects.create(name='Electronics')
-        cls.user = User.objects.create_user(username='tester', password='pass1234')
-        cls.admin = User.objects.create_superuser(
-            username='admin', password='admin123', email='admin@test.com'
-        )
-        cls.product = Product.objects.create(
-            name='Laptop', category=cls.category, price=999.99
-        )
+## Introduction to API testing
 
-    def setUp(self):
-        self.list_url = '/api/products/'
-        self.detail_url = f'/api/products/{self.product.pk}/'
-```
+> **Definition:** **API testing** — a key part of building production-ready APIs with Django REST Framework.
 
-### List and retrieve
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **API testing**.
 
 ```python
-    def test_list_products_anonymous(self):
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['name'], 'Laptop')
+# models.py — example domain for this chapter
+from django.db import models
 
-    def test_retrieve_product(self):
-        response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], 'Laptop')
-        self.assertEqual(response.data['category'], self.category.pk)
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 ```
+---
 
-### Create (authenticated)
+### API testing — Mental Model
 
-```python
-    def test_create_product_requires_auth(self):
-        payload = {'name': 'Phone', 'category': self.category.pk, 'price': 499}
-        response = self.client.post(self.list_url, payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+When learning **API testing**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
 
-    def test_create_product_authenticated(self):
-        self.client.force_authenticate(user=self.user)
-        payload = {'name': 'Phone', 'category': self.category.pk, 'price': 499}
-        response = self.client.post(self.list_url, payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Product.objects.count(), 2)
-        self.assertEqual(response.data['name'], 'Phone')
-```
-
-### Update and delete
-
-```python
-    def test_partial_update(self):
-        self.client.force_authenticate(user=self.admin)
-        response = self.client.patch(
-            self.detail_url,
-            {'price': 899.99},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.product.refresh_from_db()
-        self.assertEqual(float(self.product.price), 899.99)
-
-    def test_delete_product(self):
-        self.client.force_authenticate(user=self.admin)
-        response = self.client.delete(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Product.objects.filter(pk=self.product.pk).exists())
-```
-
-### Validation errors
-
-```python
-    def test_create_invalid_price(self):
-        self.client.force_authenticate(user=self.user)
-        response = self.client.post(
-            self.list_url,
-            {'name': 'Bad', 'category': self.category.pk, 'price': -10},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('price', response.data)
-```
-
-### Permissions
-
-```python
-    def test_non_admin_cannot_delete(self):
-        self.client.force_authenticate(user=self.user)
-        response = self.client.delete(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-```
-
-### Login with credentials (session auth)
-
-```python
-    def test_login_session_auth(self):
-        logged_in = self.client.login(username='tester', password='pass1234')
-        self.assertTrue(logged_in)
-        response = self.client.get('/api/me/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-```
-
-### Token / JWT authentication in tests
-
-```python
-from rest_framework.authtoken.models import Token
-
-def test_token_authentication(self):
-    token, _ = Token.objects.get_or_create(user=self.user)
-    self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
-    response = self.client.get(self.list_url)
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-```
-
-```python
-# SimpleJWT
-from rest_framework_simplejwt.tokens import RefreshToken
-
-def test_jwt_authentication(self):
-    refresh = RefreshToken.for_user(self.user)
-    self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-    response = self.client.get(self.list_url)
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-```
-
-### File upload tests
-
-```python
-from django.core.files.uploadedfile import SimpleUploadedFile
-
-def test_upload_avatar(self):
-    self.client.force_authenticate(user=self.user)
-    image = SimpleUploadedFile(
-        name='test.jpg',
-        content=b'fake-image-content',
-        content_type='image/jpeg'
-    )
-    response = self.client.patch(
-        '/api/profiles/1/',
-        {'avatar': image},
-        format='multipart'
-    )
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-```
-
-### Reverse URL names (best practice)
-
-```python
-from django.urls import reverse
-
-def test_list_url_reverse(self):
-    url = reverse('product-list')
-    response = self.client.get(url)
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-```
-
-### Factory pattern (optional, with factory_boy)
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
 
 ```bash
-pip install factory_boy
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-```python
-import factory
-from products.models import Product
+### API testing — Step By Step Flow
 
-class ProductFactory(factory.django.DjangoModelFactory):
+When learning **API testing**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### API testing — Comparison Table
+
+When learning **API testing**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### API testing — Real World Analogy
+
+When learning **API testing**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### API testing — Security Angle
+
+When learning **API testing**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### API testing — Testing Angle
+
+When learning **API testing**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### API testing — Production Tip
+
+When learning **API testing**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### API testing — Debugging Checklist
+
+When learning **API testing**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for API testing
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Product
+        model = Book
+        fields = '__all__'
 
-    name = factory.Sequence(lambda n: f'Product {n}')
-    price = 10.00
-    category = factory.SubFactory(CategoryFactory)
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
 ```
+---
 
-### Pytest style (optional)
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
 
 ```bash
-pip install pytest pytest-django
+# 
+curl -X GET http://127.0.0.1:8000/api/api-testing/ \
+  -H "Content-Type: application/json"
 ```
 
-```python
-import pytest
-from rest_framework.test import APIClient
 
-@pytest.fixture
-def api_client():
-    return APIClient()
-
-@pytest.fixture
-def auth_client(api_client, django_user_model):
-    user = django_user_model.objects.create_user(username='u', password='p')
-    api_client.force_authenticate(user=user)
-    return api_client
-
-@pytest.mark.django_db
-def test_list_products(auth_client):
-    response = auth_client.get('/api/products/')
-    assert response.status_code == 200
-```
-
-### Run tests
 
 ```bash
-python manage.py test products.tests
-python manage.py test products.tests.ProductAPITests.test_list_products_anonymous
-
-# pytest
-pytest products/tests/ -v
+# 
+curl -X POST http://127.0.0.1:8000/api/api-testing/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
 ```
 
-### Interview points
 
-- Use **`APITestCase`** (not plain `Client`) for DRF renderer/parser behavior.
-- **`format='json'`** on POST/PATCH/PUT — otherwise use `format='multipart'` for files.
-- **`force_authenticate`** skips login — fast and ideal for unit tests.
-- Test **permissions**, **validation**, **pagination**, and **filtering** query params.
-- Keep tests **independent** — `setUpTestData` for shared read-only data.
-- **`self.assertNumQueries`** guards against N+1 regressions.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/api-testing/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/api-testing/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/api-testing/1/ \
+  -H "Content-Type: application/json"
+```
+
+
 
 ---
 
-## Chapter summary
+## Configuration in settings.py
 
-| Tool | Purpose |
-|------|---------|
-| `APITestCase` | Base class with `APIClient` |
-| `force_authenticate` | Simulate logged-in user |
-| `credentials()` | Set Authorization header |
-| `format='json'` | JSON request bodies |
-| `reverse()` | Stable URL resolution |
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+```
 
-Test the **HTTP contract** your clients depend on — status, body, and headers — not only model state.
+Tune defaults for **API testing** in `REST_FRAMEWORK` so you do not repeat settings on every view.
+
+---
+
+## Advanced patterns
+
+Combine **API testing** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/api-testing/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: API testing in practice
+
+Scenario 1: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: API testing in practice
+
+Scenario 2: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: API testing in practice
+
+Scenario 3: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: API testing in practice
+
+Scenario 4: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: API testing in practice
+
+Scenario 5: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: API testing in practice
+
+Scenario 6: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: API testing in practice
+
+Scenario 7: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: API testing in practice
+
+Scenario 8: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 9: API testing in practice
+
+Scenario 9: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 9
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=9 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 10: API testing in practice
+
+Scenario 10: A mobile app consumes your **API testing** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 10
+curl -X GET http://127.0.0.1:8000/api/api-testing/?page=10 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping API testing docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is API testing in DRF?
+
+It is part of the request/response pipeline for API testing.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is API testing in DRF?
+
+It is part of the request/response pipeline for API testing.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is API testing in DRF?
+
+It is part of the request/response pipeline for API testing.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is API testing in DRF?
+
+It is part of the request/response pipeline for API testing.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using API testing.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of API testing in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of API testing in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch19-jwt-authentication.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

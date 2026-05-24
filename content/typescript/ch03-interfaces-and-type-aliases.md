@@ -5,7 +5,36 @@ order: 3
 tags: [typescript, interfaces, types, extends, intersection]
 ---
 
+
 # Chapter 3: Interfaces and Type Aliases
+
+> **Real apps model users, products, and API payloads. This chapter teaches how to describe object shapes with interfaces and type aliases, compose them, and understand structural typing.**
+> Take your time with each section. TypeScript rewards patience — read compiler errors carefully and experiment in a small project as you go.
+
+---
+
+
+## Table of Contents
+
+1. [Describing Object Shapes](#describing-object-shapes)
+2. [Interfaces](#interfaces)
+3. [Optional and Readonly](#optional-and-readonly)
+4. [Index Signatures](#index-signatures)
+5. [Type Aliases for Objects](#type-aliases-for-objects)
+6. [Interface vs Type Alias](#interface-vs-type-alias)
+7. [Extending Interfaces](#extending-interfaces)
+8. [Intersection Types](#intersection-types)
+9. [Structural Typing](#structural-typing)
+10. [Excess Property Checking](#excess-property-checking)
+11. [Declaration Merging](#declaration-merging)
+12. [API Models](#api-models)
+13. [Best Practices](#best-practices)
+14. [Common Mistakes](#common-mistakes)
+15. [Interview Points](#interview-points)
+16. [Exercises](#exercises)
+17. [Chapter Summary](#chapter-summary)
+
+---
 
 ## 3.1 Describing object shapes
 
@@ -341,29 +370,452 @@ async function fetchPost(id: string): Promise<PostWithAuthor> {
 | Conflicting intersections | Resolve property types explicitly |
 
 > **Key takeaway:** Interfaces and type aliases document object contracts. Extend or intersect to compose models. Rely on structural typing — if it has the right shape, it fits.
+<!-- codeshelf:generated-appendix -->
 
-## Practice Exercise — Chapter 3
+---
 
-```text
-Exercise 3.1: E-commerce models
-  a) Define interface Product with id, name, price, tags?: string[].
-  b) Extend to DigitalProduct with downloadUrl.
-  c) Create type ProductSummary = Pick<Product, "id" | "name" | "price">.
+### Callable interfaces
 
-Exercise 3.2: Intersection
-  a) Define types HasTimestamps and HasSoftDelete.
-  b) Combine into SoftDeletableEntity with intersection.
-  c) Instantiate one object satisfying all fields.
+Interfaces can describe functions: `(x: number) => void`.
 
-Exercise 3.3: Structural typing
-  a) Write function printCoords({ x, y }: { x: number; y: number }).
-  b) Pass an object with extra property via a variable — confirm it works.
-  c) Pass inline literal with extra property — observe excess property error.
+---
 
-Exercise 3.4: API layer
-  a) Model ApiError { code: string; message: string }.
-  b) Model ApiSuccess<T> { ok: true; data: T } and ApiFailure { ok: false; error: ApiError }.
-  c) Union into ApiResult<T> for typed fetch wrapper (preview of narrowing in Ch 8).
+### Extending multiple interfaces
+
+`interface A extends B, C` inherits all members.
+
+---
+
+## Modeling a blog — end-to-end
+
+```typescript
+interface Author {
+  id: string;
+  displayName: string;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  body: string;
+  authorId: string;
+  publishedAt?: string;
+  tags: readonly string[];
+}
+
+interface PostWithAuthor extends Post {
+  author: Author;
+}
 ```
 
-Next: [Chapter 4 — Functions](./ch04-functions.md).
+This pattern mirrors APIs: base entity + joined data for detail views.
+
+---
+
+## interface vs type — decision flowchart
+
+```text
+Need a union or tuple alias?     → type
+Need mapped/conditional type?    → type
+Public object API for a library? → interface (extend/merge friendly)
+Combining two object shapes?     → type A & B OR interface extends
+```
+
+Both work for object shapes. Pick one style per project and stay consistent.
+
+---
+
+## Index signatures — dynamic keys
+
+```typescript
+interface ScoresByPlayer {
+  [playerId: string]: number;
+}
+
+const board: ScoresByPlayer = {};
+board["p1"] = 10;
+// board["p1"] = "ten"; // Error
+```
+
+Use when keys are not known at compile time but values share one type.
+
+---
+
+## Declaration merging — power and caution
+
+```typescript
+interface Window {
+  myAppVersion?: string;
+}
+```
+
+TypeScript merges this with the global `Window` interface. Helpful for globals; confusing if overused. Prefer explicit modules over augmenting globals when possible.
+
+---
+
+## Real-world interface design
+
+
+Design interfaces from **consumer needs** (what code reads) not database columns alone.
+
+```typescript
+interface Address {
+  line1: string;
+  line2?: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+interface Customer {
+  id: string;
+  email: string;
+  displayName: string;
+  shippingAddress: Address;
+  billingAddress?: Address;
+}
+```
+
+### Optional vs nullable
+
+| Syntax | Meaning |
+|--------|---------|
+| `prop?: T` | May be missing or `undefined` |
+| `prop: T \| null` | Must be present but may be `null` |
+| `prop?: T \| null` | May be missing, `undefined`, or `null` |
+
+
+---
+
+## Composition patterns
+
+
+```typescript
+interface Timestamps {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface SoftDelete {
+  deletedAt: Date | null;
+}
+
+interface Article extends Timestamps, SoftDelete {
+  id: string;
+  title: string;
+  body: string;
+}
+```
+
+Use `extends` for named hierarchies; use `&` when combining independent concerns.
+
+
+---
+
+## Excess property checking — explained
+
+
+```typescript
+interface Point { x: number; y: number }
+
+const p = { x: 1, y: 2, label: "a" }; // inferred with label
+function draw(pt: Point) { console.log(pt.x); }
+draw(p); // OK — variable may have extras
+
+draw({ x: 1, y: 2, label: "a" }); // Error on excess 'label'
+```
+
+**Why?** Catch typos in object literals at call sites.
+
+
+---
+
+## Mapped types preview
+
+
+```typescript
+type ReadonlyUser = { readonly [K in keyof User]: User[K] };
+```
+See [Chapter 6 — Utility Types](./ch06-utility-types.md).
+
+
+---
+
+## Definition — Duck typing
+
+> **Definition:** **Duck typing** — If it walks like a duck and quacks like a duck, TypeScript treats it as a duck — structure matters, not the name of the type.
+
+
+---
+
+## Worked example — e-commerce
+
+
+```typescript
+interface Product {
+  sku: string;
+  title: string;
+  priceCents: number;
+}
+
+interface CartLine {
+  product: Product;
+  quantity: number;
+}
+
+function lineTotal(line: CartLine): number {
+  return line.product.priceCents * line.quantity;
+}
+```
+
+Walk through: `CartLine` **contains** a `Product` — composition without inheritance.
+
+
+---
+
+## Best Practices
+
+- ✅ Use `interface` for public object contracts; `type` for unions and utilities.
+- ✅ Centralize shared models in `types/` or `models/`.
+- ✅ Mark only truly optional fields with `?`.
+- ✅ Prefer composition (`extends` / `&`) over copy-paste fields.
+
+---
+
+## Common Mistakes
+
+Watch for these patterns — they cost hours in real projects.
+
+### Mistake 1: Duplicating shapes
+
+Copying the same fields in ten interfaces
+
+Extract `BaseEntity` and extend.
+
+---
+
+### Mistake 2: interface for unions
+
+`interface Status = 'a' | 'b'`
+
+Use `type Status = 'a' | 'b'`.
+
+---
+
+### Mistake 3: any in index signatures
+
+`[key: string]: any`
+
+Use `unknown` or a specific value type.
+
+---
+
+### Mistake 4: Fighting excess property checks
+
+Random extra keys on inline literals
+
+Assign to a variable first or fix the target type.
+
+---
+
+## Interview Points
+
+> **📌 Interview Point 1: interface vs type?**
+
+Both describe shapes; `interface` can merge and extends cleanly; `type` supports unions and advanced types.
+
+---
+
+> **📌 Interview Point 2: What is structural typing?**
+
+Types match by shape, not by name — duck typing at compile time.
+
+---
+
+> **📌 Interview Point 3: What is excess property checking?**
+
+Inline object literals cannot have unknown properties when assigned to a type.
+
+---
+
+> **📌 Interview Point 4: extends vs intersection?**
+
+Similar for objects; conflicts in `&` can become `never` on a property.
+
+---
+
+## Exercises
+
+Practice with `npx tsc --noEmit` after each exercise.
+
+### Exercise 3.1: E-commerce Product ⭐
+
+**Task:** Define `Product` and extend to `DigitalProduct`.
+
+<details><summary>💡 Hint</summary>
+
+Use `extends`.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
+interface DigitalProduct extends Product {
+  downloadUrl: string;
+  fileSizeMb: number;
+}
+```
+
+</details>
+
+---
+
+### Exercise 3.2: Soft delete entity ⭐⭐
+
+**Task:** Combine `HasTimestamps` and `HasSoftDelete` with `&`.
+
+<details><summary>💡 Hint</summary>
+
+Intersection types.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+interface HasTimestamps {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface HasSoftDelete {
+  deletedAt: Date | null;
+}
+
+type AuditableEntity = HasTimestamps & HasSoftDelete & { id: string };
+```
+
+</details>
+
+---
+
+### Exercise 3.3: Structural typing ⭐⭐⭐
+
+**Task:** Pass extra property via variable vs inline literal.
+
+<details><summary>💡 Hint</summary>
+
+See excess property error.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+interface Point { x: number; y: number }
+
+const extra = { x: 1, y: 2, label: "origin" };
+function draw(p: Point) { console.log(p.x, p.y); }
+draw(extra); // OK via variable
+
+// draw({ x: 1, y: 2, label: "a" }); // excess property error on literal
+```
+
+</details>
+
+---
+
+### Exercise 3.4: ApiResult union ⭐⭐
+
+**Task:** Model success and failure variants.
+
+<details><summary>💡 Hint</summary>
+
+Preview Chapter 8.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+type ApiResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+```
+
+</details>
+
+---
+
+### Exercise 3.5: Pick preview ⭐⭐⭐
+
+**Task:** Create `ProductSummary` with Pick.
+
+<details><summary>💡 Hint</summary>
+
+Chapter 6 utilities.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+type ProductSummary = Pick<Product, "id" | "name" | "price">;
+```
+
+</details>
+
+---
+
+### Exercise 3.6: Readonly API model ⭐⭐
+
+**Task:** Make `createdAt` readonly on an interface.
+
+<details><summary>💡 Hint</summary>
+
+readonly modifier.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+interface ApiModel {
+  readonly createdAt: string;
+  name: string;
+}
+```
+
+</details>
+
+---
+
+## Chapter Summary
+
+You covered a lot in this chapter. Here is a concise recap:
+
+- Interfaces and type aliases document object contracts.
+- Extend or intersect to compose; structural typing matches by shape.
+- Optional `?`, `readonly`, and index signatures model real APIs.
+
+---
+
+---
+
+## Navigation
+
+**⬅️ [Previous: Types and Primitives](./ch02-types-and-primitives.md)**  
+**➡️ [Next: Functions](./ch04-functions.md)**
+
+---
+
+*Last updated: 2025 | TypeScript course — CodeShelf*
+
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*

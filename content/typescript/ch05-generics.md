@@ -1,11 +1,37 @@
 ---
 title: Chapter 5 — Generics
-description: Generic functions, classes, constraints, default type parameters, and reusable typed patterns.
+description: Generic functions, classes, constraints, defaults, and reusable patterns.
 order: 5
 tags: [typescript, generics, constraints, patterns]
 ---
 
+
 # Chapter 5: Generics
+
+> **Generics let you write reusable code without losing type information. This chapter covers functions, classes, constraints, and common patterns.**
+> Take your time with each section. TypeScript rewards patience — read compiler errors carefully and experiment in a small project as you go.
+
+---
+
+
+## Table of Contents
+
+1. [Why Generics](#why-generics)
+2. [Generic Functions](#generic-functions)
+3. [Generic Interfaces](#generic-interfaces)
+4. [Generic Classes](#generic-classes)
+5. [Constraints with extends](#constraints-with-extends)
+6. [keyof and getProperty](#keyof-and-getproperty)
+7. [Default Type Parameters](#default-type-parameters)
+8. [Generic Utilities Preview](#generic-utilities-preview)
+9. [Variance Note](#variance-note)
+10. [Best Practices](#best-practices)
+11. [Common Mistakes](#common-mistakes)
+12. [Interview Points](#interview-points)
+13. [Exercises](#exercises)
+14. [Chapter Summary](#chapter-summary)
+
+---
 
 ## 5.1 The problem generics solve
 
@@ -262,26 +288,528 @@ If `fn` returned `any`, you would lose output typing — avoid `any` in generic 
 | Erasing with `as any` | Fix constraint or overload |
 
 > **Key takeaway:** Generics let you write reusable, type-safe abstractions. Start with simple `<T>` functions, add `extends` constraints when you need property access, and let inference do the work.
+<!-- codeshelf:generated-appendix -->
 
-## Practice Exercise — Chapter 5
+---
 
-```text
-Exercise 5.1: Repository sketch
-  a) Interface Repository<T extends { id: string }> with findById, save, delete.
-  b) Implement InMemoryRepository<T> with a Map.
-  c) Test with User and Product types.
+## Why generics beat duplication
 
-Exercise 5.2: Constraints
-  a) Write max<T extends number | string>(a: T, b: T): T using comparison.
-  b) Write pluck<T, K extends keyof T>(items: T[], key: K): T[K][].
+Without generics you copy-paste the same logic:
 
-Exercise 5.3: Defaults
-  a) type ApiResult<T = void, E = string> for success/error union.
-  b) Use default void for mutations that return no data.
-
-Exercise 5.4: compose
-  a) Implement compose<A, B, C>(f: (b: B) => C, g: (a: A) => B): (a: A) => C.
-  b) Chain three functions with inferred types end-to-end.
+```typescript
+function firstString(arr: string[]): string | undefined { return arr[0]; }
+function firstNumber(arr: number[]): number | undefined { return arr[0]; }
 ```
 
-Next: [Chapter 6 — Utility Types](./ch06-utility-types.md).
+With generics, one implementation serves all:
+
+```typescript
+function first<T>(arr: T[]): T | undefined { return arr[0]; }
+```
+
+The compiler **specializes** `T` per call site — no runtime cost.
+
+---
+
+## Generics — the reusable box
+
+Without generics, you choose between duplication and losing type info:
+
+```typescript
+// Loses info:
+function firstAny(arr: any[]): any { return arr[0]; }
+
+// Keeps info:
+function first<T>(arr: T[]): T | undefined { return arr[0]; }
+
+const n = first([1, 2, 3]); // number | undefined
+```
+
+`T` is a **placeholder** filled in when you call the function.
+
+---
+
+## Constraints — generics with rules
+
+```typescript
+interface HasLength { length: number }
+
+function logLength<T extends HasLength>(item: T): void {
+  console.log(item.length);
+}
+
+logLength("hi");
+logLength([1, 2]);
+// logLength(42); // Error — number has no .length
+```
+
+---
+
+## Generic interfaces — API wrappers
+
+```typescript
+interface ApiResponse<T> {
+  data: T;
+  meta: { page: number; total: number };
+}
+
+type UserList = ApiResponse<User[]>;
+```
+
+---
+
+## Generic constraints in practice
+
+
+```typescript
+interface Identifiable { id: string }
+
+function findById<T extends Identifiable>(items: T[], id: string): T | undefined {
+  return items.find((item) => item.id === id);
+}
+```
+
+
+---
+
+## Generic defaults
+
+
+```typescript
+interface ApiResponse<T = unknown> {
+  data: T;
+  status: number;
+}
+
+type UserResponse = ApiResponse<User>;
+type UnknownResponse = ApiResponse; // T = unknown
+```
+
+
+---
+
+## Generic Stack class
+
+
+```typescript
+class Stack<T> {
+  private items: T[] = [];
+  push(item: T): void { this.items.push(item); }
+  pop(): T | undefined { return this.items.pop(); }
+  peek(): T | undefined { return this.items[this.items.length - 1]; }
+}
+```
+
+
+---
+
+## keyof and typeof constraints
+
+
+```typescript
+function pluck<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+const user = { id: "1", name: "Ada" };
+const n = pluck(user, "name"); // string
+```
+
+
+---
+
+## Conditional types preview
+
+
+```typescript
+type Unwrap<T> = T extends Promise<infer U> ? U : T;
+type A = Unwrap<Promise<string>>; // string
+```
+
+
+---
+
+## Generic constraints in APIs
+
+
+```typescript
+interface Identifiable { id: string }
+function indexById<T extends Identifiable>(items: T[]): Record<string, T> {
+  return Object.fromEntries(items.map((i) => [i.id, i]));
+}
+```
+
+
+---
+
+## Multiple type parameters
+
+
+```typescript
+function pair<T, U>(first: T, second: U): [T, U] {
+  return [first, second];
+}
+```
+
+
+---
+
+## Generic type aliases
+
+
+```typescript
+type Nullable<T> = T | null;
+type ApiResult<T> = { ok: true; data: T } | { ok: false; error: string };
+```
+
+
+---
+
+## Definition — Type parameter
+
+> **Definition:** **Type parameter** — A placeholder type (often `T`) filled in when you call a generic function or instantiate a generic class.
+
+
+---
+
+## Analogy — labeled boxes
+
+
+Generics are shipping boxes with **labels** (`T`) instead of writing "box for books" and "box for shoes" as separate functions.
+
+One factory function `box<T>(item: T): T[]` works for any item type.
+
+
+---
+
+## Worked example — repository
+
+
+```typescript
+interface Entity { id: string }
+
+class MemoryRepo<T extends Entity> {
+  private store = new Map<string, T>();
+
+  save(entity: T): void {
+    this.store.set(entity.id, entity);
+  }
+
+  findById(id: string): T | undefined {
+    return this.store.get(id);
+  }
+}
+```
+
+
+---
+
+## keyof in practice
+
+
+```typescript
+function pick<T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+  const result = {} as Pick<T, K>;
+  for (const key of keys) {
+    result[key] = obj[key];
+  }
+  return result;
+}
+```
+
+
+---
+
+## Inference with generics
+
+
+```typescript
+const ids = [1, 2, 3];
+const firstId = ids.map((n) => n * 2); // number[] — T inferred
+```
+
+
+---
+
+## Generic constraints — real API
+
+
+```typescript
+function sortBy<T extends { createdAt: Date }>(items: T[]): T[] {
+  return [...items].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+}
+```
+
+
+---
+
+## Common mistakes
+
+
+| Mistake | Fix |
+|---------|-----|
+| `function f<T = any>` | Default to `unknown` or omit default |
+| Too many type params | Use options object type |
+| Casting inside generic | Use constraints + narrowing |
+
+
+---
+
+## Review Q1
+
+**Q:** Can you use `any` as a generic constraint? **A:** Technically yes, but it defeats the purpose — use `extends unknown` or a meaningful interface.
+
+---
+
+## Review Q2
+
+**Q:** What is `T extends keyof U` used for? **A:** Safe property access — `getProperty(obj, key)` patterns.
+
+---
+
+## Review Q3
+
+**Q:** Do generics exist at runtime? **A:** No — they are erased like all types.
+
+---
+
+## Review Q4
+
+**Q:** What is a default type parameter? **A:** `interface Box<T = string>` uses `string` when `T` is not specified.
+
+---
+
+## Scenario — typed event bus
+
+
+```typescript
+type Events = {
+  login: { userId: string };
+  logout: { userId: string };
+  error: { message: string };
+};
+
+class TypedEmitter {
+  private listeners: { [K in keyof Events]?: Array<(p: Events[K]) => void> } = {};
+
+  on<K extends keyof Events>(event: K, fn: (payload: Events[K]) => void) {
+    (this.listeners[event] ??= []).push(fn);
+  }
+
+  emit<K extends keyof Events>(event: K, payload: Events[K]) {
+    this.listeners[event]?.forEach((fn) => fn(payload));
+  }
+}
+```
+
+
+---
+
+## Best Practices
+
+- ✅ Name type parameters meaningfully: `T` ok for one param; use `TItem` in complex APIs.
+- ✅ Use constraints instead of `any` inside generics.
+
+---
+
+## Common Mistakes
+
+Watch for these patterns — they cost hours in real projects.
+
+### Mistake 1: Too many type params
+
+`function f<T, U, V, W>`
+
+Simplify or use an options object type.
+
+---
+
+### Mistake 2: Constraint too loose
+
+`T extends object`
+
+Use `extends HasId` or specific interface.
+
+---
+
+## Interview Points
+
+> **📌 Interview Point 1: What is a generic?**
+
+Type parameter placeholder resolved at call site.
+
+---
+
+> **📌 Interview Point 2: What is `extends` in generics?**
+
+Constraint — T must satisfy a shape.
+
+---
+
+## Exercises
+
+Practice with `npx tsc --noEmit` after each exercise.
+
+### Exercise 5.1: identity<T> ⭐
+
+**Task:** Implement generic identity function.
+
+<details><summary>💡 Hint</summary>
+
+Simplest generic.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+function identity<T>(value: T): T {
+  return value;
+}
+```
+
+</details>
+
+---
+
+### Exercise 5.2: getProperty ⭐⭐
+
+**Task:** Use `keyof T` safe property access.
+
+<details><summary>💡 Hint</summary>
+
+Constraint pattern.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+```
+
+</details>
+
+---
+
+### Exercise 5.3: Stack class ⭐⭐⭐
+
+**Task:** Generic `Stack<T>` with push/pop.
+
+<details><summary>💡 Hint</summary>
+
+Generic class.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+class Stack<T> {
+  private items: T[] = [];
+  push(item: T) { this.items.push(item); }
+  pop(): T | undefined { return this.items.pop(); }
+}
+```
+
+</details>
+
+---
+
+### Exercise 5.4: Default generic ⭐⭐
+
+**Task:** ApiResponse with default `T = unknown`.
+
+<details><summary>💡 Hint</summary>
+
+Default type param.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+interface ApiResponse<T = unknown> {
+  data: T;
+  status: number;
+}
+```
+
+</details>
+
+---
+
+### Exercise 5.5: Memoize ⭐⭐⭐
+
+**Task:** Typed memoize for unary functions.
+
+<details><summary>💡 Hint</summary>
+
+Higher-order generic.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+function memoize<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
+  const cache = new Map<string, R>();
+  return (...args: A) => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key)!;
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
+```
+
+</details>
+
+---
+
+### Exercise 5.6: Constraint merge ⭐⭐
+
+**Task:** T extends A & B.
+
+<details><summary>💡 Hint</summary>
+
+Intersection constraint.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+function merge<T extends object, U extends object>(a: T, b: U): T & U {
+  return { ...a, ...b };
+}
+```
+
+</details>
+
+---
+
+## Chapter Summary
+
+You covered a lot in this chapter. Here is a concise recap:
+
+- Generics preserve type information across reuse.
+- Constraints limit type parameters safely.
+
+---
+
+---
+
+## Navigation
+
+**⬅️ [Previous: Functions](./ch04-functions.md)**  
+**➡️ [Next: Utility Types](./ch06-utility-types.md)**
+
+---
+
+*Last updated: 2025 | TypeScript course — CodeShelf*
+
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*

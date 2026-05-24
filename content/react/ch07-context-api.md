@@ -7,256 +7,648 @@ tags: [react, context, useContext, provider, global-state]
 
 # Chapter 7: Context API
 
-## 7.1 The prop drilling problem
+> **Context shares data across the tree without drilling props at every level.**
+> Take your time with each section — understanding beats speed.
 
-When many nested components need the same data, passing props through every level is tedious.
+---
 
-```text
-App (user)
- └── Layout (user)
-      └── Sidebar (user)
-           └── UserMenu (user)  ← finally uses it
-```
+## Table of Contents
 
-**Prop drilling** — passing props through components that do not need them.
+1. [Prop Drilling Problem](#prop-drilling-problem)
+2. [createContext](#createcontext)
+3. [Provider](#provider)
+4. [useContext](#usecontext)
+5. [Theme Example](#theme-example)
+6. [Default Values](#default-values)
+7. [Multiple Contexts](#multiple-contexts)
+8. [Performance — New value Object](#performance-new-value-object)
+9. [Split Contexts](#split-contexts)
+10. [Context vs Redux](#context-vs-redux)
+11. [Auth Context Example](#auth-context-example)
+12. [Provider Composition](#provider-composition)
+13. [composeProviders Helper](#composeproviders-helper)
+14. [When Not to Use Context](#when-not-to-use-context)
+15. [Testing with Providers](#testing-with-providers)
+16. [Common Mistakes](#common-mistakes)
+17. [Interview Points](#interview-points)
+18. [Exercises](#exercises)
+19. [Chapter Summary](#chapter-summary)
 
-> **Definition:** Context lets you share values across the component tree without explicit prop passing at every level.
+---
 
-## 7.2 Creating context
+## Prop Drilling Problem
 
-```jsx
-import { createContext, useContext, useState } from 'react';
+Passing props through layers that don't need them.
 
-const ThemeContext = createContext(null);
+#### Why this matters for `Prop Drilling Problem`
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light');
+Understanding **Prop Drilling Problem** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  const value = {
-    theme,
-    toggleTheme: () => setTheme(t => (t === 'light' ? 'dark' : 'light')),
-  };
+#### Quick recap
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
-  }
-  return context;
-}
-```
+#### Connection to other chapters
 
-### Three steps
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-| Step | API |
-|------|-----|
-| 1. Create | `createContext(defaultValue)` |
-| 2. Provide | `<Context.Provider value={...}>` |
-| 3. Consume | `useContext(Context)` |
+---
 
-## 7.3 Wiring the provider
+## createContext
 
-```jsx
-// main.jsx
-import { ThemeProvider } from './context/ThemeContext.jsx';
+`const Ctx = createContext(defaultValue)`
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </StrictMode>
-);
-```
+#### Why this matters for `createContext`
 
-```jsx
-// Any nested component
-import { useTheme } from '../context/ThemeContext.jsx';
+Understanding **createContext** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-function Header() {
-  const { theme, toggleTheme } = useTheme();
+#### Quick recap
 
-  return (
-    <header className={`header header-${theme}`}>
-      <button onClick={toggleTheme}>Switch to {theme === 'light' ? 'dark' : 'light'}</button>
-    </header>
-  );
-}
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 7.4 Default values
+#### Connection to other chapters
 
-```jsx
-const AuthContext = createContext({
-  user: null,
-  login: () => {},
-  logout: () => {},
-});
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Default is used only when **no Provider** exists above. Prefer explicit Provider in app root.
+---
 
-## 7.5 Multiple contexts
+## Provider
 
-Split unrelated concerns into separate contexts to limit re-renders.
+`<Ctx.Provider value={v}>{children}</Ctx.Provider>`
 
-```jsx
-<AuthProvider>
-  <ThemeProvider>
-    <CartProvider>
-      <App />
-    </CartProvider>
-  </ThemeProvider>
-</AuthProvider>
-```
+#### Why this matters for `Provider`
 
-| Context | Typical data |
-|---------|--------------|
-| Auth | User, token, login/logout |
-| Theme | Colors, dark mode |
-| Locale | Language, translations |
-| Cart | Items, totals |
+Understanding **Provider** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 7.6 Performance considerations
+#### Quick recap
 
-When Provider `value` changes, **all consumers re-render**.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-// ❌ New object every render — all consumers re-render
-function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
-  return (
-    <AuthContext.Provider value={{ user, setUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+#### Connection to other chapters
 
-// ✅ Memoize value
-function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const value = useMemo(() => ({ user, setUser }), [user]);
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Split fast-changing and slow-changing data into separate contexts when needed.
+---
 
-## 7.7 Context vs alternatives
+## useContext
 
-| Solution | Best for |
-|----------|----------|
-| **Props** | Local, parent → child data |
-| **Context** | Theme, auth, locale — moderate update frequency |
-| **useState + lifting** | Shared state between few siblings |
-| **Zustand / Redux** | Large apps, complex state, devtools |
-| **React Query** | Server/async data (see Ch 10) |
+Read nearest Provider value.
 
-Context is **not** a replacement for a full state manager in large apps.
+#### Why this matters for `useContext`
 
-## 7.8 Auth context example
+Understanding **useContext** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```jsx
-const AuthContext = createContext(null);
+#### Quick recap
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-  useEffect(() => {
-    fetch('/api/me')
-      .then(res => res.ok ? res.json() : null)
-      .then(setUser)
-      .finally(() => setLoading(false));
-  }, []);
+#### Connection to other chapters
 
-  const login = async (credentials) => {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
-    const data = await res.json();
-    setUser(data.user);
-  };
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  const logout = () => setUser(null);
+---
 
-  const value = useMemo(
-    () => ({ user, loading, login, logout, isAuthenticated: !!user }),
-    [user, loading]
-  );
+## Theme Example
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+Full ThemeProvider + useTheme hook.
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth requires AuthProvider');
-  return ctx;
-}
-```
+#### Why this matters for `Theme Example`
 
-## 7.9 Compound provider pattern
+Understanding **Theme Example** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```jsx
-function AppProviders({ children }) {
-  return (
-    <AuthProvider>
-      <ThemeProvider>
-        {children}
-      </ThemeProvider>
-    </AuthProvider>
-  );
-}
-```
+#### Quick recap
 
-Or compose with a helper:
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-function composeProviders(...providers) {
-  return ({ children }) =>
-    providers.reduceRight(
-      (acc, Provider) => <Provider>{acc}</Provider>,
-      children
-    );
-}
+#### Connection to other chapters
 
-const AllProviders = composeProviders(AuthProvider, ThemeProvider);
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Default Values
+
+Used only without Provider above.
+
+#### Why this matters for `Default Values`
+
+Understanding **Default Values** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Multiple Contexts
+
+Split theme, auth, locale.
+
+#### Why this matters for `Multiple Contexts`
+
+Understanding **Multiple Contexts** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Performance — New value Object
+
+Memoize `{ user, setUser }` with useMemo.
+
+#### Why this matters for `Performance — New value Object`
+
+Understanding **Performance — New value Object** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Split Contexts
+
+Fast-changing vs slow-changing data.
+
+#### Why this matters for `Split Contexts`
+
+Understanding **Split Contexts** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Context vs Redux
+
+Context for moderate global; Redux/Zustand for complex.
+
+#### Why this matters for `Context vs Redux`
+
+Understanding **Context vs Redux** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Auth Context Example
+
+login, logout, user, loading.
+
+#### Why this matters for `Auth Context Example`
+
+Understanding **Auth Context Example** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Provider Composition
+
+Nest AuthProvider > ThemeProvider.
+
+#### Why this matters for `Provider Composition`
+
+Understanding **Provider Composition** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## composeProviders Helper
+
+Reduce nesting boilerplate.
+
+#### Why this matters for `composeProviders Helper`
+
+Understanding **composeProviders Helper** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## When Not to Use Context
+
+Don't replace every prop — local state first.
+
+#### Why this matters for `When Not to Use Context`
+
+Understanding **When Not to Use Context** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Testing with Providers
+
+Wrap test render in providers.
+
+#### Why this matters for `Testing with Providers`
+
+Understanding **Testing with Providers** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 13 — Context API
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice13.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice13')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| New object each render | All consumers re-render | useMemo value |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: Context purpose?**
+
+Share value to subtree without prop drilling.
+
+---
 
 ## Exercises
 
-1. **Theme context** — Implement light/dark theme affecting CSS variables or class on `<body>`.
-2. **Auth guard** — Create `ProtectedRoute` that redirects if `!user`.
-3. **Split contexts** — Separate `UserContext` and `SettingsContext`; verify fewer re-renders.
-4. **Custom hook** — Export `useTheme()` with error if used outside provider.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| Problem | Prop drilling through many layers |
-| `createContext` | Creates context object |
-| `Provider` | Supplies value to subtree |
-| `useContext` | Reads nearest provider value |
-| Performance | Memoize value; split contexts |
+### Exercise 1: Theme toggle ⭐
 
-## Next chapter
+**Task:** Light/dark via context.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **Context** | Provider + useContext |
+
+## Next Chapter
 
 Continue to [Chapter 8: React Router](./ch08-react-router.md).
+

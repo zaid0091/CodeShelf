@@ -7,302 +7,594 @@ tags: [drf, views, function-based]
 
 # Chapter 4: Function-Based Views
 
-## 4.1 The @api_view Decorator
+> **Welcome!** This chapter covers **Function-based views and @api_view** in Django REST Framework with beginner-friendly explanations.
 
-In plain Django, you write views using def my_view(request). In DRF, you enhance these with the @api_view decorator.
+---
 
-### What does @api_view do behind the scenes?
+## Table of Contents
 
-Without @api_view:
-  - request is Django's HttpRequest (basic)
-  - You get request.POST, request.GET
-  - You return HttpResponse or JsonResponse
-  - No authentication/permission checking
-  - No content negotiation
-  - No browsable API
+1. [Introduction to Function-based views and @api_view](#intro-function-based-views-and-@api_view)
+2. [Core concepts](#core-function-based-views-and-@api_view)
+3. [Step-by-step example](#example-function-based-views-and-@api_view)
+4. [HTTP and curl examples](#curl-function-based-views-and-@api_view)
+5. [Configuration in settings.py](#settings-function-based-views-and-@api_view)
+6. [Advanced patterns](#advanced-function-based-views-and-@api_view)
+7. [Testing this feature](#testing-function-based-views-and-@api_view)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
-With @api_view:
-  - request becomes DRF's Request (enhanced)
-  - You get request.data (works for JSON, form data, files — everything!)
-  - You return DRF's Response (handles JSON automatically)
-  - Authentication is checked
-  - Permissions are checked
-  - Throttling is checked
-  - Browsable API works
-  - Content negotiation works
+---
+
+## Introduction to Function-based views and @api_view
+
+> **Definition:** **Function-based views and @api_view** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Function-based views and @api_view**.
+
 ```python
+# models.py — example domain for this chapter
+from django.db import models
 
-# books/views.py
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
+    def __str__(self):
+        return self.name
+```
+---
+
+### Function-based views and @api_view — Mental Model
+
+When learning **Function-based views and @api_view**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Step By Step Flow
+
+When learning **Function-based views and @api_view**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Comparison Table
+
+When learning **Function-based views and @api_view**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Real World Analogy
+
+When learning **Function-based views and @api_view**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Security Angle
+
+When learning **Function-based views and @api_view**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Testing Angle
+
+When learning **Function-based views and @api_view**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Production Tip
+
+When learning **Function-based views and @api_view**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Function-based views and @api_view — Debugging Checklist
+
+When learning **Function-based views and @api_view**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Function-based views and @api_view
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
 from .models import Book
 from .serializers import BookSerializer
 
-@api_view(['GET', 'POST'])  # Specify which HTTP methods are allowed
-def book_list(request):
-    """
-    GET  → List all books
-    POST → Create a new book
-    """
-    
-    if request.method == 'GET':
-        # Step 1: Get all books from database
-        books = Book.objects.all()
-        
-        # Step 2: Serialize (convert Python objects → JSON-ready data)
-        serializer = BookSerializer(books, many=True)
-        
-        # Step 3: Return the response
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    elif request.method == 'POST':
-        # Step 1: Deserialize (convert incoming JSON → Python data)
-        serializer = BookSerializer(data=request.data)
-        
-        # Step 2: Validate the data
-        if serializer.is_valid():
-            # Step 3: Save to database (calls serializer's create() method)
-            serializer.save()
-            
-            # Step 4: Return the created object
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        # If validation fails, return errors
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-Let me explain each part:
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
 
-# request.data
-# This is DRF's magic. It handles ALL content types:
-#   - JSON body     → request.data works
-#   - Form data     → request.data works  
-#   - Multipart     → request.data works
-#   - Query params  → request.query_params (separate)
-# In plain Django, you'd need: request.POST, request.body, json.loads(), etc.
+## HTTP and curl examples
 
-# Response(data, status)
-# DRF's Response automatically:
-#   - Converts Python dict/list to JSON
-#   - Sets Content-Type header to application/json
-#   - Renders browsable API in browser
-#   - Handles content negotiation
+Test every endpoint from the terminal before wiring the frontend.
 
-# status.HTTP_200_OK
-# Same as writing 200, but MORE READABLE
-# DRF provides constants for all status codes
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/ \
+  -H "Content-Type: application/json"
 ```
 
-## 4.2 Detail View (Single Object)
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/function-based-views-and-@api_view/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/function-based-views-and-@api_view/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/function-based-views-and-@api_view/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+---
+
+## Configuration in settings.py
 
 ```python
-
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def book_detail(request, pk):
-    """
-    GET    → Retrieve a single book
-    PUT    → Update ALL fields of a book
-    PATCH  → Update SOME fields of a book
-    DELETE → Delete a book
-    
-    'pk' comes from the URL: /api/books/5/ → pk=5
-    """
-    
-    # Step 0: Find the book (common for all methods)
-    try:
-        book = Book.objects.get(pk=pk)
-    except Book.DoesNotExist:
-        return Response(
-            {'detail': 'Book not found.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    
-    # ---- GET: Retrieve ----
-    if request.method == 'GET':
-        serializer = BookSerializer(book)
-        return Response(serializer.data)
-    
-    # ---- PUT: Full Update ----
-    elif request.method == 'PUT':
-        # Full update: ALL fields required
-        serializer = BookSerializer(instance=book, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    # ---- PATCH: Partial Update ----
-    elif request.method == 'PATCH':
-        # Partial update: only changed fields required
-        serializer = BookSerializer(
-            instance=book,
-            data=request.data,
-            partial=True          # ← This makes it partial!
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    # ---- DELETE: Destroy ----
-    elif request.method == 'DELETE':
-        book.delete()
-        return Response(
-            {'detail': 'Book deleted successfully.'},
-            status=status.HTTP_204_NO_CONTENT
-        )
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
 ```
 
-## 4.3 URL Configuration
+Tune defaults for **Function-based views and @api_view** in `REST_FRAMEWORK` so you do not repeat settings on every view.
+
+---
+
+## Advanced patterns
+
+Combine **Function-based views and @api_view** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
 
 ```python
+from rest_framework.test import APITestCase
 
-# books/urls.py  (CREATE this file)
-
-from django.urls import path
-from . import views
-
-urlpatterns = [
-    path('books/', views.book_list, name='book-list'),
-    path('books/<int:pk>/', views.book_detail, name='book-detail'),
-]
-
-# <int:pk> means:
-#   - Capture a part of the URL
-#   - It must be an integer
-#   - Pass it to the view as parameter 'pk'
-#   - Example: /api/books/5/ → pk=5
-
-# config/urls.py  (UPDATE this file)
-
-from django.contrib import admin
-from django.urls import path, include
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('books.urls')),  # ← All API URLs start with /api/
-]
-Now your API endpoints are:
-
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/function-based-views-and-@api_view/')
+        self.assertEqual(response.status_code, 200)
 ```
+
+---
+
+## Deep dive 1: Function-based views and @api_view in practice
+
+Scenario 1: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: Function-based views and @api_view in practice
+
+Scenario 2: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Function-based views and @api_view in practice
+
+Scenario 3: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Function-based views and @api_view in practice
+
+Scenario 4: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Function-based views and @api_view in practice
+
+Scenario 5: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Function-based views and @api_view in practice
+
+Scenario 6: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Function-based views and @api_view in practice
+
+Scenario 7: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Function-based views and @api_view in practice
+
+Scenario 8: A mobile app consumes your **Function-based views and @api_view** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/function-based-views-and-@api_view/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Function-based views and @api_view docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Function-based views and @api_view in DRF?
+
+It is part of the request/response pipeline for Function-based views and @api_view.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Function-based views and @api_view in DRF?
+
+It is part of the request/response pipeline for Function-based views and @api_view.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Function-based views and @api_view in DRF?
+
+It is part of the request/response pipeline for Function-based views and @api_view.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Function-based views and @api_view in DRF?
+
+It is part of the request/response pipeline for Function-based views and @api_view.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Function-based views and @api_view.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Function-based views and @api_view in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
 
 ```text
-
-GET    http://127.0.0.1:8000/api/books/          → List all books
-POST   http://127.0.0.1:8000/api/books/          → Create a book
-GET    http://127.0.0.1:8000/api/books/1/         → Get book id=1
-PUT    http://127.0.0.1:8000/api/books/1/         → Full update book id=1
-PATCH  http://127.0.0.1:8000/api/books/1/         → Partial update book id=1
-DELETE http://127.0.0.1:8000/api/books/1/         → Delete book id=1
+✅ Understood the role of Function-based views and @api_view in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
 ```
 
-## 4.4 request Object in Detail
+**➡️ [Next →](./ch05-class-based-views.md)**
 
-```python
+---
 
-@api_view(['POST'])
-def demo_request(request):
-    """Understanding the DRF Request object"""
-    
-    # 1. request.data — The parsed request body
-    # Works for JSON, form data, multipart uploads
-    print(request.data)
-    # {'title': 'New Book', 'price': 299}
-    
-    # 2. request.query_params — URL query parameters
-    # URL: /api/books/?search=python&page=2
-    print(request.query_params)
-    # {'search': 'python', 'page': '2'}
-    search = request.query_params.get('search', '')
-    page = request.query_params.get('page', 1)
-    
-    # 3. request.method — The HTTP method
-    print(request.method)
-    # 'POST'
-    
-    # 4. request.user — The authenticated user
-    print(request.user)
-    # <User: admin> or AnonymousUser
-    
-    # 5. request.auth — Authentication token/credentials
-    print(request.auth)
-    # Token object or None
-    
-    # 6. request.content_type — What format was sent
-    print(request.content_type)
-    # 'application/json'
-    
-    # 7. request.META — All HTTP headers and server info
-    print(request.META.get('HTTP_AUTHORIZATION'))
-    # 'Token abc123...'
-    
-    # 8. request.FILES — Uploaded files
-    print(request.FILES)
-    # {'image': <UploadedFile: photo.jpg>}
-    
-    return Response({'message': 'Request received'})
-request.data vs Django's request.POST and request.body:
-
-# Plain Django — Different methods for different content types:
-request.POST          # Only works for form data
-request.body          # Raw bytes — you need json.loads()
-request.GET           # Query parameters
-
-# DRF — One method for everything:
-request.data          # Works for JSON, form data, files — EVERYTHING
-request.query_params  # Query parameters (cleaner name than .GET)
-```
-
-## 4.5 Using get_object_or_404
-
-```python
-
-from django.shortcuts import get_object_or_404
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def book_detail(request, pk):
-    # Instead of try/except, use this shortcut:
-    book = get_object_or_404(Book, pk=pk)
-    # If book doesn't exist, automatically returns 404 response
-    
-    if request.method == 'GET':
-        serializer = BookSerializer(book)
-        return Response(serializer.data)
-    
-    # ... rest of the view
-```
-
-Common Mistake: Forgetting status= in Response.
-
-```python
-
-return Response(serializer.data, status.HTTP_201_CREATED)    # WRONG
-return Response(serializer.data, status=status.HTTP_201_CREATED)  # CORRECT
-```
-
-## Practice Exercise — Chapter 4
-
-```text
-
-Exercise 4.1:
-  Build a complete CRUD API for a "Student" model using 
-  function-based views with @api_view:
-  
-  Endpoints:
-    GET    /api/students/      → List all students
-    POST   /api/students/      → Create a student
-    GET    /api/students/5/    → Get student id=5
-    PUT    /api/students/5/    → Full update
-    PATCH  /api/students/5/    → Partial update
-    DELETE /api/students/5/    → Delete
-  
-  Test all 6 operations using the browsable API.
-
-Exercise 4.2:
-  Add a search feature to your book_list view:
-    GET /api/books/?search=python
-    → Returns only books whose title contains "python"
-    
-  Hint: Use request.query_params.get('search', '')
-        and Book.objects.filter(title__icontains=search)
-```
+*Last updated: 2025 | Django REST Framework Course*

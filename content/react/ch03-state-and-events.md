@@ -7,19 +7,62 @@ tags: [react, state, useState, events, controlled-inputs]
 
 # Chapter 3: State & Events
 
-## 3.1 What is state?
+> **State makes UI interactive. This chapter connects your JavaScript variables to what users see on screen.**
+> Take your time with each section — understanding beats speed.
 
-**State** is data that changes over time and affects what the UI renders.
+---
 
-> **Definition:** When state updates, React re-runs the component function and reconciles the DOM with the new output.
+## Table of Contents
+
+1. [What is State?](#what-is-state)
+2. [Introducing useState](#introducing-usestate)
+3. [Functional State Updates](#functional-state-updates)
+4. [State Types](#state-types)
+5. [Immutability Rules](#immutability-rules)
+6. [Synthetic Events](#synthetic-events)
+7. [Common Event Handlers](#common-event-handlers)
+8. [Passing Arguments to Handlers](#passing-arguments-to-handlers)
+9. [Controlled Inputs](#controlled-inputs)
+10. [Checkbox and Select](#checkbox-and-select)
+11. [Multiple useState vs One Object](#multiple-usestate-vs-one-object)
+12. [Lifting State Up](#lifting-state-up)
+13. [React 18 Batching](#react-18-batching)
+14. [Hooks Rules Preview](#hooks-rules-preview)
+15. [Best Practices](#best-practices)
+16. [Common Mistakes](#common-mistakes)
+17. [Interview Points](#interview-points)
+18. [Exercises](#exercises)
+19. [Chapter Summary](#chapter-summary)
+
+---
+
+## What is State?
+
+> **Definition:** State is data owned by a component that can change over time. When state updates, React re-renders the component.
 
 | Props | State |
 |-------|-------|
-| Passed from parent | Owned by the component |
-| Read-only | Updated via setter function |
-| External | Internal |
+| From parent | Inside component |
+| Read-only | Updated via setter |
+| External config | Internal behavior |
 
-## 3.2 The useState hook
+#### Why this matters for `What is State?`
+
+Understanding **What is State?** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Introducing useState
 
 ```jsx
 import { useState } from 'react';
@@ -31,30 +74,42 @@ function Counter() {
     <div>
       <p>Count: {count}</p>
       <button onClick={() => setCount(count + 1)}>+1</button>
-      <button onClick={() => setCount(c => c + 1)}>+1 (functional)</button>
     </div>
   );
 }
 ```
 
-### useState return value
+`useState(initial)` returns `[value, setValue]`.
 
-| Index | Name | Purpose |
-|-------|------|---------|
-| 0 | `count` | Current state value |
-| 1 | `setCount` | Function to schedule an update |
+---
 
-### Functional updates
+## Functional State Updates
 
-When the new state depends on the previous state, use the updater form:
+When next state depends on previous:
 
 ```jsx
 setCount(prev => prev + 1);
 ```
 
-This avoids stale closures in rapid clicks or async callbacks.
+Use this in rapid clicks, intervals, or async callbacks to avoid stale values.
 
-### State can hold any type
+#### Why this matters for `Functional State Updates`
+
+Understanding **Functional State Updates** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## State Types
 
 ```jsx
 const [user, setUser] = useState(null);
@@ -63,109 +118,164 @@ const [form, setForm] = useState({ email: '', password: '' });
 const [isOpen, setIsOpen] = useState(false);
 ```
 
-## 3.3 Immutability rules
+State can hold any JavaScript value.
 
-React compares state **by reference**. Mutating objects/arrays in place may not trigger a re-render.
+#### Why this matters for `State Types`
+
+Understanding **State Types** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Immutability Rules
 
 ```jsx
-// ❌ Mutating array
-items.push(newItem);
+// ❌ Mutate array
+items.push(x);
 setItems(items);
 
-// ✅ New array reference
-setItems([...items, newItem]);
+// ✅ New array
+setItems([...items, x]);
 
-// ❌ Mutating object
-form.email = value;
+// ❌ Mutate object
+form.email = v;
 setForm(form);
 
-// ✅ New object reference
-setForm({ ...form, email: value });
+// ✅ New object
+setForm({ ...form, email: v });
 ```
 
-## 3.4 Event handling
+#### Why this matters for `Immutability Rules`
 
-React uses **SyntheticEvents** — wrappers around native browser events for cross-browser consistency.
+Understanding **Immutability Rules** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Synthetic Events
+
+> **Definition:** React wraps browser events in SyntheticEvent objects for consistent behavior across browsers.
 
 ```jsx
-function SearchBox() {
-  const [query, setQuery] = useState('');
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    console.log('Searching for:', query);
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search..."
-      />
-      <button type="submit">Search</button>
-    </form>
-  );
+function handleClick(e) {
+  e.preventDefault();
+  console.log('clicked');
 }
+<button onClick={handleClick}>Go</button>
 ```
 
-### Common event props
+#### Why this matters for `Synthetic Events`
 
-| Prop | Fires when |
-|------|------------|
-| `onClick` | Mouse click |
-| `onChange` | Input value changes |
-| `onSubmit` | Form submitted |
-| `onKeyDown` | Key pressed |
-| `onFocus` / `onBlur` | Focus changes |
+Understanding **Synthetic Events** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### Passing arguments to handlers
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Common Event Handlers
+
+| Prop | When |
+|------|------|
+| `onClick` | Click |
+| `onChange` | Input change |
+| `onSubmit` | Form submit |
+| `onKeyDown` | Key press |
+| `onFocus` / `onBlur` | Focus |
+
+#### Why this matters for `Common Event Handlers`
+
+Understanding **Common Event Handlers** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Passing Arguments to Handlers
 
 ```jsx
 <button onClick={() => deleteItem(id)}>Delete</button>
-
-// Or with bind (less common)
-<button onClick={deleteItem.bind(null, id)}>Delete</button>
 ```
 
-## 3.5 Controlled inputs
+Do not call the handler immediately: `onClick={deleteItem(id)}` runs on every render.
 
-A **controlled component** has its value driven by React state.
+#### Why this matters for `Passing Arguments to Handlers`
+
+Understanding **Passing Arguments to Handlers** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Controlled Inputs
+
+> **Definition:** A controlled input's value is driven by React state via `value` + `onChange`.
 
 ```jsx
-function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  return (
-    <form>
-      <label>
-        Email
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </label>
-      <label>
-        Password
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </label>
-    </form>
-  );
-}
+const [email, setEmail] = useState('');
+<input value={email} onChange={(e) => setEmail(e.target.value)} />
 ```
 
-### Checkbox and select
+#### Why this matters for `Controlled Inputs`
+
+Understanding **Controlled Inputs** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Checkbox and Select
 
 ```jsx
-const [agreed, setAgreed] = useState(false);
-const [country, setCountry] = useState('us');
-
 <input
   type="checkbox"
   checked={agreed}
@@ -173,89 +283,372 @@ const [country, setCountry] = useState('us');
 />
 
 <select value={country} onChange={(e) => setCountry(e.target.value)}>
-  <option value="us">United States</option>
-  <option value="uk">United Kingdom</option>
+  <option value="us">US</option>
 </select>
 ```
 
-See [Chapter 9: Forms](./ch09-forms.md) for validation and uncontrolled alternatives.
+#### Why this matters for `Checkbox and Select`
 
-## 3.6 Multiple state variables vs one object
+Understanding **Checkbox and Select** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-| Approach | Best for |
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Multiple useState vs One Object
+
+| Approach | Use when |
 |----------|----------|
-| Separate `useState` calls | Independent values (count, isOpen) |
-| Single object state | Related form fields updated together |
-| `useReducer` | Complex state transitions (advanced) |
+| Several `useState` | Independent values |
+| One object | Form fields updated together |
+| `useReducer` | Complex transitions (Ch 6+) |
 
-```jsx
-// Separate — simple toggles
-const [isLoading, setIsLoading] = useState(false);
-const [error, setError] = useState(null);
+#### Why this matters for `Multiple useState vs One Object`
 
-// Object — forms
-const [form, setForm] = useState({ name: '', bio: '' });
-const updateField = (field) => (e) =>
-  setForm(prev => ({ ...prev, [field]: e.target.value }));
-```
+Understanding **Multiple useState vs One Object** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 3.7 Lifting state up (preview)
+#### Quick recap
 
-When two siblings need the same data, move state to their closest common parent.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-function TemperatureInput({ scale, temperature, onChange }) {
-  return (
-    <fieldset>
-      <legend>Enter temperature in {scale}:</legend>
-      <input value={temperature} onChange={(e) => onChange(e.target.value)} />
-    </fieldset>
-  );
-}
+#### Connection to other chapters
 
-function Calculator() {
-  const [celsius, setCelsius] = useState('');
-  const fahrenheit = celsius ? (parseFloat(celsius) * 9/5 + 32).toFixed(1) : '';
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  return (
-    <div>
-      <TemperatureInput scale="Celsius" temperature={celsius} onChange={setCelsius} />
-      <p>Fahrenheit: {fahrenheit}</p>
-    </div>
-  );
-}
-```
+---
 
-Full patterns in [Chapter 12](./ch12-patterns-and-architecture.md).
+## Lifting State Up
 
-## 3.8 Batching updates
+Move shared state to the closest common parent when siblings need the same data. See Chapter 12 for full patterns.
 
-React 18 **automatically batches** multiple `setState` calls in event handlers into one re-render:
+#### Why this matters for `Lifting State Up`
 
-```jsx
-function handleClick() {
-  setCount(c => c + 1);
-  setFlag(f => !f);
-  // One re-render, not two
-}
-```
+Understanding **Lifting State Up** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## React 18 Batching
+
+Multiple `setState` calls in event handlers batch into one re-render automatically.
+
+#### Why this matters for `React 18 Batching`
+
+Understanding **React 18 Batching** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Hooks Rules Preview
+
+1. Only call hooks at top level.
+2. Only call hooks from React functions.
+
+Details in Chapter 6.
+
+#### Why this matters for `Hooks Rules Preview`
+
+Understanding **Hooks Rules Preview** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Best Practices
+
+1. Colocate state near usage.
+2. Never mutate state directly.
+3. Use functional updates when needed.
+4. `e.preventDefault()` on forms when not doing full page POST.
+
+#### Why this matters for `Best Practices`
+
+Understanding **Best Practices** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — State & Events
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — State & Events
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — State & Events
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — State & Events
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — State & Events
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| Mutating state objects | No re-render | Spread into new object |
+| `onClick={fn()}` | Runs every render | Wrap: `() => fn()` |
+| Missing `value` on controlled input | Cursor bugs | Pair value + onChange |
+| Stale closure in setState | Wrong count | Use `prev =>` form |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: useState return value?**
+
+[current, setter]. Setter schedules update.
+
+---
+
+> **📌 Interview Point 2: Why immutable updates?**
+
+React compares references; mutation may skip render.
+
+---
+
+> **📌 Interview Point 3: Controlled vs uncontrolled?**
+
+Controlled: React owns value. Uncontrolled: DOM/ref.
+
+---
+
+> **📌 Interview Point 4: What is batching?**
+
+Multiple setStates merged into one render.
+
+---
 
 ## Exercises
 
-1. **Counter** — Build a counter with increment, decrement, and reset. Prevent count going below zero.
-2. **Like button** — Toggle heart icon and count with `useState`.
-3. **Registration form** — Controlled inputs for name, email, password. Log values on submit.
-4. **Tabs** — State for active tab index; show different panel content per tab.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| `useState` | `[value, setValue] = useState(initial)` |
-| Updates | Never mutate; create new objects/arrays |
-| Events | `onClick`, `onChange`; call `e.preventDefault()` on forms |
-| Controlled inputs | `value` + `onChange` tied to state |
+### Exercise 1: Counter ⭐
 
-## Next chapter
+**Task:** Increment, decrement, reset; no negative.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+Clamp at 0.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+useState + handlers.
+
+</details>
+
+---
+
+### Exercise 2: Like button ⭐
+
+**Task:** Toggle heart and count.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+Boolean + number state.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Two useStates.
+
+</details>
+
+---
+
+### Exercise 3: Registration form ⭐⭐
+
+**Task:** Controlled name, email, password; log on submit.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+preventDefault.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Form pattern.
+
+</details>
+
+---
+
+### Exercise 4: Tabs ⭐⭐
+
+**Task:** Active tab index switches panel.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+Single state index.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Conditional render.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **useState** | [value, setValue] |
+| **Events** | onClick, onChange |
+| **Controlled** | value + onChange |
+
+## Next Chapter
 
 Continue to [Chapter 4: Lists & Keys](./ch04-lists-and-keys.md).
+

@@ -7,231 +7,662 @@ tags: [react, useEffect, side-effects, cleanup, dependencies]
 
 # Chapter 5: useEffect
 
-## 5.1 What are side effects?
+> **Effects connect your components to the outside world. Used carefully, they are powerful; overused, they cause bugs.**
+> Take your time with each section — understanding beats speed.
 
-A **side effect** is anything that touches the outside world or happens outside the normal render flow.
+---
 
-| Side effect examples | Not side effects |
-|---------------------|------------------|
-| Fetching data | Computing derived values |
-| Subscribing to WebSocket | Rendering JSX from props |
-| Setting `document.title` | Event handlers (usually) |
-| Timers (`setInterval`) | Updating state from events |
-| Syncing with localStorage | |
+## Table of Contents
 
-> **Definition:** `useEffect` lets you run code **after** React commits changes to the DOM.
+1. [What Are Side Effects?](#what-are-side-effects)
+2. [useEffect Syntax](#useeffect-syntax)
+3. [Dependency Array — None](#dependency-array-none)
+4. [Dependency Array — Empty](#dependency-array-empty)
+5. [Dependency Array — With Values](#dependency-array-with-values)
+6. [exhaustive-deps Rule](#exhaustive-deps-rule)
+7. [Cleanup — Event Listeners](#cleanup-event-listeners)
+8. [Cleanup — Timers](#cleanup-timers)
+9. [Cleanup — AbortController](#cleanup-abortcontroller)
+10. [Document Title Pattern](#document-title-pattern)
+11. [localStorage Sync](#localstorage-sync)
+12. [Fetch on Id Change](#fetch-on-id-change)
+13. [Effect vs Event Handler](#effect-vs-event-handler)
+14. [Strict Mode Double Invoke](#strict-mode-double-invoke)
+15. [When NOT to useEffect](#when-not-to-useeffect)
+16. [useLayoutEffect Brief](#uselayouteffect-brief)
+17. [Common Mistakes](#common-mistakes)
+18. [Interview Points](#interview-points)
+19. [Exercises](#exercises)
+20. [Chapter Summary](#chapter-summary)
 
-## 5.2 Basic syntax
+---
 
-```jsx
-import { useState, useEffect } from 'react';
+## What Are Side Effects?
 
-function Page({ userId }) {
-  const [user, setUser] = useState(null);
+> **Definition:** Effects touch systems outside render: fetch, timers, document.title, subscriptions.
 
-  useEffect(() => {
-    fetch(`/api/users/${userId}`)
-      .then(res => res.json())
-      .then(setUser);
-  }, [userId]);
+#### Why this matters for `What Are Side Effects?`
 
-  if (!user) return <p>Loading...</p>;
-  return <h1>{user.name}</h1>;
-}
-```
+Understanding **What Are Side Effects?** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### Anatomy of useEffect
+#### Quick recap
 
-```jsx
-useEffect(() => {
-  // Effect body — runs after paint
-  return () => {
-    // Optional cleanup — runs before next effect or unmount
-  };
-}, [dependency1, dependency2]);
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-| Part | Purpose |
-|------|---------|
-| Effect function | Code to run after render |
-| Cleanup function | Undo subscriptions, timers, listeners |
-| Dependency array | Controls when effect re-runs |
+#### Connection to other chapters
 
-## 5.3 Dependency array rules
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-### No array — runs every render (rarely needed)
+---
+
+## useEffect Syntax
 
 ```jsx
 useEffect(() => {
-  console.log('Runs after every render');
-});
+  // effect
+  return () => { /* cleanup */ };
+}, [deps]);
 ```
 
-### Empty array `[]` — runs once on mount
+#### Why this matters for `useEffect Syntax`
 
-```jsx
-useEffect(() => {
-  document.title = 'My App';
-}, []);
-```
+Understanding **useEffect Syntax** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### With dependencies — runs when deps change
+#### Quick recap
 
-```jsx
-useEffect(() => {
-  localStorage.setItem('theme', theme);
-}, [theme]);
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-### ESLint exhaustive-deps
+#### Connection to other chapters
 
-Always include every value from the component scope that the effect reads. The `react-hooks/exhaustive-deps` rule helps catch missing dependencies.
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-## 5.4 Cleanup examples
+---
 
-### Event listener
+## Dependency Array — None
 
-```jsx
-useEffect(() => {
-  function handleResize() {
-    setWidth(window.innerWidth);
-  }
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
-```
+Runs after every render — rarely needed.
 
-### Timer
+#### Why this matters for `Dependency Array — None`
 
-```jsx
-useEffect(() => {
-  const id = setInterval(() => setSeconds(s => s + 1), 1000);
-  return () => clearInterval(id);
-}, []);
-```
+Understanding **Dependency Array — None** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### Abort fetch on unmount
+#### Quick recap
 
-```jsx
-useEffect(() => {
-  const controller = new AbortController();
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-  fetch(url, { signal: controller.signal })
-    .then(res => res.json())
-    .then(setData)
-    .catch(err => {
-      if (err.name !== 'AbortError') setError(err);
-    });
+#### Connection to other chapters
 
-  return () => controller.abort();
-}, [url]);
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-## 5.5 Common patterns
+---
 
-### Sync document title
+## Dependency Array — Empty
 
-```jsx
-useEffect(() => {
-  document.title = `${count} notifications`;
-}, [count]);
-```
+`[]` runs once on mount (plus Strict Mode dev double-run).
 
-### Load from localStorage on mount
+#### Why this matters for `Dependency Array — Empty`
 
-```jsx
-const [settings, setSettings] = useState(() => {
-  const saved = localStorage.getItem('settings');
-  return saved ? JSON.parse(saved) : defaultSettings;
-});
+Understanding **Dependency Array — Empty** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-useEffect(() => {
-  localStorage.setItem('settings', JSON.stringify(settings));
-}, [settings]);
-```
+#### Quick recap
 
-### Fetch when id changes
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-useEffect(() => {
-  let cancelled = false;
+#### Connection to other chapters
 
-  async function loadPost() {
-    setLoading(true);
-    const res = await fetch(`/api/posts/${postId}`);
-    const data = await res.json();
-    if (!cancelled) {
-      setPost(data);
-      setLoading(false);
-    }
-  }
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  loadPost();
-  return () => { cancelled = true; };
-}, [postId]);
-```
+---
 
-## 5.6 useEffect vs event handlers
+## Dependency Array — With Values
 
-| useEffect | Event handler |
-|-----------|---------------|
-| Runs after render | Runs on user action |
-| Sync with external systems | Update state directly |
-| Can cause extra network calls if deps wrong | Explicit, on-demand |
+Re-runs when listed deps change.
 
-**Do not** put data fetching in an effect if it should only happen on button click — use the handler instead.
+#### Why this matters for `Dependency Array — With Values`
 
-## 5.7 Strict Mode double invocation
+Understanding **Dependency Array — With Values** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-In development, React Strict Mode runs effects twice to surface missing cleanup bugs. Your cleanup must be idempotent.
+#### Quick recap
 
-```jsx
-// ✅ Proper cleanup handles double mount
-useEffect(() => {
-  const sub = subscribe();
-  return () => sub.unsubscribe();
-}, []);
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 5.8 When NOT to use useEffect
+#### Connection to other chapters
 
-```jsx
-// ❌ Deriving state in effect
-useEffect(() => {
-  setFullName(firstName + ' ' + lastName);
-}, [firstName, lastName]);
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-// ✅ Compute during render
-const fullName = `${firstName} ${lastName}`;
-```
+---
 
-Avoid effects for:
+## exhaustive-deps Rule
 
-- Transforming data for display
-- Handling user events (use handlers)
-- Chaining state updates that can be one update
+Include every value from component scope used inside effect.
 
-## 5.9 Effect timing: useLayoutEffect (brief)
+#### Why this matters for `exhaustive-deps Rule`
 
-`useLayoutEffect` fires **before** the browser paints. Use sparingly for DOM measurements that must happen before paint to avoid flicker. Default to `useEffect`.
+Understanding **exhaustive-deps Rule** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Cleanup — Event Listeners
+
+Return function removing listener.
+
+#### Why this matters for `Cleanup — Event Listeners`
+
+Understanding **Cleanup — Event Listeners** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Cleanup — Timers
+
+`clearInterval` in cleanup.
+
+#### Why this matters for `Cleanup — Timers`
+
+Understanding **Cleanup — Timers** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Cleanup — AbortController
+
+Abort fetch on unmount or url change.
+
+#### Why this matters for `Cleanup — AbortController`
+
+Understanding **Cleanup — AbortController** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Document Title Pattern
+
+Sync `document.title` with state in effect.
+
+#### Why this matters for `Document Title Pattern`
+
+Understanding **Document Title Pattern** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## localStorage Sync
+
+Load initial state lazily; persist in effect on change.
+
+#### Why this matters for `localStorage Sync`
+
+Understanding **localStorage Sync** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Fetch on Id Change
+
+Cancelled flag or AbortController when `userId` changes.
+
+#### Why this matters for `Fetch on Id Change`
+
+Understanding **Fetch on Id Change** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Effect vs Event Handler
+
+Fetch on click → handler. Sync with prop → effect.
+
+#### Why this matters for `Effect vs Event Handler`
+
+Understanding **Effect vs Event Handler** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Strict Mode Double Invoke
+
+Dev-only; cleanup must be correct.
+
+#### Why this matters for `Strict Mode Double Invoke`
+
+Understanding **Strict Mode Double Invoke** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## When NOT to useEffect
+
+Don't sync derived state — compute in render.
+
+#### Why this matters for `When NOT to useEffect`
+
+Understanding **When NOT to useEffect** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useLayoutEffect Brief
+
+Runs before paint — measurements; default to useEffect.
+
+#### Why this matters for `useLayoutEffect Brief`
+
+Understanding **useLayoutEffect Brief** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — useEffect
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| Missing deps | Stale data | Add to array or fix logic |
+| No cleanup | Leaks | Return cleanup fn |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: useEffect purpose?**
+
+Run side effects after render.
+
+---
+
+> **📌 Interview Point 2: Cleanup when?**
+
+Before re-run and unmount.
+
+---
 
 ## Exercises
 
-1. **Document title** — Update `document.title` with the current route or page name.
-2. **Clock** — Display live time with `setInterval`; clean up on unmount.
-3. **Fetch user** — Load user profile when `userId` prop changes; show loading state.
-4. **Theme persist** — Save dark/light theme to `localStorage` and restore on refresh.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| Side effects | External sync: fetch, timers, subscriptions |
-| `useEffect(fn, deps)` | Runs after render; deps control re-runs |
-| Cleanup | Return function to avoid leaks |
-| `[]` | Mount-only; `[x]` when `x` changes |
-| Avoid | Deriving state that can be computed in render |
+### Exercise 1: Document title ⭐
 
-## Next chapter
+**Task:** Update title with count.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **useEffect** | Side effects after paint |
+| **deps** | Control re-runs |
+
+## Next Chapter
 
 Continue to [Chapter 6: Hooks Deep Dive](./ch06-hooks-deep-dive.md).
+

@@ -1,13 +1,23 @@
 import { Link } from 'react-router-dom'
+import { ReactLenis } from 'lenis/react'
 import { ArrowRight, Search } from 'lucide-react'
 import { getTopics, getCourseStartPath } from '@/lib/content'
 import { ButtonLink } from '@/components/ui/Button'
 import { TopicIcon } from '@/components/TopicIcon'
+import { ScrollReveal } from '@/components/ScrollReveal'
+import { LenisScrollSetup } from '@/components/LenisScrollSetup'
+import { ScrollToTop } from '@/components/ScrollToTop'
+import { useLenisScrolled } from '@/hooks/useLenisScrolled'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useWindowScrolled } from '@/hooks/useScrolled'
+import { getLenisOptions } from '@/lib/lenisConfig'
 
-export function HomePage() {
+function HomePageContent() {
   const topics = getTopics()
-  const scrolled = useWindowScrolled(1)
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const lenisScrolled = useLenisScrolled(1)
+  const windowScrolled = useWindowScrolled(1)
+  const scrolled = prefersReducedMotion ? windowScrolled : lenisScrolled
 
   return (
     <div className="track-cinematic min-h-screen">
@@ -39,15 +49,18 @@ export function HomePage() {
         </div>
       </header>
 
-      <section className="hero-section hero-section--advanced relative overflow-hidden border-b border-white/[0.06]">
+      <section
+        className="hero-section hero-section--advanced relative overflow-hidden border-b border-white/[0.06]"
+        data-parallax-container
+      >
         <div aria-hidden="true" className="hero-ambient">
-          <div className="hero-mesh" />
-          <div className="hero-glow hero-glow--aloe" />
-          <div className="hero-glow hero-glow--cool" />
-          <div className="hero-glow hero-glow--accent" />
+          <div className="hero-mesh" data-parallax-speed="0.08" />
+          <div className="hero-glow hero-glow--aloe" data-parallax-speed="0.18" />
+          <div className="hero-glow hero-glow--cool" data-parallax-speed="0.12" />
+          <div className="hero-glow hero-glow--accent" data-parallax-speed="0.22" />
           <div className="hero-grid" />
           <div className="hero-noise" />
-          <div className="hero-beam" />
+          <div className="hero-beam" data-parallax-speed="0.05" />
           <div className="hero-vignette" />
         </div>
 
@@ -155,61 +168,93 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
-        <p className="text-eyebrow text-link-cool-1 mb-4">Topics</p>
-        <h2 className="font-display text-display-lg text-on-primary mb-16 max-w-2xl">
-          Everything you need to revise.
-        </h2>
+      <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32 mt-10">
+        <ScrollReveal animation="fade-up" duration={0.9}>
+          <p className="text-eyebrow text-link-cool-1 mb-4">Topics</p>
+          <h2 className="font-display text-display-lg text-on-primary mb-16 max-w-2xl">
+            Everything you need to revise.
+          </h2>
+        </ScrollReveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topics.map((topic) => (
-            <Link
+          {topics.map((topic, index) => (
+            <ScrollReveal
               key={topic.id}
-              to={getCourseStartPath(topic.id)}
-              className="group relative bg-canvas-night-elevated border border-white/[0.08] rounded-xl p-8 transition-all duration-300 hover:border-white/15 hover:-translate-y-0.5"
-              style={{
-                boxShadow:
-                  '0 1px 2px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04)',
-              }}
+              animation="fade-up"
+              delay={index * 0.06}
+              duration={0.85}
+              distance={40}
             >
-              <TopicIcon topicId={topic.id} size={40} className="mb-6" />
-              <h3 className="font-display text-2xl text-on-primary mb-2">{topic.label}</h3>
-              <p className="text-caption text-link-cool-2">
-                {topic.pages.length} note{topic.pages.length !== 1 ? 's' : ''}
-              </p>
-              <ArrowRight
-                size={18}
-                className="absolute bottom-8 right-8 text-link-cool-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                strokeWidth={1.5}
-              />
-            </Link>
+              <Link
+                to={getCourseStartPath(topic.id)}
+                className="group relative bg-canvas-night-elevated border border-white/[0.08] rounded-xl p-8 transition-all duration-300 hover:border-white/15 hover:-translate-y-0.5 block h-full"
+                style={{
+                  boxShadow:
+                    '0 1px 2px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04)',
+                }}
+              >
+                <TopicIcon topicId={topic.id} size={40} className="mb-6" />
+                <h3 className="font-display text-2xl text-on-primary mb-2">{topic.label}</h3>
+                <p className="text-caption text-link-cool-2">
+                  {topic.pages.length} note{topic.pages.length !== 1 ? 's' : ''}
+                </p>
+                <ArrowRight
+                  size={18}
+                  className="absolute bottom-8 right-8 text-link-cool-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                  strokeWidth={1.5}
+                />
+              </Link>
+            </ScrollReveal>
           ))}
         </div>
       </section>
 
       <section className="max-w-[90rem] mx-auto px-6 lg:px-10 pb-32">
-        <div className="border border-white/[0.08] rounded-xl p-10 bg-canvas-night-elevated flex items-start gap-6">
-          <Search size={22} className="text-link-cool-1 shrink-0 mt-1" strokeWidth={1.5} />
-          <div>
-            <h3 className="font-display text-xl text-on-primary mb-2">Instant search</h3>
-            <p className="text-caption text-link-cool-2">
-              Press{' '}
-              <kbd className="px-2 py-0.5 rounded-md border border-white/15 bg-white/5 text-on-primary text-xs font-mono">
-                Ctrl+K
-              </kbd>{' '}
-              anywhere in the docs to search across all your notes.
-            </p>
+        <ScrollReveal animation="fade-scale" duration={0.95} distance={24}>
+          <div className="border border-white/[0.08] rounded-xl p-10 bg-canvas-night-elevated flex items-start gap-6">
+            <Search size={22} className="text-link-cool-1 shrink-0 mt-1" strokeWidth={1.5} />
+            <div>
+              <h3 className="font-display text-xl text-on-primary mb-2">Instant search</h3>
+              <p className="text-caption text-link-cool-2">
+                Press{' '}
+                <kbd className="px-2 py-0.5 rounded-md border border-white/15 bg-white/5 text-on-primary text-xs font-mono">
+                  Ctrl+K
+                </kbd>{' '}
+                anywhere in the docs to search across all your notes.
+              </p>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
-      <footer className="border-t border-white/5 py-16 px-6 lg:px-10">
+      <ScrollReveal
+        animation="fade-up"
+        duration={0.85}
+        as="footer"
+        className="border-t border-white/5 py-16 px-6 lg:px-10"
+      >
         <div className="max-w-[90rem] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <span className="font-display text-on-primary">CodeShelf</span>
           <p className="text-caption text-link-cool-3">
             Built for learning. Frontend-only. Always yours.
           </p>
         </div>
-      </footer>
+      </ScrollReveal>
     </div>
+  )
+}
+
+export function HomePage() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
+  if (prefersReducedMotion) {
+    return <HomePageContent />
+  }
+
+  return (
+    <ReactLenis root options={getLenisOptions()}>
+      <LenisScrollSetup parallaxRoot />
+      <ScrollToTop />
+      <HomePageContent />
+    </ReactLenis>
   )
 }

@@ -1,154 +1,686 @@
 ---
-title: Chapter 26 — Interview Preparation
+title: Interview Preparation
 description: Common Django REST Framework interview questions and answers
-order: 29
+order: 26
 tags: [drf, interview, career]
 ---
 
 # Chapter 26: Interview Preparation
 
-Review these **11 common DRF interview questions** with concise answers you can expand in a technical interview.
+> **Welcome!** This chapter covers **Interview preparation** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## Q1: What is the difference between Serializer and ModelSerializer?
+## Table of Contents
 
-**Answer:** `Serializer` requires manually defining every field and `create()` / `update()` methods. `ModelSerializer` auto-generates fields from the model, auto-creates `create()` / `update()` methods, and includes model validators.
-
-| Use case | Class |
-|----------|-------|
-| Login forms, composite payloads | `Serializer` |
-| CRUD on Django models | `ModelSerializer` |
+1. [Introduction to Interview preparation](#intro-interview-preparation)
+2. [Core concepts](#core-interview-preparation)
+3. [Step-by-step example](#example-interview-preparation)
+4. [HTTP and curl examples](#curl-interview-preparation)
+5. [Configuration in settings.py](#settings-interview-preparation)
+6. [Advanced patterns](#advanced-interview-preparation)
+7. [Testing this feature](#testing-interview-preparation)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
 ---
 
-## Q2: What is the difference between APIView and ViewSet?
+## Introduction to Interview preparation
 
-**Answer:** `APIView` handles **one URL endpoint** with separate methods (`get`, `post`, `put`, `delete`). `ViewSet` handles **all CRUD operations** for a model in one class with actions (`list`, `create`, `retrieve`, `update`, `destroy`). ViewSets work with **Routers** for automatic URL generation.
+> **Definition:** **Interview preparation** — a key part of building production-ready APIs with Django REST Framework.
 
----
 
-## Q3: Explain the DRF request lifecycle.
 
-**Answer:**
+You should already know Django models, views, and URLs. Here we apply those ideas to **Interview preparation**.
 
+```python
+# models.py — example domain for this chapter
+from django.db import models
+
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 ```
-Request → URL Resolution → Authentication → Permission Check →
-Throttle Check → Content Negotiation → Parser → View Logic →
-Serialization → Renderer → Response
+---
+
+### Interview preparation — Mental Model
+
+When learning **Interview preparation**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-Each step can short-circuit with an error response (e.g. 401 Unauthorized, 403 Forbidden, 429 Too Many Requests).
+### Interview preparation — Step By Step Flow
+
+When learning **Interview preparation**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Interview preparation — Comparison Table
+
+When learning **Interview preparation**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Interview preparation — Real World Analogy
+
+When learning **Interview preparation**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Interview preparation — Security Angle
+
+When learning **Interview preparation**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Interview preparation — Testing Angle
+
+When learning **Interview preparation**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Interview preparation — Production Tip
+
+When learning **Interview preparation**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Interview preparation — Debugging Checklist
+
+When learning **Interview preparation**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Interview preparation
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/interview-preparation/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/interview-preparation/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/interview-preparation/1/ \
+  -H "Content-Type: application/json"
+```
+
+
 
 ---
 
-## Q4: What is the difference between authentication and permission?
+## Configuration in settings.py
 
-**Answer:**
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+```
 
-| Concept | Question answered | Runs |
-|---------|-------------------|------|
-| **Authentication** | WHO is the user? | First |
-| **Permission** | WHAT can they do? | After auth |
-
-Authentication verifies identity (session, token, JWT). Permission verifies access rights (`IsAuthenticated`, object-level checks).
-
----
-
-## Q5: What is the N+1 query problem and how to fix it?
-
-**Answer:** When you have related objects, Django makes **1 query** for the main objects and **N additional queries** for each related object accessed in a loop.
-
-**Fix:**
-
-- `select_related()` for `ForeignKey` (SQL `JOIN`)
-- `prefetch_related()` for reverse relations and `ManyToMany` (separate query + Python join)
+Tune defaults for **Interview preparation** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
 ---
 
-## Q6: What is the difference between select_related and prefetch_related?
+## Advanced patterns
 
-**Answer:**
+Combine **Interview preparation** with permissions, filtering, and pagination from other chapters.
 
-| Method | SQL strategy | Use for |
-|--------|--------------|---------|
-| `select_related` | Single query with `JOIN` | `ForeignKey`, `OneToOneField` |
-| `prefetch_related` | Separate query, join in Python | `ManyToMany`, reverse `ForeignKey` |
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
 
 ---
 
-## Q7: How does JWT authentication work?
+## Testing this feature
 
-**Answer:**
+```python
+from rest_framework.test import APITestCase
 
-1. User logs in with credentials.
-2. Server generates **Access Token** (short-lived) and **Refresh Token** (long-lived).
-3. Client sends Access Token with each request (`Authorization: Bearer <token>`).
-4. When it expires, client uses Refresh Token to get a new Access Token.
-
-JWT is **stateless** — no database lookup needed per request (until you add a blocklist).
-
----
-
-## Q8: What is the difference between has_permission and has_object_permission?
-
-**Answer:**
-
-| Method | Scope | When it runs |
-|--------|-------|--------------|
-| `has_permission` | View-level | All requests, before object lookup |
-| `has_object_permission` | Object-level | Single-object actions, after retrieve |
-
-`has_permission` must return `True` for `has_object_permission` to be called.
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/interview-preparation/')
+        self.assertEqual(response.status_code, 200)
+```
 
 ---
 
-## Q9: How do you handle file uploads in DRF?
+## Deep dive 1: Interview preparation in practice
 
-**Answer:**
+Scenario 1: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-1. Use `ImageField` / `FileField` on the model.
-2. Set `parser_classes = [MultiPartParser, FormParser]` on the view.
-3. Configure `MEDIA_URL` and `MEDIA_ROOT` in settings.
-4. Serve media in development with `static()` in `urls.py`.
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
 
----
 
-## Q10: What pagination types does DRF support?
 
-**Answer:**
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=1 \
+  -H "Content-Type: application/json"
+```
 
-| Class | Query params | Best for |
-|-------|--------------|----------|
-| `PageNumberPagination` | `?page=2` | General APIs |
-| `LimitOffsetPagination` | `?limit=10&offset=20` | SQL-style paging |
-| `CursorPagination` | Encoded cursor | Infinite scroll, live feeds |
-
-You can create **custom pagination** by subclassing and overriding `get_paginated_response()`.
 
 ---
 
-## Q11: How do you optimize a DRF API for production?
+## Deep dive 2: Interview preparation in practice
 
-**Answer:**
+Scenario 2: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-- Use `select_related` / `prefetch_related` to eliminate N+1 queries.
-- Enable **pagination** on list endpoints.
-- Add **caching** (`cache_page`, Redis backend).
-- Use `only()` / `defer()` to limit columns on list views.
-- Add **database indexes** on filtered and ordered fields.
-- Use **separate settings** (`development.py` / `production.py`).
-- Set `DEBUG = False`, JSON-only renderers, HTTPS, and proper CORS.
-- Apply **throttling** and authentication on sensitive endpoints.
-- Deploy with **Gunicorn** + reverse proxy; use PostgreSQL in production.
-- Monitor query count and response times (APM, logging).
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=2 \
+  -H "Content-Type: application/json"
+```
+
 
 ---
 
-## Quick revision checklist
+## Deep dive 3: Interview preparation in practice
 
-- [ ] Can explain Serializer vs ModelSerializer
-- [ ] Can draw the request lifecycle
-- [ ] Knows N+1 fixes and when to use each ORM method
-- [ ] Understands JWT flow and permission hooks
-- [ ] Can describe pagination types and production optimizations
+Scenario 3: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Interview preparation in practice
+
+Scenario 4: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Interview preparation in practice
+
+Scenario 5: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Interview preparation in practice
+
+Scenario 6: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Interview preparation in practice
+
+Scenario 7: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Interview preparation in practice
+
+Scenario 8: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 9: Interview preparation in practice
+
+Scenario 9: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 9
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=9 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 10: Interview preparation in practice
+
+Scenario 10: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 10
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=10 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 11: Interview preparation in practice
+
+Scenario 11: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 11
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=11 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 12: Interview preparation in practice
+
+Scenario 12: A mobile app consumes your **Interview preparation** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 12
+curl -X GET http://127.0.0.1:8000/api/interview-preparation/?page=12 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Interview preparation docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Interview preparation in DRF?
+
+It is part of the request/response pipeline for Interview preparation.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Interview preparation in DRF?
+
+It is part of the request/response pipeline for Interview preparation.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Interview preparation in DRF?
+
+It is part of the request/response pipeline for Interview preparation.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Interview preparation in DRF?
+
+It is part of the request/response pipeline for Interview preparation.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Interview preparation.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Interview preparation in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Interview preparation in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

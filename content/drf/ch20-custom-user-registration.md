@@ -1,5 +1,5 @@
 ---
-title: Chapter 20 — Custom User & Registration
+title: Custom User & Registration
 description: Custom User model, registration serializers, and signup API with Django REST Framework
 order: 20
 tags: [drf, authentication, user-model, registration]
@@ -7,357 +7,594 @@ tags: [drf, authentication, user-model, registration]
 
 # Chapter 20: Custom User & Registration
 
-Django's default `User` model is fine for tutorials; production apps typically use a **custom user model** (email login, extra fields) and a **registration API** that creates users and returns tokens.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **Custom User model** | Subclass of `AbstractUser` or `AbstractBaseUser`. |
-| **AUTH_USER_MODEL** | Setting pointing to your user model — set before first migration. |
-| **Registration endpoint** | Public POST that creates a user with validation. |
-| **Write-only password** | Password in request only; never returned in responses. |
+> **Welcome!** This chapter covers **Custom user and registration** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 20.1 Custom User Model
+## Table of Contents
 
-### Create before first migrate
+1. [Introduction to Custom user and registration](#intro-custom-user-and-registration)
+2. [Core concepts](#core-custom-user-and-registration)
+3. [Step-by-step example](#example-custom-user-and-registration)
+4. [HTTP and curl examples](#curl-custom-user-and-registration)
+5. [Configuration in settings.py](#settings-custom-user-and-registration)
+6. [Advanced patterns](#advanced-custom-user-and-registration)
+7. [Testing this feature](#testing-custom-user-and-registration)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
-If the project already migrated `auth.User`, switching models is painful. For new projects:
+---
+
+## Introduction to Custom user and registration
+
+> **Definition:** **Custom user and registration** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Custom user and registration**.
 
 ```python
-# accounts/models.py
-from django.contrib.auth.models import AbstractUser
+# models.py — example domain for this chapter
 from django.db import models
 
-class User(AbstractUser):
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20, blank=True)
-    date_of_birth = models.DateField(null=True, blank=True)
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']  # createsuperuser prompts for these
+class User(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.email
+        return self.name
 ```
+---
 
-```python
-# settings.py
-AUTH_USER_MODEL = 'accounts.User'
-```
+### Custom user and registration — Mental Model
 
-```python
-# accounts/apps.py
-from django.apps import AppConfig
+When learning **Custom user and registration**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
 
-class AccountsConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'accounts'
-```
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
 
 ```bash
-python manage.py makemigrations accounts
-python manage.py migrate
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Custom manager (optional, email-only)
+### Custom user and registration — Step By Step Flow
 
-```python
-from django.contrib.auth.models import BaseUserManager
+When learning **Custom user and registration**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
 
-class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('Email is required')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
 
-    def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, password, **extra_fields)
-
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(auto_now_add=True)
-
-    objects = UserManager()
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
 ```
 
-### User serializer (read)
+### Custom user and registration — Comparison Table
+
+When learning **Custom user and registration**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Custom user and registration — Real World Analogy
+
+When learning **Custom user and registration**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Custom user and registration — Security Angle
+
+When learning **Custom user and registration**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Custom user and registration — Testing Angle
+
+When learning **Custom user and registration**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Custom user and registration — Production Tip
+
+When learning **Custom user and registration**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Custom user and registration — Debugging Checklist
+
+When learning **Custom user and registration**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Custom user and registration
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
 
 ```python
-# accounts/serializers.py
+# serializers.py
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'phone', 'date_of_birth']
-        read_only_fields = ['id']
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import User
+from .serializers import UserSerializer
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 ```
-
-### Me endpoint
-
-```python
-# accounts/views.py
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import permissions
-
-class MeView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-
-    def patch(self, request):
-        serializer = UserSerializer(
-            request.user, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-```
-
-```python
-# urls.py
-urlpatterns = [
-    path('api/me/', MeView.as_view(), name='me'),
-]
-```
-
-### Interview points
-
-- **`AUTH_USER_MODEL`** must be set **before** the first `migrate`.
-- Reference users as `settings.AUTH_USER_MODEL` or `get_user_model()` — never hardcode `User`.
-- `USERNAME_FIELD` defines the login identifier (`email` vs `username`).
-- `AbstractUser` = full featured; `AbstractBaseUser` = minimal custom.
-
 ---
 
-## 20.2 Registration API
+## HTTP and curl examples
 
-### Registration serializer
-
-```python
-from django.contrib.auth.password_validation import validate_password
-from rest_framework import serializers
-
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
-    )
-    password2 = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = User
-        fields = ['email', 'username', 'password', 'password2', 'phone']
-
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError(
-                {'password': 'Password fields did not match.'}
-            )
-        return attrs
-
-    def create(self, validated_data):
-        validated_data.pop('password2')
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            username=validated_data.get('username', ''),
-            password=validated_data['password'],
-            phone=validated_data.get('phone', ''),
-        )
-        return user
-```
-
-### Registration view
-
-```python
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = [permissions.AllowAny]
-    serializer_class = RegisterSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(
-            UserSerializer(user).data,
-            status=status.HTTP_201_CREATED
-        )
-```
-
-### Register + return JWT
-
-```python
-from rest_framework_simplejwt.tokens import RefreshToken
-
-class RegisterView(generics.CreateAPIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class = RegisterSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'user': UserSerializer(user).data,
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
-```
-
-### Request example
+Test every endpoint from the terminal before wiring the frontend.
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/auth/register/ \
+# 
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/custom-user-and-registration/ \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "new@example.com",
-    "username": "newuser",
-    "password": "SecurePass123!",
-    "password2": "SecurePass123!"
-  }'
+  -d '{"name":"Example"}'
 ```
 
-```json
-{
-    "user": {
-        "id": 2,
-        "email": "new@example.com",
-        "username": "newuser",
-        "phone": ""
-    },
-    "access": "eyJ0eXAiOiJKV1Qi...",
-    "refresh": "eyJ0eXAiOiJKV1Qi..."
-}
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### URL layout
 
-```python
-# accounts/urls.py
-from django.urls import path
-from .views import RegisterView, MeView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-urlpatterns = [
-    path('register/', RegisterView.as_view(), name='register'),
-    path('login/', TokenObtainPairView.as_view(), name='login'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('me/', MeView.as_view(), name='me'),
-]
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/custom-user-and-registration/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
 ```
 
-```python
-# project urls.py
-path('api/auth/', include('accounts.urls')),
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/custom-user-and-registration/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Email verification (outline)
 
-```python
-class RegisterSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        user = User.objects.create_user(...)
-        user.is_active = False  # require email verification
-        user.save()
-        send_verification_email(user)
-        return user
-```
-
-```python
-class VerifyEmailView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request, token):
-        user = validate_verification_token(token)
-        user.is_active = True
-        user.save()
-        return Response({'detail': 'Email verified.'})
-```
-
-### Throttle registration
-
-```python
-from rest_framework.throttling import AnonRateThrottle
-
-class RegisterView(generics.CreateAPIView):
-    throttle_classes = [AnonRateThrottle]
-    throttle_scope = 'register'
-```
-
-```python
-# settings.py
-REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_RATES': {
-        'register': '5/hour',
-    },
-}
-```
-
-### Tests
-
-```python
-class RegistrationTests(APITestCase):
-    def test_register_success(self):
-        payload = {
-            'email': 'a@test.com',
-            'username': 'usera',
-            'password': 'ComplexPass1!',
-            'password2': 'ComplexPass1!',
-        }
-        response = self.client.post('/api/auth/register/', payload, format='json')
-        self.assertEqual(response.status_code, 201)
-        self.assertTrue(User.objects.filter(email='a@test.com').exists())
-        self.assertIn('access', response.data)
-
-    def test_password_mismatch(self):
-        response = self.client.post('/api/auth/register/', {
-            'email': 'b@test.com',
-            'password': 'ComplexPass1!',
-            'password2': 'DifferentPass1!',
-        }, format='json')
-        self.assertEqual(response.status_code, 400)
-```
-
-### Interview points
-
-- Use Django's **`validate_password`** — never roll your own rules only.
-- **Never return** `password` in API responses (`write_only=True`).
-- **Unique email** enforced at model (`unique=True`) and serializer.
-- Set **`is_active=False`** until email verified when required.
-- Registration is **AllowAny**; throttle to prevent spam accounts.
-- Link to **JWT** or session login immediately after signup for better UX.
 
 ---
 
-## Chapter summary
+## Configuration in settings.py
 
-1. Define **custom User** early; set `AUTH_USER_MODEL`.
-2. Build **RegisterSerializer** with password confirmation and validators.
-3. Expose **POST /register/**; optionally return **JWT** tokens.
-4. Add **/me/**, throttling, and email verification for production.
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+```
 
-Custom users plus a solid registration flow are the foundation of real-world DRF authentication.
+Tune defaults for **Custom user and registration** in `REST_FRAMEWORK` so you do not repeat settings on every view.
+
+---
+
+## Advanced patterns
+
+Combine **Custom user and registration** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class UserTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/custom-user-and-registration/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: Custom user and registration in practice
+
+Scenario 1: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: Custom user and registration in practice
+
+Scenario 2: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Custom user and registration in practice
+
+Scenario 3: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Custom user and registration in practice
+
+Scenario 4: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Custom user and registration in practice
+
+Scenario 5: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Custom user and registration in practice
+
+Scenario 6: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Custom user and registration in practice
+
+Scenario 7: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Custom user and registration in practice
+
+Scenario 8: A mobile app consumes your **Custom user and registration** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/custom-user-and-registration/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Custom user and registration docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Custom user and registration in DRF?
+
+It is part of the request/response pipeline for Custom user and registration.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Custom user and registration in DRF?
+
+It is part of the request/response pipeline for Custom user and registration.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Custom user and registration in DRF?
+
+It is part of the request/response pipeline for Custom user and registration.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Custom user and registration in DRF?
+
+It is part of the request/response pipeline for Custom user and registration.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `User` API using Custom user and registration.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Custom user and registration in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Custom user and registration in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch21-performance-optimization.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

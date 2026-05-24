@@ -7,259 +7,646 @@ tags: [react, lists, keys, conditional-rendering, map]
 
 # Chapter 4: Lists & Keys
 
-## 4.1 Rendering lists
+> **Lists appear in almost every app. Keys and conditionals prevent subtle bugs.**
+> Take your time with each section — understanding beats speed.
 
-Use JavaScript's `.map()` to transform data into JSX elements.
+---
 
-```jsx
-const fruits = ['Apple', 'Banana', 'Cherry'];
+## Table of Contents
 
-function FruitList() {
-  return (
-    <ul>
-      {fruits.map((fruit, index) => (
-        <li key={index}>{fruit}</li>
-      ))}
-    </ul>
-  );
-}
-```
+1. [Rendering Lists with map](#rendering-lists-with-map)
+2. [Keys Explained](#keys-explained)
+3. [Index as Key](#index-as-key)
+4. [Keys on Fragments](#keys-on-fragments)
+5. [Filtering Before map](#filtering-before-map)
+6. [Search Filter Pattern](#search-filter-pattern)
+7. [Conditional Rendering — Early Return](#conditional-rendering-early-return)
+8. [Ternary in JSX](#ternary-in-jsx)
+9. [Logical AND](#logical-and)
+10. [Switch / Lookup Map](#switch-lookup-map)
+11. [Empty States](#empty-states)
+12. [Loading and Error UI](#loading-and-error-ui)
+13. [Nested Lists](#nested-lists)
+14. [Immutable List Updates](#immutable-list-updates)
+15. [Anti-patterns](#anti-patterns)
+16. [Common Mistakes](#common-mistakes)
+17. [Interview Points](#interview-points)
+18. [Exercises](#exercises)
+19. [Chapter Summary](#chapter-summary)
 
-> **Definition:** `.map()` returns a new array. React expects an array of elements when you embed `{items.map(...)}` in JSX.
+---
 
-### Rendering object arrays
+## Rendering Lists with map
 
-```jsx
-const users = [
-  { id: 1, name: 'Alice', role: 'Admin' },
-  { id: 2, name: 'Bob', role: 'Editor' },
-  { id: 3, name: 'Carol', role: 'Viewer' },
-];
-
-function UserList({ users }) {
-  return (
-    <section>
-      {users.map(user => (
-        <UserCard key={user.id} user={user} />
-      ))}
-    </section>
-  );
-}
-
-function UserCard({ user }) {
-  return (
-    <article className="card">
-      <h3>{user.name}</h3>
-      <span className="badge">{user.role}</span>
-    </article>
-  );
-}
-```
-
-## 4.2 Keys — why they matter
-
-**Keys** help React identify which items changed, were added, or removed.
+> **Definition:** Use `.map()` to transform an array into an array of JSX elements.
 
 ```jsx
-{items.map(item => (
-  <TodoItem key={item.id} item={item} />
-))}
+const items = ['A','B'];
+<ul>{items.map((item, i) => <li key={item}>{item}</li>)}</ul>
 ```
 
-| Without stable keys | With stable keys |
-|---------------------|------------------|
-| Wrong DOM reuse | Correct item updates |
-| Lost input focus | Focus preserved |
-| Broken animations | Smooth list changes |
+#### Why this matters for `Rendering Lists with map`
 
-### Rules for keys
+Understanding **Rendering Lists with map** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-1. **Unique among siblings** — not globally unique
-2. **Stable** — same item → same key across renders
-3. **Do not use index** if list can reorder, filter, or insert in the middle
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Keys Explained
+
+> **Definition:** Keys help React identify which items changed, were added, or removed.
+
+Use stable IDs: `key={user.id}`. Avoid `Math.random()` as key.
+
+#### Why this matters for `Keys Explained`
+
+Understanding **Keys Explained** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Index as Key
+
+OK for static lists that never reorder. Bad for sortable/filterable lists — causes state bugs.
+
+#### Why this matters for `Index as Key`
+
+Understanding **Index as Key** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Keys on Fragments
+
+`<Fragment key={id}>` when mapping multiple elements per item.
+
+#### Why this matters for `Keys on Fragments`
+
+Understanding **Keys on Fragments** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Filtering Before map
 
 ```jsx
-// ✅ Best — database id
-key={user.id}
-
-// ⚠️ OK — static list that never reorders
-key={index}
-
-// ❌ Bad — random each render
-key={Math.random()}
+const active = users.filter(u => u.isActive);
+return active.map(u => <li key={u.id}>{u.name}</li>);
 ```
 
-### Keys on fragments
+#### Why this matters for `Filtering Before map`
 
-```jsx
-import { Fragment } from 'react';
+Understanding **Filtering Before map** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-{rows.map(row => (
-  <Fragment key={row.id}>
-    <dt>{row.term}</dt>
-    <dd>{row.definition}</dd>
-  </Fragment>
-))}
-```
+#### Quick recap
 
-## 4.3 Filtering before mapping
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-function ActiveUsers({ users }) {
-  const active = users.filter(u => u.isActive);
+#### Connection to other chapters
 
-  if (active.length === 0) {
-    return <p>No active users.</p>;
-  }
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  return (
-    <ul>
-      {active.map(user => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
-  );
-}
-```
+---
 
-### Search filter pattern
+## Search Filter Pattern
 
-```jsx
-function ProductList({ products }) {
-  const [search, setSearch] = useState('');
+Combine `useState` search string with `.filter()` before `.map()`.
 
-  const filtered = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+#### Why this matters for `Search Filter Pattern`
 
-  return (
-    <div>
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search products..."
-      />
-      <ul>
-        {filtered.map(product => (
-          <li key={product.id}>{product.name} — ${product.price}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-```
+Understanding **Search Filter Pattern** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 4.4 Conditional rendering
+#### Quick recap
 
-### if / early return
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-function Dashboard({ user }) {
-  if (!user) {
-    return <p>Please log in.</p>;
-  }
+#### Connection to other chapters
 
-  return <h1>Welcome, {user.name}</h1>;
-}
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-### Ternary operator
+---
 
-```jsx
-{isLoggedIn ? <Dashboard /> : <LoginPage />}
-```
+## Conditional Rendering — Early Return
 
-### Logical AND (`&&`)
+`if (!user) return <Login />;` — clearest for loading/auth gates.
 
-```jsx
-{error && <p className="error">{error}</p>}
-{items.length > 0 && (
-  <ul>{items.map(i => <li key={i.id}>{i.name}</li>)}</ul>
-)}
-```
+#### Why this matters for `Conditional Rendering — Early Return`
 
-> **Caution:** `{count && <Badge />}` renders `0` when count is 0. Use `{count > 0 && ...}` or ternary instead.
+Understanding **Conditional Rendering — Early Return** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### Switch / lookup object
+#### Quick recap
 
-```jsx
-const STATUS = {
-  idle: <Spinner />,
-  success: <CheckIcon />,
-  error: <ErrorMessage />,
-};
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-return <div>{STATUS[status] ?? null}</div>;
-```
+#### Connection to other chapters
 
-## 4.5 Empty and loading states
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-function DataList({ items, isLoading, error }) {
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p className="error">{error.message}</p>;
-  if (items.length === 0) return <p>No results found.</p>;
+---
 
-  return (
-    <ul>
-      {items.map(item => (
-        <li key={item.id}>{item.title}</li>
-      ))}
-    </ul>
-  );
-}
-```
+## Ternary in JSX
 
-See [Chapter 10](./ch10-data-fetching.md) for async data patterns.
+`{ok ? <Success /> : <Fail />}` for two branches.
 
-## 4.6 Nested lists
+#### Why this matters for `Ternary in JSX`
 
-```jsx
-function CategoryList({ categories }) {
-  return (
-    <ul>
-      {categories.map(category => (
-        <li key={category.id}>
-          <h3>{category.name}</h3>
-          <ul>
-            {category.products.map(product => (
-              <li key={product.id}>{product.name}</li>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
+Understanding **Ternary in JSX** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-Each level needs its own keys on the mapped element.
+#### Quick recap
 
-## 4.7 Anti-patterns
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-| Anti-pattern | Problem | Fix |
-|--------------|---------|-----|
-| `.map()` without `key` | React warning, poor diffing | Add stable `key` |
-| `key={index}` on sortable list | Wrong component state | Use item id |
-| Mutating array then re-render | Stale UI | Return new array from filter/map |
-| `{items.map(...)}` when `items` undefined | Runtime crash | Default `items = []` |
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Logical AND
+
+`{error && <p>{error}</p>}` — remember `0` renders.
+
+#### Why this matters for `Logical AND`
+
+Understanding **Logical AND** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Switch / Lookup Map
+
+Object map status → component for many branches.
+
+#### Why this matters for `Switch / Lookup Map`
+
+Understanding **Switch / Lookup Map** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Empty States
+
+Show helpful message when `items.length === 0`.
+
+#### Why this matters for `Empty States`
+
+Understanding **Empty States** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Loading and Error UI
+
+Three states: loading, error, data — especially with fetch.
+
+#### Why this matters for `Loading and Error UI`
+
+Understanding **Loading and Error UI** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Nested Lists
+
+Each `.map()` level needs its own `key` on the outer element.
+
+#### Why this matters for `Nested Lists`
+
+Understanding **Nested Lists** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Immutable List Updates
+
+Spread/filter/concat — never mutate then setState.
+
+#### Why this matters for `Immutable List Updates`
+
+Understanding **Immutable List Updates** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Anti-patterns
+
+Missing keys, random keys, index on sortable lists.
+
+#### Why this matters for `Anti-patterns`
+
+Understanding **Anti-patterns** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Lists & Keys
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| No key | Warning + poor diff | Stable id |
+| key={Math.random()} | Remount every render | Stable id |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: Why keys?**
+
+Identify items across renders for efficient DOM updates.
+
+---
+
+> **📌 Interview Point 2: Index as key?**
+
+Only static lists.
+
+---
 
 ## Exercises
 
-1. **Todo list** — Render todos from state; add/remove items with unique ids (`crypto.randomUUID()`).
-2. **Filter** — Add category filter buttons that show subset of products.
-3. **Conditional** — Show "Cart empty" vs list of cart items using `&&` and ternary.
-4. **Nested** — Render comments grouped by post id with nested `.map()` calls.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| `.map()` | Transform data → JSX list |
-| `key` | Stable unique id per sibling |
-| Filter | `.filter()` before `.map()` |
-| Conditionals | Early return, ternary, `&&`, lookup maps |
+### Exercise 1: Todo list ⭐
 
-## Next chapter
+**Task:** Add/remove with UUID keys.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+crypto.randomUUID()
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **map** | Data → JSX |
+| **key** | Stable sibling id |
+
+## Next Chapter
 
 Continue to [Chapter 5: useEffect](./ch05-useEffect.md).
+

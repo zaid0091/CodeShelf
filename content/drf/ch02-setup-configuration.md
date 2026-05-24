@@ -7,302 +7,594 @@ tags: [drf, setup, django, configuration]
 
 # Chapter 2: Setup & Configuration
 
-## 2.1 Installing Django and DRF
+> **Welcome!** This chapter covers **Project setup and REST_FRAMEWORK settings** in Django REST Framework with beginner-friendly explanations.
 
-```bash
+---
 
-# Step 1: Create a project folder
-mkdir bookstore_api
-cd bookstore_api
+## Table of Contents
 
-# Step 2: Create virtual environment
-python -m venv venv
+1. [Introduction to Project setup and REST_FRAMEWORK settings](#intro-project-setup-and-rest_framework-settings)
+2. [Core concepts](#core-project-setup-and-rest_framework-settings)
+3. [Step-by-step example](#example-project-setup-and-rest_framework-settings)
+4. [HTTP and curl examples](#curl-project-setup-and-rest_framework-settings)
+5. [Configuration in settings.py](#settings-project-setup-and-rest_framework-settings)
+6. [Advanced patterns](#advanced-project-setup-and-rest_framework-settings)
+7. [Testing this feature](#testing-project-setup-and-rest_framework-settings)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
-# Step 3: Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On Mac/Linux:
-source venv/bin/activate
+---
 
-# Step 4: Install Django and DRF
-pip install django
-pip install djangorestframework
+## Introduction to Project setup and REST_FRAMEWORK settings
 
-# Step 5: Create Django project
-django-admin startproject config .
-# The dot (.) means "create in current directory"
-# "config" is a popular name for the project folder
-# because it contains configuration files
+> **Definition:** **Project setup and REST_FRAMEWORK settings** — a key part of building production-ready APIs with Django REST Framework.
 
-# Step 6: Create an app
-python manage.py startapp books
 
-# Step 7: Verify installation
-python -c "import rest_framework; print(rest_framework.VERSION)"
-```
 
-### Why "config" as project name?
-
-Many developers name the project "config" because:
-  config/
-    settings.py   ← Configuration
-    urls.py       ← Configuration
-    wsgi.py       ← Configuration
-
-It makes more sense than:
-  myproject/
-    settings.py   ← This is config, not "myproject"
-## 2.2 Project Structure
-
-```text
-
-bookstore_api/              ← Root folder
-├── config/                 ← Project configuration
-│   ├── __init__.py
-│   ├── settings.py         ← All settings
-│   ├── urls.py             ← Root URL configuration
-│   ├── asgi.py             ← ASGI server config
-│   └── wsgi.py             ← WSGI server config
-├── books/                  ← Our app
-│   ├── __init__.py
-│   ├── admin.py            ← Admin panel config
-│   ├── apps.py             ← App config
-│   ├── models.py           ← Database models
-│   ├── serializers.py      ← CREATE THIS FILE (DRF)
-│   ├── views.py            ← API views
-│   ├── urls.py             ← CREATE THIS FILE (App URLs)
-│   ├── tests.py            ← Tests
-│   └── migrations/         ← Database migration files
-│       └── __init__.py
-├── venv/                   ← Virtual environment
-├── manage.py               ← Django management command
-└── db.sqlite3              ← Database (created after migrate)
-```
-
-## 2.3 Configure settings.py
+You should already know Django models, views, and URLs. Here we apply those ideas to **Project setup and REST_FRAMEWORK settings**.
 
 ```python
-
-# config/settings.py
-
-INSTALLED_APPS = [
-    # Django built-in apps
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    
-    # Third-party apps
-    'rest_framework',           # ← ADD THIS — enables DRF
-    
-    # Local apps (your apps)
-    'books',                    # ← ADD THIS — your app
-]
-```
-
-### Why do we add rest_framework to INSTALLED_APPS?
-
-```text
-
-When you add 'rest_framework' to INSTALLED_APPS, Django:
-1. Loads DRF's template files (for the browsable API)
-2. Loads DRF's static files (CSS/JS for the browsable API)
-3. Makes DRF's management commands available
-4. Registers DRF's configuration
-
-Without it, DRF's browsable API won't render properly,
-and some features won't work.
-```
-
-## 2.4 Create the Model
-
-```python
-
-# books/models.py
-
+# models.py — example domain for this chapter
 from django.db import models
 
 class Book(models.Model):
-    """
-    Each book in our bookstore.
-    This is the DATABASE TABLE definition.
-    """
-    title = models.CharField(max_length=200)
-    author = models.CharField(max_length=100)
-    description = models.TextField(blank=True, default='')
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-    published_date = models.DateField()
-    isbn = models.CharField(max_length=13, unique=True)
-    pages = models.PositiveIntegerField(default=0)
-    is_available = models.BooleanField(default=True)
+    name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']   # Newest first
-        verbose_name_plural = 'Books'
 
     def __str__(self):
-        return f"{self.title} by {self.author}"
-Field explanations:
+        return self.name
+```
+---
 
+### Project setup and REST_FRAMEWORK settings — Mental Model
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-```text
+### Project setup and REST_FRAMEWORK settings — Step By Step Flow
 
-CharField(max_length=200)     → Short text (title, name)
-TextField()                   → Long text (description, bio)
-DecimalField(8, 2)           → Precise numbers (money: 999999.99)
-DateField()                   → Date only (2024-01-15)
-DateTimeField()               → Date + Time (2024-01-15 10:30:00)
-BooleanField()                → True/False
-PositiveIntegerField()        → Positive whole numbers (0, 1, 2...)
-CharField(unique=True)        → No duplicates allowed
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
 
-auto_now_add=True → Set ONCE when created (never changes)
-auto_now=True     → Updates EVERY time the object is saved
-blank=True        → Form/serializer can submit empty value
-null=True         → Database can store NULL
-default=''        → Default value if nothing provided
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
 ```
 
-## 2.5 Register in Admin
+### Project setup and REST_FRAMEWORK settings — Comparison Table
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Project setup and REST_FRAMEWORK settings — Real World Analogy
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Project setup and REST_FRAMEWORK settings — Security Angle
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Project setup and REST_FRAMEWORK settings — Testing Angle
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Project setup and REST_FRAMEWORK settings — Production Tip
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Project setup and REST_FRAMEWORK settings — Debugging Checklist
+
+When learning **Project setup and REST_FRAMEWORK settings**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project setup and REST_FRAMEWORK settings
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
 
 ```python
-
-# books/admin.py
-
-from django.contrib import admin
+# serializers.py
+from rest_framework import serializers
 from .models import Book
 
-@admin.register(Book)
-class BookAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'author', 'price', 'is_available', 'created_at']
-    list_filter = ['is_available', 'author']
-    search_fields = ['title', 'author', 'isbn']
-    list_editable = ['is_available']
-    readonly_fields = ['created_at', 'updated_at']
-```
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
 
-## 2.6 Run Migrations and Create Superuser
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
 
 ```bash
-
-# Create migration files (SQL instructions)
-python manage.py makemigrations
-
-# Apply migrations (create tables in database)
-python manage.py migrate
-
-# Create admin user
-python manage.py createsuperuser
-# Username: admin
-# Email: admin@example.com
-# Password: admin123 (for development only!)
-
-# Run the server
-python manage.py runserver
+# 
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/ \
+  -H "Content-Type: application/json"
 ```
 
-### What happens during migration?
 
-```text
-
-makemigrations:
-  Reads your models.py
-  → Creates migration files (like SQL blueprints)
-  → books/migrations/0001_initial.py
-
-migrate:
-  Reads migration files
-  → Executes SQL to create/modify database tables
-  → Creates the 'books_book' table with all columns
-```
-
-## 2.7 API Testing Tools
-
-You need a way to test your API (send requests and see responses).
-
-### Option 1: Browser (DRF Browsable API)
-
-```text
-
-Just visit http://127.0.0.1:8000/api/books/ in your browser.
-DRF provides a beautiful HTML interface to test APIs.
-This is one of DRF's best features!
-```
-
-### Option 2: Postman (Most Popular)
-
-```text
-
-Download from: https://www.postman.com/
-- Free desktop app
-- Save requests in collections
-- Set headers, body, auth easily
-- See formatted responses
-- Share with team
-```
-
-### Option 3: Thunder Client (VS Code Extension)
-
-```text
-
-Install from VS Code Extensions marketplace.
-- Works inside VS Code
-- Lightweight alternative to Postman
-- Free
-```
-
-### Option 4: curl (Command Line)
 
 ```bash
-
-# GET request
-curl http://127.0.0.1:8000/api/books/
-
-# POST request with JSON data
-curl -X POST http://127.0.0.1:8000/api/books/ \
+# 
+curl -X POST http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/ \
   -H "Content-Type: application/json" \
-  -d '{"title": "Test Book", "price": "299.99"}'
-
-# With authentication token
-curl http://127.0.0.1:8000/api/books/ \
-  -H "Authorization: Token abc123def456"
+  -d '{"name":"Example"}'
 ```
 
-### Option 5: httpie (Friendlier command line)
+
 
 ```bash
-
-pip install httpie
-
-# GET
-http GET http://127.0.0.1:8000/api/books/
-
-# POST
-http POST http://127.0.0.1:8000/api/books/ title="Test" price=299.99
+# 
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/1/ \
+  -H "Content-Type: application/json"
 ```
 
-## Practice Exercise — Chapter 2
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+---
+
+## Configuration in settings.py
+
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+```
+
+Tune defaults for **Project setup and REST_FRAMEWORK settings** in `REST_FRAMEWORK` so you do not repeat settings on every view.
+
+---
+
+## Advanced patterns
+
+Combine **Project setup and REST_FRAMEWORK settings** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/project-setup-and-rest_framework-settings/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 1: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 2: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 3: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 4: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 5: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 6: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 7: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Project setup and REST_FRAMEWORK settings in practice
+
+Scenario 8: A mobile app consumes your **Project setup and REST_FRAMEWORK settings** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/project-setup-and-rest_framework-settings/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Project setup and REST_FRAMEWORK settings docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Project setup and REST_FRAMEWORK settings in DRF?
+
+It is part of the request/response pipeline for Project setup and REST_FRAMEWORK settings.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Project setup and REST_FRAMEWORK settings in DRF?
+
+It is part of the request/response pipeline for Project setup and REST_FRAMEWORK settings.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Project setup and REST_FRAMEWORK settings in DRF?
+
+It is part of the request/response pipeline for Project setup and REST_FRAMEWORK settings.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Project setup and REST_FRAMEWORK settings in DRF?
+
+It is part of the request/response pipeline for Project setup and REST_FRAMEWORK settings.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Project setup and REST_FRAMEWORK settings.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Project setup and REST_FRAMEWORK settings in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
 
 ```text
-
-Exercise 2.1:
-  a) Create a new Django project called "school_api"
-  b) Create an app called "students"
-  c) Create a Student model with fields:
-     - name (CharField, max 100)
-     - email (EmailField, unique)
-     - roll_number (IntegerField, unique)
-     - grade (CharField, max 2)
-     - date_of_birth (DateField)
-     - is_active (BooleanField, default True)
-     - enrolled_at (DateTimeField, auto_now_add)
-  d) Register it in admin
-  e) Run migrations
-  f) Create a superuser
-  g) Add 3 students through the admin panel
+✅ Understood the role of Project setup and REST_FRAMEWORK settings in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
 ```
+
+**➡️ [Next →](./ch03-serializers.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

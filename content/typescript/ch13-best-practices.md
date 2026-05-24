@@ -1,11 +1,38 @@
 ---
 title: Chapter 13 — Best Practices
-description: Strict mode, naming conventions, avoiding any, type organization, and common TypeScript mistakes.
+description: Strict mode, naming, avoiding any, branded types, and team conventions.
 order: 13
 tags: [typescript, best-practices, strict, conventions]
 ---
 
+
 # Chapter 13: Best Practices
+
+> **Writing TypeScript is easy; writing *maintainable* TypeScript requires discipline. This chapter collects professional conventions.**
+> Take your time with each section. TypeScript rewards patience — read compiler errors carefully and experiment in a small project as you go.
+
+---
+
+
+## Table of Contents
+
+1. [Enable strict](#enable-strict)
+2. [Compiler Flags Table](#compiler-flags-table)
+3. [Boundary Validation](#boundary-validation)
+4. [unknown over any](#unknown-over-any)
+5. [interface vs type](#interface-vs-type)
+6. [Discriminated Unions](#discriminated-unions)
+7. [Branded Types](#branded-types)
+8. [Avoid Assertion Abuse](#avoid-assertion-abuse)
+9. [DTO Patterns](#dto-patterns)
+10. [ESLint](#eslint)
+11. [Documentation](#documentation)
+12. [Code Review Checklist](#code-review-checklist)
+13. [Interview Points](#interview-points)
+14. [Exercises](#exercises)
+15. [Chapter Summary](#chapter-summary)
+
+---
 
 ## 13.1 Enable strict mode
 
@@ -256,25 +283,518 @@ export async function listActiveUsers(): Promise<User[]> {
 `@param` and `@returns` enhance hover info in IDEs.
 
 > **Key takeaway:** Strict config, unknown at boundaries, discriminated unions, utility types, and minimal assertions form the backbone of maintainable TypeScript. Let the compiler work for you — don't fight it with `any` and `@ts-ignore`.
+<!-- codeshelf:generated-appendix -->
 
-## Practice Exercise — Chapter 13
+---
 
-```text
-Exercise 13.1: Audit
-  a) Take a small JS module; enable strict and list all new errors.
-  b) Fix without any — use unknown + guards.
+## Team conventions document
 
-Exercise 13.2: Refactor union
-  a) Replace optional success/error fields with discriminated union.
-  b) Update switch/call sites for exhaustiveness.
+Maintain a `TYPESCRIPT.md` in the repo covering:
 
-Exercise 13.3: Branded ID
-  a) Add UserId and ProductId brands.
-  b) Show compile error when swapped in a function call.
+- Required `tsconfig` flags
+- `any` policy (forbidden vs escape hatch)
+- Validation library at API boundary
+- Naming: `interface` vs `type`
+- PR checklist for type-related changes
 
-Exercise 13.4: Team standards
-  a) Draft 5 ESLint rules for a TS project (@typescript-eslint/*).
-  b) Document when type assertion is allowed in your team doc.
+Onboarding improves when conventions are written, not tribal knowledge.
+
+---
+
+## Strict flags — one at a time
+
+On legacy codebases, enable gradually:
+
+1. `strictNullChecks`
+2. `noImplicitAny`
+3. `strictFunctionTypes`
+4. `noUncheckedIndexedAccess`
+
+Fix errors per flag in dedicated PRs so reviews stay focused.
+
+---
+
+## Boundary validation
+
+```typescript
+import { z } from "zod";
+
+const UserSchema = z.object({ id: z.string(), name: z.string() });
+type User = z.infer<typeof UserSchema>;
+
+function parseUser(raw: unknown): User {
+  return UserSchema.parse(raw);
+}
 ```
 
-Next: [Chapter 14 — Interview Preparation](./ch14-interview-prep.md).
+Types do not validate at runtime — schemas do.
+
+---
+
+## Branded types
+
+
+```typescript
+type UserId = string & { readonly __brand: unique symbol };
+type OrderId = string & { readonly __brand: unique symbol };
+
+function userId(id: string): UserId {
+  return id as UserId;
+}
+```
+
+
+---
+
+## Strict compiler flags explained
+
+
+| Flag | Effect |
+|------|--------|
+| `strictNullChecks` | null/undefined not assignable unless in union |
+| `noImplicitAny` | Error on implicit any |
+| `strictFunctionTypes` | Safer function parameter checking |
+| `noUncheckedIndexedAccess` | Indexing may return undefined |
+
+
+---
+
+## ESLint TypeScript rules
+
+
+- `@typescript-eslint/no-explicit-any`
+- `@typescript-eslint/consistent-type-imports`
+- `@typescript-eslint/no-floating-promises`
+
+
+---
+
+## Code review checklist
+
+
+1. No new `any` without comment
+2. External data validated
+3. Public exports typed
+4. Unions exhaustive in switch
+5. No `@ts-ignore` without ticket link
+
+
+---
+
+## Incremental strict flags
+
+
+Enable `strictNullChecks` first, then `noImplicitAny`, then `noUncheckedIndexedAccess` in separate PRs.
+
+
+---
+
+## ESLint
+
+
+Use `@typescript-eslint/no-explicit-any` and `@typescript-eslint/no-floating-promises` in CI.
+
+
+---
+
+## Runtime validation
+
+
+Use Zod/Valibot at API boundaries — types alone do not validate JSON at runtime.
+
+
+---
+
+## Definition — Strict mode
+
+> **Definition:** **Strict mode** — A bundle of `tsconfig` flags that enable the strictest practical type checking.
+
+
+---
+
+## Code review checklist
+
+
+1. No new `any` without justification comment
+2. External JSON validated at boundary
+3. Public exports have explicit types
+4. Unions exhaustive in `switch`
+5. No `@ts-ignore` without ticket link
+6. `import type` for type-only imports
+7. Tests cover edge cases types cannot catch
+
+
+---
+
+## Branded types
+
+
+```typescript
+type Cents = number & { readonly __brand: unique symbol };
+type Dollars = number & { readonly __brand: unique symbol };
+```
+Prevents accidentally adding cents to dollars without conversion.
+
+
+---
+
+## Documentation comments
+
+
+```typescript
+/**
+ * Converts cents to a USD display string.
+ * @param cents - Integer cents (non-negative)
+ */
+export function formatUsd(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+```
+
+
+---
+
+## Avoid assertion abuse
+
+
+| Instead of | Prefer |
+|------------|--------|
+| `x as User` | Validate + type guard |
+| `!` non-null assertion | Narrow with `if` |
+| `@ts-ignore` | Fix type or narrow scope |
+
+
+---
+
+## Review Q1
+
+**Q:** First strict flag to enable on legacy code? **A:** Often `strictNullChecks` — highest bug prevention per effort.
+
+---
+
+## Review Q2
+
+**Q:** When is `any` acceptable? **A:** Rarely — migration shims with a ticket and deadline to remove.
+
+---
+
+## Review Q3
+
+**Q:** Types vs runtime validation? **A:** Types compile away; validate JSON at boundaries.
+
+---
+
+## Strict family — expanded
+
+
+| Flag | What it catches |
+|------|-----------------|
+| `strictNullChecks` | null/undefined misuse |
+| `noImplicitAny` | missing annotations |
+| `strictFunctionTypes` | unsafe function assignability |
+| `noUncheckedIndexedAccess` | `arr[i]` may be undefined |
+| `exactOptionalPropertyTypes` | `undefined` vs missing key |
+
+Enable one per PR on legacy repos.
+
+
+---
+
+## Scenario — PR type checklist
+
+
+Before merging TypeScript PRs, verify:
+
+1. `npm run typecheck` passes in CI
+2. No new `any` without linked issue
+3. External API responses validated
+4. Exported public APIs documented
+5. Union switches have `never` exhaustiveness
+6. Tests cover runtime paths types cannot guard
+
+
+---
+
+## Scenario — shared types package
+
+
+Publish `packages/types` in a monorepo so web and API share `User`, `Order`, and API DTOs — one source of truth prevents client/server drift.
+
+
+---
+
+## Review Q4 — documentation
+
+**Q:** Should you document every type? **A:** Document exported public APIs and non-obvious business types; let obvious inference speak for itself.
+
+---
+
+## Best Practices
+
+- ✅ Treat types as documentation; validate at boundaries.
+- ✅ Enable extra strict flags incrementally on mature codebases.
+
+---
+
+## Common Mistakes
+
+Watch for these patterns — they cost hours in real projects.
+
+### Mistake 1: Type assertion spam
+
+`as any` to silence errors
+
+Fix types or use type guards.
+
+---
+
+### Mistake 2: Leaking any
+
+One any poisons inference
+
+Ban explicit any in lint rules.
+
+---
+
+## Interview Points
+
+> **📌 Interview Point 1: strictNullChecks?**
+
+null/undefined not assignable unless in union.
+
+---
+
+> **📌 Interview Point 2: Branded type?**
+
+Nominal-like tag via intersection with unique symbol.
+
+---
+
+## Exercises
+
+Practice with `npx tsc --noEmit` after each exercise.
+
+### Exercise 13.1: strict tsconfig ⭐
+
+**Task:** Enable 3 additional strict flags.
+
+<details><summary>💡 Hint</summary>
+
+incremental adoption.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Enable `noUncheckedIndexedAccess`, `noImplicitOverride`, and `exactOptionalPropertyTypes` in tsconfig.
+
+</details>
+
+---
+
+### Exercise 13.2: Branded UserId ⭐⭐
+
+**Task:** Prevent mixing id types.
+
+<details><summary>💡 Hint</summary>
+
+branding pattern.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+type UserId = string & { readonly __brand: unique symbol };
+function toUserId(id: string): UserId { return id as UserId; }
+```
+
+</details>
+
+---
+
+### Exercise 13.3: ESLint rule ⭐⭐⭐
+
+**Task:** Add no-explicit-any.
+
+<details><summary>💡 Hint</summary>
+
+tooling.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Add to ESLint: `@typescript-eslint/no-explicit-any`: error
+
+</details>
+
+---
+
+### Exercise 13.4: DTO update ⭐⭐
+
+**Task:** Partial<Omit<User,'id'>>.
+
+<details><summary>💡 Hint</summary>
+
+utilities.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+type UserUpdate = Partial<Omit<User, "id">>;
+```
+
+</details>
+
+---
+
+### Exercise 13.5: Review checklist ⭐⭐⭐
+
+**Task:** Write 10-item PR checklist.
+
+<details><summary>💡 Hint</summary>
+
+team process.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+Checklist: no new `any`, validate API JSON, exhaustive switches, no `@ts-ignore` without ticket, export types on public API, etc.
+
+</details>
+
+---
+
+### Exercise 13.6: JSDoc export ⭐⭐
+
+**Task:** Document exported function.
+
+<details><summary>💡 Hint</summary>
+
+IDE help.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+/**
+ * Formats a price in USD.
+ * @param cents - Amount in cents (integer)
+ */
+export function formatUsd(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+```
+
+</details>
+
+---
+
+## Chapter Summary
+
+You covered a lot in this chapter. Here is a concise recap:
+
+- Strict mode + lint + reviews keep codebases healthy.
+- Types complement runtime validation.
+
+---
+
+---
+
+## Navigation
+
+**⬅️ [Previous: React with TypeScript](./ch12-react-with-typescript.md)**  
+**➡️ [Next: Interview Preparation](./ch14-interview-prep.md)**
+
+---
+## Quick glossary (review)
+
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+
+*Last updated: 2025 | TypeScript course — CodeShelf*
+
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*

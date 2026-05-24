@@ -1,5 +1,5 @@
 ---
-title: Chapter 21 — Performance Optimization
+title: Performance Optimization
 description: Query optimization, caching, and selective field loading in DRF
 order: 21
 tags: [drf, performance, orm, caching]
@@ -7,128 +7,594 @@ tags: [drf, performance, orm, caching]
 
 # Chapter 21: Performance Optimization
 
-Production APIs must stay fast under load. Most DRF performance wins come from **fewer database queries**, **smaller payloads**, and **caching** — not from micro-optimizing Python.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **N+1 query problem** | One query for the main objects plus one extra query per related row when relations are accessed lazily in a loop. |
-| **select_related** | SQL `JOIN` in a single query for `ForeignKey` and `OneToOneField`. |
-| **prefetch_related** | Separate query for related rows, joined in Python — for `ManyToMany` and reverse `ForeignKey`. |
-| **only() / defer()** | Load only (or exclude) specific columns from the database. |
-| **cache_page** | Django view decorator that caches the full HTTP response for a TTL. |
+> **Welcome!** This chapter covers **Performance and ORM optimization** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 21.1 Query Optimization
+## Table of Contents
 
-### The N+1 problem
-
-When a serializer accesses `book.author` for each book in a list, Django may run **1 query for books + N queries for authors**.
-
-```python
-# ── THE N+1 PROBLEM ──
-
-# BAD — makes N+1 database queries:
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    # For 100 books with authors:
-    # 1 query for books + 100 queries for each book's author = 101 queries!
-
-# GOOD — use select_related (ForeignKey/OneToOne):
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.select_related('author', 'category')
-    # 1 query with JOIN = 1 query total!
-
-# GOOD — use prefetch_related (ManyToMany/Reverse ForeignKey):
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.prefetch_related('reviews')
-    # 2 queries total: 1 for books + 1 for all reviews
-
-# COMBINED:
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.select_related(
-        'author', 'category'     # ForeignKey fields
-    ).prefetch_related(
-        'reviews'                # Reverse relation
-    )
-```
-
-### When to use which
-
-```
-select_related:
-  → For ForeignKey and OneToOneField
-  → Does a SQL JOIN (single query)
-  → "Get the author AT THE SAME TIME as the book"
-
-prefetch_related:
-  → For ManyToManyField and reverse ForeignKey
-  → Does a separate query then joins in Python
-  → "Get all reviews in a second query, then attach to books"
-```
-
-| Method | SQL strategy | Best for |
-|--------|--------------|----------|
-| `select_related('author')` | `JOIN` | Forward FK, OneToOne |
-| `prefetch_related('reviews')` | 2+ queries | M2M, reverse FK |
-
-### Interview points
-
-- Use `django-debug-toolbar` or `connection.queries` in development to count queries.
-- `Prefetch()` objects allow filtering the prefetched queryset.
-- Always optimize the **queryset** used by the view, not only the serializer.
+1. [Introduction to Performance and ORM optimization](#intro-performance-and-orm-optimization)
+2. [Core concepts](#core-performance-and-orm-optimization)
+3. [Step-by-step example](#example-performance-and-orm-optimization)
+4. [HTTP and curl examples](#curl-performance-and-orm-optimization)
+5. [Configuration in settings.py](#settings-performance-and-orm-optimization)
+6. [Advanced patterns](#advanced-performance-and-orm-optimization)
+7. [Testing this feature](#testing-performance-and-orm-optimization)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
 ---
 
-## 21.2 Caching
+## Introduction to Performance and ORM optimization
 
-Cache **read-heavy, rarely changing** list endpoints (e.g. categories, featured products).
+> **Definition:** **Performance and ORM optimization** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Performance and ORM optimization**.
 
 ```python
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
+# models.py — example domain for this chapter
+from django.db import models
+
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+```
+---
+
+### Performance and ORM optimization — Mental Model
+
+When learning **Performance and ORM optimization**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Step By Step Flow
+
+When learning **Performance and ORM optimization**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Comparison Table
+
+When learning **Performance and ORM optimization**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Real World Analogy
+
+When learning **Performance and ORM optimization**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Security Angle
+
+When learning **Performance and ORM optimization**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Testing Angle
+
+When learning **Performance and ORM optimization**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Production Tip
+
+When learning **Performance and ORM optimization**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Performance and ORM optimization — Debugging Checklist
+
+When learning **Performance and ORM optimization**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Performance and ORM optimization
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+```
+---
 
-    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/ \
+  -H "Content-Type: application/json"
 ```
 
-**Notes:**
 
-- `cache_page` keys on full URL (including query string) — pagination params create separate cache entries.
-- In production, configure **Redis** or **Memcached** as `CACHES` backend instead of LocMem.
-- Invalidate or shorten TTL when data changes frequently.
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/performance-and-orm-optimization/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/performance-and-orm-optimization/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/performance-and-orm-optimization/1/ \
+  -H "Content-Type: application/json"
+```
+
+
 
 ---
 
-## 21.3 Only Select Needed Fields
-
-For list views, you often do not need every column (e.g. large `description` text).
+## Configuration in settings.py
 
 ```python
-class BookViewSet(viewsets.ModelViewSet):
-    def get_queryset(self):
-        if self.action == 'list':
-            # Only get needed columns from database
-            return Book.objects.only('id', 'title', 'price')
-        return Book.objects.all()
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
 ```
 
-| Method | Effect |
-|--------|--------|
-| `only('id', 'title')` | SELECT only these fields (+ PK); other fields trigger extra queries if accessed |
-| `defer('description')` | SELECT everything except deferred fields |
+Tune defaults for **Performance and ORM optimization** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
-Use `only()` when the list serializer exposes a small subset of fields.
+---
 
-### Interview points
+## Advanced patterns
 
-- Combining `select_related` + `only()` reduces both query count and row size.
-- Add **database indexes** on fields used in `filter()`, `order_by()`, and foreign keys.
-- Enable **pagination** (Chapter 11) — the cheapest way to cap response size.
+Combine **Performance and ORM optimization** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/performance-and-orm-optimization/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: Performance and ORM optimization in practice
+
+Scenario 1: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: Performance and ORM optimization in practice
+
+Scenario 2: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Performance and ORM optimization in practice
+
+Scenario 3: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Performance and ORM optimization in practice
+
+Scenario 4: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Performance and ORM optimization in practice
+
+Scenario 5: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Performance and ORM optimization in practice
+
+Scenario 6: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Performance and ORM optimization in practice
+
+Scenario 7: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Performance and ORM optimization in practice
+
+Scenario 8: A mobile app consumes your **Performance and ORM optimization** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/performance-and-orm-optimization/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Performance and ORM optimization docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Performance and ORM optimization in DRF?
+
+It is part of the request/response pipeline for Performance and ORM optimization.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Performance and ORM optimization in DRF?
+
+It is part of the request/response pipeline for Performance and ORM optimization.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Performance and ORM optimization in DRF?
+
+It is part of the request/response pipeline for Performance and ORM optimization.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Performance and ORM optimization in DRF?
+
+It is part of the request/response pipeline for Performance and ORM optimization.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Performance and ORM optimization.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Performance and ORM optimization in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Performance and ORM optimization in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch22-error-handling.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

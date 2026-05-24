@@ -7,178 +7,594 @@ tags: [drf, permissions, security]
 
 # Chapter 10: Permissions
 
-## 10.1 What are Permissions?
+> **Welcome!** This chapter covers **Permission classes** in Django REST Framework with beginner-friendly explanations.
 
-```text
+---
 
-Authentication = "WHO are you?" → "I am John"
-Permissions    = "WHAT can you do?" → "John can read but not delete"
+## Table of Contents
 
-Real-world analogy:
-You work at a company.
-- Intern: Can read documents
-- Employee: Can read and edit documents
-- Manager: Can read, edit, and delete documents
-- Admin: Can do everything
+1. [Introduction to Permission classes](#intro-permission-classes)
+2. [Core concepts](#core-permission-classes)
+3. [Step-by-step example](#example-permission-classes)
+4. [HTTP and curl examples](#curl-permission-classes)
+5. [Configuration in settings.py](#settings-permission-classes)
+6. [Advanced patterns](#advanced-permission-classes)
+7. [Testing this feature](#testing-permission-classes)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
-Same logic for your API:
-- Anonymous user: Can only view public data
-- Regular user: Can view and create
-- Owner: Can view, create, edit, and delete their own data
-- Admin: Can do everything
-```
+---
 
-## 10.2 Built-in Permission Classes
+## Introduction to Permission classes
+
+> **Definition:** **Permission classes** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Permission classes**.
 
 ```python
+# models.py — example domain for this chapter
+from django.db import models
 
-from rest_framework.permissions import (
-    AllowAny,                    # Anyone (no login needed)
-    IsAuthenticated,             # Must be logged in
-    IsAdminUser,                 # Must be staff (is_staff=True)
-    IsAuthenticatedOrReadOnly,   # Logged in = full access, not = read only
-    DjangoModelPermissions,      # Uses Django's model permissions
-)
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-# SETTING PERMISSIONS GLOBALLY (all views):
-# config/settings.py
+    def __str__(self):
+        return self.name
+```
+---
+
+### Permission classes — Mental Model
+
+When learning **Permission classes**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Step By Step Flow
+
+When learning **Permission classes**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Comparison Table
+
+When learning **Permission classes**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Real World Analogy
+
+When learning **Permission classes**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Security Angle
+
+When learning **Permission classes**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Testing Angle
+
+When learning **Permission classes**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Production Tip
+
+When learning **Permission classes**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Permission classes — Debugging Checklist
+
+When learning **Permission classes**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Permission classes
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/permission-classes/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/permission-classes/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/permission-classes/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/permission-classes/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/permission-classes/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+---
+
+## Configuration in settings.py
+
+```python
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
-
-# SETTING PERMISSIONS PER VIEW:
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Override global setting
-
-# SETTING PERMISSIONS FOR FUNCTION-BASED VIEWS:
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def public_view(request):
-    return Response({'message': 'Anyone can see this'})
 ```
 
-## 10.3 Custom Permissions
+Tune defaults for **Permission classes** in `REST_FRAMEWORK` so you do not repeat settings on every view.
+
+---
+
+## Advanced patterns
+
+Combine **Permission classes** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
 
 ```python
+from rest_framework.test import APITestCase
 
-# books/permissions.py
-
-from rest_framework.permissions import BasePermission, SAFE_METHODS
-
-class IsOwnerOrReadOnly(BasePermission):
-    """
-    Custom permission:
-    - ANYONE can do GET, HEAD, OPTIONS (read operations)
-    - Only the OWNER can do POST, PUT, PATCH, DELETE (write operations)
-    """
-    
-    # Message shown when permission is denied
-    message = "You do not have permission to modify this resource."
-    
-    def has_object_permission(self, request, view, obj):
-        """
-        Called for EACH object.
-        'obj' is the model instance being accessed.
-        
-        has_permission() → Checked BEFORE getting the object (view-level)
-        has_object_permission() → Checked AFTER getting the object (object-level)
-        """
-        # SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
-        # These are "read-only" methods — always allowed
-        if request.method in SAFE_METHODS:
-            return True
-        
-        # For write operations, check if user is the owner
-        # Assumes the model has an 'owner' field
-        return obj.owner == request.user
-
-class IsAdminOrReadOnly(BasePermission):
-    """
-    Admin users can do anything.
-    Non-admin users can only read.
-    """
-    
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/permission-classes/')
+        self.assertEqual(response.status_code, 200)
 ```
 
-    def has_permission(self, request, view):
-        # Read operations allowed for everyone
-        if request.method in SAFE_METHODS:
-            return True
-        # Write operations only for admin
-        return request.user and request.user.is_staff
+---
 
-class IsVerifiedUser(BasePermission):
-    """Only email-verified users can access"""
+## Deep dive 1: Permission classes in practice
 
-    message = "Please verify your email first."
+Scenario 1: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-    def has_permission(self, request, view):
-        return (
-            request.user and
-            request.user.is_authenticated and
-            hasattr(request.user, 'email_verified') and
-            request.user.email_verified
-        )
-## 10.4 Dynamic Permissions per Action
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
 
-```python
 
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-    
-    def get_permissions(self):
-        """
-        Return different permissions based on the action.
-        
-        - list/retrieve: Anyone can view
-        - create: Must be logged in
-        - update/delete: Must be the owner
-        """
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [AllowAny]
-        elif self.action == 'create':
-            permission_classes = [IsAuthenticated]
-        elif self.action in ['update', 'partial_update']:
-            permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
-        elif self.action == 'destroy':
-            permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
-        else:
-            permission_classes = [IsAuthenticated]
-        
-        return [permission() for permission in permission_classes]
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=1 \
+  -H "Content-Type: application/json"
 ```
 
-has_permission vs has_object_permission:
 
-has_permission(self, request, view):
-  → Called FIRST, for ALL requests
-  → Checks: "Can this user access this VIEW at all?"
-  → Doesn't have access to the specific object
-  → Used for: checking if user is logged in, is admin, etc.
+---
 
-has_object_permission(self, request, view, obj):
-  → Called SECOND, only for single-object views (retrieve/update/delete)
-  → Checks: "Can this user access THIS SPECIFIC object?"
-  → Has access to the actual database object (obj)
-  → Used for: checking if user is the owner of this object
+## Deep dive 2: Permission classes in practice
 
-  IMPORTANT: has_object_permission is ONLY called if has_permission
-  returns True first! If has_permission returns False,
-  has_object_permission is never called.
-### 🎯 Interview Point
+Scenario 2: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-**How does DRF permission checking work?**
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
 
-DRF checks has_permission() first — this is a view-level check.
-If it returns True, and the view accesses a specific object, DRF then checks has_object_permission() — this is an object-level check.
-If ANY permission class returns False, the request is denied.
-If has_permission() returns False, has_object_permission() is never called.
-Multiple permission classes are combined with AND logic — ALL must pass.
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Permission classes in practice
+
+Scenario 3: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Permission classes in practice
+
+Scenario 4: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Permission classes in practice
+
+Scenario 5: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Permission classes in practice
+
+Scenario 6: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Permission classes in practice
+
+Scenario 7: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Permission classes in practice
+
+Scenario 8: A mobile app consumes your **Permission classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/permission-classes/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Permission classes docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Permission classes in DRF?
+
+It is part of the request/response pipeline for Permission classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Permission classes in DRF?
+
+It is part of the request/response pipeline for Permission classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Permission classes in DRF?
+
+It is part of the request/response pipeline for Permission classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Permission classes in DRF?
+
+It is part of the request/response pipeline for Permission classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Permission classes.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Permission classes in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Permission classes in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch11-pagination.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

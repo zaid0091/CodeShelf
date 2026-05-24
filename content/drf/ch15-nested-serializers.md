@@ -1,5 +1,5 @@
 ---
-title: Chapter 15 — Nested Serializers Deep Dive
+title: Nested Serializers Deep Dive
 description: Read-only and writable nested serializers for related objects
 order: 15
 tags: [drf, serializers, nested]
@@ -7,280 +7,594 @@ tags: [drf, serializers, nested]
 
 # Chapter 15: Nested Serializers Deep Dive
 
-**Nested serializers** embed related objects inside a parent representation — e.g. a `Product` response that includes full `Category` data instead of only an ID.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **Nested serializer** | Another `Serializer` used as a field on a parent serializer. |
-| **Depth** | How many relation levels `ModelSerializer` auto-expands (`Meta.depth`). |
-| **Writable nested** | Creating/updating parent and children in one request. |
+> **Welcome!** This chapter covers **Nested serializers** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 15.1 Nested Serializers (Read)
+## Table of Contents
 
-### Models
-
-```python
-class Author(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-
-class Book(models.Model):
-    title = models.CharField(max_length=200)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
-    published_date = models.DateField(null=True, blank=True)
-```
-
-### Read-only nested representation
-
-```python
-class AuthorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Author
-        fields = ['id', 'name', 'email']
-
-class BookSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer(read_only=True)
-
-    class Meta:
-        model = Book
-        fields = ['id', 'title', 'author', 'published_date']
-```
-
-### Response
-
-```json
-{
-    "id": 1,
-    "title": "Django for APIs",
-    "author": {
-        "id": 5,
-        "name": "William Vincent",
-        "email": "author@example.com"
-    },
-    "published_date": "2023-01-15"
-}
-```
-
-### Using `depth` (quick but less control)
-
-```python
-class BookSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Book
-        fields = ['id', 'title', 'author', 'published_date']
-        depth = 1  # nests one level of relations
-```
-
-**Caution:** `depth` nests **all** relations — can over-expose fields and cause N+1 queries.
-
-### Optimize queries
-
-```python
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.select_related('author').all()
-    serializer_class = BookSerializer
-```
-
-### Reverse nested (parent includes children)
-
-```python
-class BookBriefSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Book
-        fields = ['id', 'title']
-
-class AuthorDetailSerializer(serializers.ModelSerializer):
-    books = BookBriefSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Author
-        fields = ['id', 'name', 'email', 'books']
-```
-
-```json
-{
-    "id": 5,
-    "name": "William Vincent",
-    "email": "author@example.com",
-    "books": [
-        {"id": 1, "title": "Django for APIs"},
-        {"id": 2, "title": "Django for Beginners"}
-    ]
-}
-```
-
-### ManyToMany nested
-
-```python
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ['id', 'name']
-
-class ProductSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Product
-        fields = ['id', 'name', 'tags']
-```
-
-Use `prefetch_related('tags')` on the queryset.
-
-### Interview points
-
-- Nested serializers default to **read-only** unless you implement `create()`/`update()`.
-- **N+1 problem:** always `select_related` / `prefetch_related` for nested lists.
-- Prefer **explicit nested serializers** over high `depth` for security and performance.
-- `SerializerMethodField` is an alternative for custom nested shapes.
+1. [Introduction to Nested serializers](#intro-nested-serializers)
+2. [Core concepts](#core-nested-serializers)
+3. [Step-by-step example](#example-nested-serializers)
+4. [HTTP and curl examples](#curl-nested-serializers)
+5. [Configuration in settings.py](#settings-nested-serializers)
+6. [Advanced patterns](#advanced-nested-serializers)
+7. [Testing this feature](#testing-nested-serializers)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
 ---
 
-## 15.2 Writable Nested Serializers
+## Introduction to Nested serializers
 
-Creating or updating a parent with nested children in one payload requires custom `create()` and `update()` logic.
+> **Definition:** **Nested serializers** — a key part of building production-ready APIs with Django REST Framework.
 
-### Order with nested line items
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Nested serializers**.
 
 ```python
-class OrderItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='items')
+# models.py — example domain for this chapter
+from django.db import models
 
-class Order(models.Model):
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+class Comment(models.Model):
+    name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+```
+---
+
+### Nested serializers — Mental Model
+
+When learning **Nested serializers**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
+### Nested serializers — Step By Step Flow
+
+When learning **Nested serializers**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Nested serializers — Comparison Table
+
+When learning **Nested serializers**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Nested serializers — Real World Analogy
+
+When learning **Nested serializers**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Nested serializers — Security Angle
+
+When learning **Nested serializers**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Nested serializers — Testing Angle
+
+When learning **Nested serializers**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Nested serializers — Production Tip
+
+When learning **Nested serializers**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Nested serializers — Debugging Checklist
+
+When learning **Nested serializers**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Nested serializers
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
 ```python
-class OrderItemSerializer(serializers.ModelSerializer):
+# serializers.py
+from rest_framework import serializers
+from .models import Comment
+
+class CommentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrderItem
-        fields = ['id', 'product', 'quantity']
+        model = Comment
+        fields = '__all__'
 
-class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True)
+# views.py
+from rest_framework import viewsets
+from .models import Comment
+from .serializers import CommentSerializer
 
-    class Meta:
-        model = Order
-        fields = ['id', 'customer', 'items', 'created_at']
-        read_only_fields = ['customer', 'created_at']
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+```
+---
 
-    def create(self, validated_data):
-        items_data = validated_data.pop('items')
-        order = Order.objects.create(**validated_data)
-        for item_data in items_data:
-            OrderItem.objects.create(order=order, **item_data)
-        return order
+## HTTP and curl examples
 
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('items', None)
-        instance.customer = validated_data.get('customer', instance.customer)
-        instance.save()
+Test every endpoint from the terminal before wiring the frontend.
 
-        if items_data is not None:
-            instance.items.all().delete()
-            for item_data in items_data:
-                OrderItem.objects.create(order=instance, **item_data)
-        return instance
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/ \
+  -H "Content-Type: application/json"
 ```
 
-### POST example
 
-```json
-{
-    "items": [
-        {"product": 1, "quantity": 2},
-        {"product": 3, "quantity": 1}
-    ]
-}
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/nested-serializers/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
 ```
 
-```python
-# views.py — set customer from request.user
-class OrderViewSet(viewsets.ModelViewSet):
-    serializer_class = OrderSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(customer=self.request.user)
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Writable nested with `@transaction.atomic`
 
-```python
-from django.db import transaction
 
-class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True)
-
-    class Meta:
-        model = Order
-        fields = ['id', 'items']
-
-    @transaction.atomic
-    def create(self, validated_data):
-        items_data = validated_data.pop('items')
-        order = Order.objects.create(**validated_data)
-        OrderItem.objects.bulk_create([
-            OrderItem(order=order, **item) for item in items_data
-        ])
-        return order
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/nested-serializers/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
 ```
 
-### Partial update of nested items (advanced)
 
-For PATCH with add/update/remove line items, consider:
 
-- Separate endpoints for items (`/orders/1/items/`)
-- `drf-writable-nested` package
-- Explicit `id` in nested payload to match existing rows
-
-```python
-def update(self, instance, validated_data):
-    items_data = validated_data.pop('items', [])
-    for item_data in items_data:
-        item_id = item_data.get('id')
-        if item_id:
-            item = instance.items.get(id=item_id)
-            item.quantity = item_data.get('quantity', item.quantity)
-            item.save()
-        else:
-            OrderItem.objects.create(order=instance, **item_data)
-    return instance
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/nested-serializers/1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Validation across parent and children
 
-```python
-def validate(self, attrs):
-    items = attrs.get('items', [])
-    if not items:
-        raise serializers.ValidationError({'items': 'At least one item is required.'})
-    return attrs
-```
-
-### Interview points
-
-- Writable nested is **not automatic** — you must implement `create`/`update`.
-- Use **`transaction.atomic`** so partial failures do not leave orphan rows.
-- REST purists often prefer **flat resources** with separate endpoints — easier to cache and permission.
-- Updating M2M nested: `instance.tags.set(...)` after creating tag instances.
-- **Idempotency** and **concurrency** are harder with large nested writes.
 
 ---
 
-## Chapter summary
+## Configuration in settings.py
 
-| Pattern | Complexity | Best for |
-|---------|------------|----------|
-| Read-only nested | Low | Rich GET responses |
-| `depth = 1` | Low | Prototypes only |
-| Custom `create`/`update` | High | Single-form order/checkout |
-| Separate child endpoints | Medium | Production CRUD at scale |
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+```
 
-Start with **read-only nested** serializers; add writable logic only when the product truly needs one-shot parent+child saves.
+Tune defaults for **Nested serializers** in `REST_FRAMEWORK` so you do not repeat settings on every view.
+
+---
+
+## Advanced patterns
+
+Combine **Nested serializers** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class CommentTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/nested-serializers/')
+        self.assertEqual(response.status_code, 200)
+```
+
+---
+
+## Deep dive 1: Nested serializers in practice
+
+Scenario 1: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=1 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 2: Nested serializers in practice
+
+Scenario 2: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Nested serializers in practice
+
+Scenario 3: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Nested serializers in practice
+
+Scenario 4: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Nested serializers in practice
+
+Scenario 5: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Nested serializers in practice
+
+Scenario 6: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Nested serializers in practice
+
+Scenario 7: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Nested serializers in practice
+
+Scenario 8: A mobile app consumes your **Nested serializers** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/nested-serializers/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Nested serializers docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Nested serializers in DRF?
+
+It is part of the request/response pipeline for Nested serializers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Nested serializers in DRF?
+
+It is part of the request/response pipeline for Nested serializers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Nested serializers in DRF?
+
+It is part of the request/response pipeline for Nested serializers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Nested serializers in DRF?
+
+It is part of the request/response pipeline for Nested serializers.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Comment` API using Nested serializers.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Nested serializers in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Nested serializers in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch16-file-uploads.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

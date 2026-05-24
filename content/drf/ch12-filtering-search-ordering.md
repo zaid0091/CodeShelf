@@ -1,5 +1,5 @@
 ---
-title: Chapter 12 — Filtering, Searching & Ordering
+title: Filtering, Searching & Ordering
 description: django-filter, SearchFilter, OrderingFilter, and combining query backends
 order: 12
 tags: [drf, filtering, search, ordering]
@@ -7,287 +7,594 @@ tags: [drf, filtering, search, ordering]
 
 # Chapter 12: Filtering, Searching & Ordering
 
-List endpoints often need query parameters to narrow, search, and sort results. DRF delegates this to **filter backends** that modify the queryset before pagination.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **Filter backend** | Class that applies query params to a queryset (`filter_queryset`). |
-| **django-filter** | Third-party library for declarative field filters (`FilterSet`). |
-| **SearchFilter** | DRF backend for `?search=` across multiple fields. |
-| **OrderingFilter** | DRF backend for `?ordering=field` sort control. |
+> **Welcome!** This chapter covers **Filtering and search** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 12.1 Introduction
+## Table of Contents
 
-Filter backends run in order. Configure globally or per view:
+1. [Introduction to Filtering and search](#intro-filtering-and-search)
+2. [Core concepts](#core-filtering-and-search)
+3. [Step-by-step example](#example-filtering-and-search)
+4. [HTTP and curl examples](#curl-filtering-and-search)
+5. [Configuration in settings.py](#settings-filtering-and-search)
+6. [Advanced patterns](#advanced-filtering-and-search)
+7. [Testing this feature](#testing-filtering-and-search)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
+
+---
+
+## Introduction to Filtering and search
+
+> **Definition:** **Filtering and search** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Filtering and search**.
 
 ```python
-# settings.py
+# models.py — example domain for this chapter
+from django.db import models
+
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+```
+---
+
+### Filtering and search — Mental Model
+
+When learning **Filtering and search**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Step By Step Flow
+
+When learning **Filtering and search**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Comparison Table
+
+When learning **Filtering and search**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Real World Analogy
+
+When learning **Filtering and search**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Security Angle
+
+When learning **Filtering and search**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Testing Angle
+
+When learning **Filtering and search**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Production Tip
+
+When learning **Filtering and search**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Filtering and search — Debugging Checklist
+
+When learning **Filtering and search**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Filtering and search
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/filtering-and-search/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/filtering-and-search/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/filtering-and-search/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+---
+
+## Configuration in settings.py
+
+```python
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
 ```
 
-```python
-from rest_framework import viewsets
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
-
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['category', 'in_stock']
-    search_fields = ['name', 'description']
-    ordering_fields = ['price', 'created_at']
-    ordering = ['-created_at']  # default ordering
-```
-
-```bash
-pip install django-filter
-```
-
-```python
-# settings.py — INSTALLED_APPS
-INSTALLED_APPS = [
-    ...
-    'django_filters',
-]
-```
-
-### Interview points
-
-- Filtering happens **before** pagination — you filter the full queryset, then paginate.
-- Multiple backends **stack** — all applicable params apply together.
-- Without `django-filter`, use `filterset_fields` only with `DjangoFilterBackend`.
+Tune defaults for **Filtering and search** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
 ---
 
-## 12.2 Filtering with DjangoFilterBackend
+## Advanced patterns
 
-### Simple field filters
+Combine **Filtering and search** with permissions, filtering, and pagination from other chapters.
 
-```python
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['category', 'brand', 'in_stock']
-```
-
-```bash
-curl "http://127.0.0.1:8000/api/products/?category=electronics&in_stock=true"
-```
-
-### FilterSet class (recommended)
-
-```python
-# filters.py
-import django_filters
-from .models import Product
-
-class ProductFilter(django_filters.FilterSet):
-    min_price = django_filters.NumberFilter(field_name='price', lookup_expr='gte')
-    max_price = django_filters.NumberFilter(field_name='price', lookup_expr='lte')
-    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
-    created_after = django_filters.DateFilter(field_name='created_at', lookup_expr='gte')
-
-    class Meta:
-        model = Product
-        fields = ['category', 'brand', 'in_stock']
-```
-
-```python
-# views.py
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = ProductFilter
-```
-
-```bash
-curl "http://127.0.0.1:8000/api/products/?min_price=10&max_price=100&name=phone"
-```
-
-### Related and custom filters
-
-```python
-class OrderFilter(django_filters.FilterSet):
-    customer_name = django_filters.CharFilter(
-        field_name='customer__username',
-        lookup_expr='icontains'
-    )
-    status = django_filters.ChoiceFilter(choices=Order.STATUS_CHOICES)
-
-    class Meta:
-        model = Order
-        fields = ['status', 'created_at']
-```
-
-### Interview points
-
-- `filterset_fields` is shorthand; **FilterSet** supports ranges, choices, and related lookups.
-- Lookup expressions: `exact`, `icontains`, `gte`, `in`, etc. (same as Django ORM).
-- Invalid filter values typically return **empty queryset** or validation errors depending on setup.
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
 
 ---
 
-## 12.3 SearchFilter
-
-Provides a single `search` query param that ORs across `search_fields`.
+## Testing this feature
 
 ```python
-from rest_framework.filters import SearchFilter
+from rest_framework.test import APITestCase
 
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    filter_backends = [SearchFilter]
-    search_fields = ['name', 'description', 'brand__name']
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/filtering-and-search/')
+        self.assertEqual(response.status_code, 200)
 ```
-
-```bash
-curl "http://127.0.0.1:8000/api/products/?search=laptop"
-```
-
-### Lookup prefixes on search fields
-
-| Prefix | Lookup | Example field |
-|--------|--------|---------------|
-| (none) | `icontains` | `'name'` |
-| `^` | `istartswith` | `'^name'` |
-| `=` | `iexact` | `'=sku'` |
-| `@` | `search` (PostgreSQL full-text) | `'@description'` |
-| `$` | `iregex` | `'$name'` |
-
-```python
-search_fields = ['^name', '=sku', 'description']
-```
-
-### Custom search behavior
-
-```python
-class ProductViewSet(viewsets.ModelViewSet):
-    filter_backends = [SearchFilter]
-    search_fields = ['name', 'description']
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        search = self.request.query_params.get('search', '')
-        if search:
-            queryset = queryset.filter(
-                models.Q(name__icontains=search) |
-                models.Q(tags__name__icontains=search)
-            ).distinct()
-        return queryset
-```
-
-### Interview points
-
-- **One search box** → multiple columns (OR logic).
-- For complex search, use **django-filter**, **PostgreSQL full-text**, or **Elasticsearch**.
-- `search` is separate from field-specific filters — they can be combined.
 
 ---
 
-## 12.4 OrderingFilter
+## Deep dive 1: Filtering and search in practice
 
-Allows clients to sort via `?ordering=field` or `?ordering=-field` (descending).
+Scenario 1: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-```python
-from rest_framework.filters import OrderingFilter
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
 
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    filter_backends = [OrderingFilter]
-    ordering_fields = ['price', 'name', 'created_at']
-    ordering = ['-created_at']  # default when no ?ordering=
-```
+
 
 ```bash
-curl "http://127.0.0.1:8000/api/products/?ordering=price"
-curl "http://127.0.0.1:8000/api/products/?ordering=-price,name"
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=1 \
+  -H "Content-Type: application/json"
 ```
 
-### Restrict ordering for security
-
-Only list fields in `ordering_fields` — never expose `ordering_fields = '__all__'` on public APIs without care (SQL injection via ORM is mitigated but DoS via expensive sorts is real).
-
-```python
-ordering_fields = ['price', 'created_at']  # whitelist
-```
-
-### Interview points
-
-- Prefix `-` means **descending**.
-- Multiple fields: `?ordering=-price,name`.
-- Default `ordering` applies when the client sends no param.
 
 ---
 
-## 12.5 Combining Filters
+## Deep dive 2: Filtering and search in practice
 
-Stack backends and test combined query strings.
+Scenario 2: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-```python
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.select_related('category').all()
-    serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = ProductFilter
-    search_fields = ['name', 'description']
-    ordering_fields = ['price', 'created_at', 'name']
-    ordering = ['-created_at']
-```
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
 
 ```bash
-curl "http://127.0.0.1:8000/api/products/?category=electronics&search=pro&ordering=-price&page=1"
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=2 \
+  -H "Content-Type: application/json"
 ```
 
-### Order of execution
-
-1. View's `get_queryset()`
-2. Each filter backend's `filter_queryset(request, queryset, view)`
-3. Pagination
-4. Serialization
-
-### GenericAPIView hooks
-
-```python
-class ProductViewSet(viewsets.ModelViewSet):
-    def get_queryset(self):
-        qs = Product.objects.filter(is_active=True)
-        user = self.request.user
-        if not user.is_staff:
-            qs = qs.filter(owner=user)
-        return qs
-```
-
-Object-level permissions still apply on **retrieve/update/delete**; `get_queryset()` scopes **lists** and lookups.
-
-### Interview points
-
-- **Filter → search → order → paginate** is the mental model.
-- Document supported query params in OpenAPI/Swagger (`drf-spectacular` or `coreapi`).
-- Conflicting params: last backend wins for ordering; filters are ANDed.
 
 ---
 
-## Chapter summary
+## Deep dive 3: Filtering and search in practice
 
-| Backend | Param | Use case |
-|---------|-------|----------|
-| DjangoFilterBackend | `?field=value` | Exact/range/related filters |
-| SearchFilter | `?search=term` | Full-text-ish search across columns |
-| OrderingFilter | `?ordering=field` | Client-controlled sort |
+Scenario 3: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
 
-Install **django-filter**, define **FilterSet** classes for non-trivial logic, and always **whitelist** `ordering_fields`.
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Filtering and search in practice
+
+Scenario 4: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Filtering and search in practice
+
+Scenario 5: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Filtering and search in practice
+
+Scenario 6: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Filtering and search in practice
+
+Scenario 7: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Filtering and search in practice
+
+Scenario 8: A mobile app consumes your **Filtering and search** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/filtering-and-search/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Filtering and search docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Filtering and search in DRF?
+
+It is part of the request/response pipeline for Filtering and search.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Filtering and search in DRF?
+
+It is part of the request/response pipeline for Filtering and search.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Filtering and search in DRF?
+
+It is part of the request/response pipeline for Filtering and search.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Filtering and search in DRF?
+
+It is part of the request/response pipeline for Filtering and search.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Filtering and search.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Filtering and search in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Filtering and search in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch13-throttling.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

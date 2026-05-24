@@ -7,288 +7,647 @@ tags: [react, forms, validation, controlled, uncontrolled]
 
 # Chapter 9: Forms
 
-## 9.1 Forms in React
+> **Forms are where users give your app data. React makes every keystroke predictable.**
+> Take your time with each section — understanding beats speed.
 
-HTML forms collect user input and submit data. In React, you choose how tightly the DOM and state stay synchronized.
+---
 
-> **Definition:** A **controlled input** has its value owned by React state. An **uncontrolled input** stores value in the DOM and is read via refs.
+## Table of Contents
 
-## 9.2 Controlled forms (recommended)
+1. [Forms in React](#forms-in-react)
+2. [Controlled Components](#controlled-components)
+3. [Single handleChange](#single-handlechange)
+4. [Validation on Submit](#validation-on-submit)
+5. [Inline Errors](#inline-errors)
+6. [Uncontrolled with useRef](#uncontrolled-with-useref)
+7. [Checkbox Radio Select Textarea](#checkbox-radio-select-textarea)
+8. [Disabled Submit](#disabled-submit)
+9. [React Hook Form Intro](#react-hook-form-intro)
+10. [Zod Schema Validation](#zod-schema-validation)
+11. [Multi-step Wizard](#multi-step-wizard)
+12. [Server Validation](#server-validation)
+13. [Security](#security)
+14. [Accessibility in Forms](#accessibility-in-forms)
+15. [Common Mistakes](#common-mistakes)
+16. [Interview Points](#interview-points)
+17. [Exercises](#exercises)
+18. [Chapter Summary](#chapter-summary)
 
-```jsx
-import { useState } from 'react';
+---
 
-function SignupForm() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
-  const [errors, setErrors] = useState({});
+## Forms in React
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  }
+Collect input and submit data.
 
-  function validate() {
-    const next = {};
-    if (!form.name.trim()) next.name = 'Name is required';
-    if (!form.email.includes('@')) next.email = 'Invalid email';
-    if (form.password.length < 8) next.password = 'Min 8 characters';
-    return next;
-  }
+#### Why this matters for `Forms in React`
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    setErrors({});
-    console.log('Submit:', form);
-  }
+Understanding **Forms in React** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  return (
-    <form onSubmit={handleSubmit} noValidate>
-      <label>
-        Name
-        <input name="name" value={form.name} onChange={handleChange} />
-        {errors.name && <span className="error">{errors.name}</span>}
-      </label>
+#### Quick recap
 
-      <label>
-        Email
-        <input
-          name="email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-        />
-        {errors.email && <span className="error">{errors.email}</span>}
-      </label>
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-      <label>
-        Password
-        <input
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-        />
-        {errors.password && <span className="error">{errors.password}</span>}
-      </label>
+#### Connection to other chapters
 
-      <button type="submit">Sign up</button>
-    </form>
-  );
-}
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-### Controlled vs uncontrolled
+---
 
-| | Controlled | Uncontrolled |
-|---|------------|--------------|
-| Value source | React state | DOM |
-| Read value | From state | `ref.current.value` |
-| Validation timing | On change / submit | Usually on submit |
-| React recommendation | Default choice | File inputs, integrations |
+## Controlled Components
 
-## 9.3 Uncontrolled inputs with useRef
+> **Definition:** Value controlled by React state.
 
-```jsx
-import { useRef } from 'react';
+#### Why this matters for `Controlled Components`
 
-function QuickSearch() {
-  const inputRef = useRef(null);
+Understanding **Controlled Components** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    const query = inputRef.current.value;
-    console.log('Search:', query);
-  }
+#### Quick recap
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input ref={inputRef} defaultValue="" placeholder="Search..." />
-      <button type="submit">Go</button>
-    </form>
-  );
-}
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Use `defaultValue` (not `value`) for uncontrolled inputs.
+#### Connection to other chapters
 
-## 9.4 Handling different input types
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-function Preferences() {
-  const [prefs, setPrefs] = useState({
-    newsletter: false,
-    role: 'developer',
-    bio: '',
-  });
+---
 
-  function handleChange(e) {
-    const { name, type, value, checked } = e.target;
-    setPrefs(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  }
+## Single handleChange
 
-  return (
-    <form>
-      <label>
-        <input
-          type="checkbox"
-          name="newsletter"
-          checked={prefs.newsletter}
-          onChange={handleChange}
-        />
-        Subscribe to newsletter
-      </label>
+name attribute + spread update object.
 
-      <select name="role" value={prefs.role} onChange={handleChange}>
-        <option value="developer">Developer</option>
-        <option value="designer">Designer</option>
-      </select>
+#### Why this matters for `Single handleChange`
 
-      <textarea name="bio" value={prefs.bio} onChange={handleChange} rows={4} />
-    </form>
-  );
-}
-```
+Understanding **Single handleChange** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 9.5 Validation strategies
+#### Quick recap
 
-### Client-side validation layers
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-| Layer | When | Purpose |
-|-------|------|---------|
-| Inline | On blur / change | Immediate feedback |
-| On submit | Form submit | Block invalid requests |
-| Server | API response | Authoritative rules |
+#### Connection to other chapters
 
-### Displaying errors
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-<input
-  name="email"
-  value={email}
-  onChange={handleChange}
-  aria-invalid={!!errors.email}
-  aria-describedby={errors.email ? 'email-error' : undefined}
-/>
-{errors.email && (
-  <span id="email-error" role="alert" className="error">
-    {errors.email}
-  </span>
-)}
-```
+---
 
-### Disabling submit while invalid
+## Validation on Submit
 
-```jsx
-const isValid = form.email && form.password.length >= 8;
+preventDefault; setErrors object.
 
-<button type="submit" disabled={!isValid || isSubmitting}>
-  {isSubmitting ? 'Saving...' : 'Save'}
-</button>
-```
+#### Why this matters for `Validation on Submit`
 
-## 9.6 Form libraries
+Understanding **Validation on Submit** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-For large forms, consider:
+#### Quick recap
 
-| Library | Strength |
-|---------|----------|
-| **React Hook Form** | Performance, minimal re-renders |
-| **Formik** | Mature ecosystem |
-| **Zod / Yup** | Schema validation |
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-// React Hook Form + Zod (conceptual)
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+#### Connection to other chapters
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-function Login() {
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: zodResolver(schema),
-  });
+---
 
-  return (
-    <form onSubmit={handleSubmit(data => console.log(data))}>
-      <input {...register('email')} />
-      {errors.email && <span>{errors.email.message}</span>}
-      <button type="submit">Login</button>
-    </form>
-  );
-}
-```
+## Inline Errors
 
-## 9.7 Multi-step forms
+aria-invalid and role=alert.
 
-```jsx
-function Wizard() {
-  const [step, setStep] = useState(0);
-  const [data, setData] = useState({});
+#### Why this matters for `Inline Errors`
 
-  const steps = [
-    <StepAccount data={data} onChange={setData} />,
-    <StepProfile data={data} onChange={setData} />,
-    <StepReview data={data} />,
-  ];
+Understanding **Inline Errors** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-  return (
-    <div>
-      {steps[step]}
-      <button disabled={step === 0} onClick={() => setStep(s => s - 1)}>
-        Back
-      </button>
-      {step < steps.length - 1 ? (
-        <button onClick={() => setStep(s => s + 1)}>Next</button>
-      ) : (
-        <button onClick={() => submit(data)}>Submit</button>
-      )}
-    </div>
-  );
-}
-```
+#### Quick recap
 
-Lift shared form state to the wizard parent; validate each step before advancing.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 9.8 Security reminders
+#### Connection to other chapters
 
-- Never trust client validation alone — always validate on the server
-- Sanitize user content before rendering HTML
-- Use HTTPS for credential submission
-- Consider CSRF tokens for cookie-based auth
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Uncontrolled with useRef
+
+defaultValue + ref.current.value.
+
+#### Why this matters for `Uncontrolled with useRef`
+
+Understanding **Uncontrolled with useRef** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Checkbox Radio Select Textarea
+
+checked vs value; type === checkbox.
+
+#### Why this matters for `Checkbox Radio Select Textarea`
+
+Understanding **Checkbox Radio Select Textarea** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Disabled Submit
+
+isValid && !isSubmitting.
+
+#### Why this matters for `Disabled Submit`
+
+Understanding **Disabled Submit** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## React Hook Form Intro
+
+Performance for large forms.
+
+#### Why this matters for `React Hook Form Intro`
+
+Understanding **React Hook Form Intro** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Zod Schema Validation
+
+Schema + resolver pattern.
+
+#### Why this matters for `Zod Schema Validation`
+
+Understanding **Zod Schema Validation** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Multi-step Wizard
+
+step state + shared data object.
+
+#### Why this matters for `Multi-step Wizard`
+
+Understanding **Multi-step Wizard** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Server Validation
+
+Client UX; server authority.
+
+#### Why this matters for `Server Validation`
+
+Understanding **Server Validation** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Security
+
+HTTPS, CSRF, no trust client-only.
+
+#### Why this matters for `Security`
+
+Understanding **Security** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Accessibility in Forms
+
+label htmlFor, error association.
+
+#### Why this matters for `Accessibility in Forms`
+
+Understanding **Accessibility in Forms** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 13 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice13.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice13')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 14 — Forms
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice14.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice14')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| value without onChange | Read-only input bug | Add onChange |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: Controlled vs uncontrolled?**
+
+React state vs DOM/ref.
+
+---
 
 ## Exercises
 
-1. **Login form** — Email/password with inline validation and disabled submit.
-2. **Survey** — Mix checkbox, radio, select, and textarea in one controlled form.
-3. **Multi-step** — 3-step registration with progress indicator.
-4. **Accessibility** — Add `aria-*` attributes and associate labels with inputs.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| Controlled | `value` + `onChange` synced with state |
-| Uncontrolled | `ref` + `defaultValue` |
-| Validation | Client UX + server authority |
-| Libraries | React Hook Form for complex forms |
-| a11y | Labels, `aria-invalid`, error announcements |
+### Exercise 1: Login form ⭐
 
-## Next chapter
+**Task:** Validate email password.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **Controlled** | value + onChange |
+
+## Next Chapter
 
 Continue to [Chapter 10: Data Fetching](./ch10-data-fetching.md).
+

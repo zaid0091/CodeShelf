@@ -7,228 +7,647 @@ tags: [react, performance, memo, lazy, suspense, optimization]
 
 # Chapter 11: Performance
 
-## 11.1 When to optimize
+> **Optimize when measurements prove a problem — not before.**
+> Take your time with each section — understanding beats speed.
 
-React is fast by default. Optimize **after** measuring, not preemptively.
+---
 
-> **Definition:** Performance work targets unnecessary re-renders, large bundle size, and expensive computations — verified with React DevTools Profiler.
+## Table of Contents
 
-### Optimization priority
+1. [Measure First](#measure-first)
+2. [What Causes Re-renders](#what-causes-re-renders)
+3. [React.memo](#react-memo)
+4. [memo + useCallback](#memo-usecallback)
+5. [useMemo for Heavy Work](#usememo-for-heavy-work)
+6. [lazy and Suspense](#lazy-and-suspense)
+7. [lazy Rules](#lazy-rules)
+8. [Nested Suspense](#nested-suspense)
+9. [Virtualization](#virtualization)
+10. [Profiler Walkthrough](#profiler-walkthrough)
+11. [Production Build](#production-build)
+12. [Anti-patterns](#anti-patterns)
+13. [Context Performance](#context-performance)
+14. [Common Mistakes](#common-mistakes)
+15. [Interview Points](#interview-points)
+16. [Exercises](#exercises)
+17. [Chapter Summary](#chapter-summary)
 
-```text
-1. Fix slow renders (Profiler)
-2. Reduce bundle size (lazy loading)
-3. Memoize hot paths (memo, useMemo, useCallback)
-4. Virtualize long lists (react-window)
-```
+---
 
-## 11.2 Understanding re-renders
+## Measure First
 
-A component re-renders when:
+Profiler before memo everywhere.
 
-- Its **state** changes
-- Its **props** change (shallow compare)
-- Its **parent** re-renders (unless prevented)
-- **Context** it consumes changes
+#### Why this matters for `Measure First`
 
-```jsx
-function Parent() {
-  const [count, setCount] = useState(0);
-  return (
-    <>
-      <button onClick={() => setCount(c => c + 1)}>{count}</button>
-      <ExpensiveChild data="static" />  {/* Re-renders with Parent */}
-    </>
-  );
-}
-```
+Understanding **Measure First** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 11.3 React.memo
+#### Quick recap
 
-`React.memo` skips re-render if props are shallowly equal.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-import { memo } from 'react';
+#### Connection to other chapters
 
-const UserRow = memo(function UserRow({ user, onDelete }) {
-  console.log('render', user.id);
-  return (
-    <tr>
-      <td>{user.name}</td>
-      <td>
-        <button onClick={() => onDelete(user.id)}>Delete</button>
-      </td>
-    </tr>
-  );
-});
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-### When memo helps
+---
 
-| Helps | Does not help |
-|-------|---------------|
-| Pure list items with stable props | Component always gets new props |
-| Heavy render cost | Cheap components |
-| Frequent parent re-renders | Root cause is context/state in same tree |
+## What Causes Re-renders
 
-Pair with `useCallback` for stable function props:
+State, props, parent, context.
 
-```jsx
-const handleDelete = useCallback((id) => {
-  setUsers(prev => prev.filter(u => u.id !== id));
-}, []);
-```
+#### Why this matters for `What Causes Re-renders`
 
-See [Chapter 6](./ch06-hooks-deep-dive.md).
+Understanding **What Causes Re-renders** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 11.4 useMemo for expensive work
+#### Quick recap
 
-```jsx
-const filteredProducts = useMemo(() => {
-  return products
-    .filter(p => p.category === category)
-    .sort((a, b) => a.price - b.price);
-}, [products, category]);
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Profile before memoizing — simple filters rarely need it.
+#### Connection to other chapters
 
-## 11.5 Code splitting with lazy
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Split routes or heavy components into separate JavaScript chunks loaded on demand.
+---
 
-```jsx
-import { lazy, Suspense } from 'react';
+## React.memo
 
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
-const ChartPanel = lazy(() => import('./components/ChartPanel.jsx'));
+Skip if props shallow equal.
 
-function App() {
-  return (
-    <Suspense fallback={<p>Loading module...</p>}>
-      <Routes>
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
-    </Suspense>
-  );
-}
-```
+#### Why this matters for `React.memo`
 
-### lazy() rules
+Understanding **React.memo** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-- Must be **default export** in target module
-- Wrap in `<Suspense>` with fallback UI
-- Can nest Suspense boundaries for granular loading
+#### Quick recap
 
-```jsx
-function Dashboard() {
-  return (
-    <div>
-      <Header />  {/* Renders immediately */}
-      <Suspense fallback={<ChartSkeleton />}>
-        <ChartPanel />
-      </Suspense>
-    </div>
-  );
-}
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 11.6 Suspense for async UI
+#### Connection to other chapters
 
-React 18+ supports Suspense for data fetching in frameworks like Next.js and with libraries that integrate with Suspense boundaries.
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-<Suspense fallback={<Spinner />}>
-  <Comments postId={id} />
-</Suspense>
-```
+---
 
-In plain Vite SPAs, Suspense is primarily used with `lazy()` imports.
+## memo + useCallback
 
-## 11.7 Virtualizing long lists
+Stable function props.
 
-Rendering 10,000 DOM nodes is slow. **Virtualization** renders only visible rows.
+#### Why this matters for `memo + useCallback`
 
-```jsx
-import { FixedSizeList } from 'react-window';
+Understanding **memo + useCallback** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-function VirtualList({ items }) {
-  const Row = ({ index, style }) => (
-    <div style={style}>{items[index].name}</div>
-  );
+#### Quick recap
 
-  return (
-    <FixedSizeList
-      height={400}
-      width="100%"
-      itemCount={items.length}
-      itemSize={35}
-    >
-      {Row}
-    </FixedSizeList>
-  );
-}
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Libraries: `react-window`, `@tanstack/react-virtual`.
+#### Connection to other chapters
 
-## 11.8 Profiling with DevTools
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-1. Open React DevTools → **Profiler** tab
-2. Click record, interact with app, stop
-3. Inspect flame graph for slow components
-4. Enable "Highlight updates" to see re-render scope
+---
 
-| Signal | Action |
-|--------|--------|
-| Long render time | Memoize, split component, virtualize |
-| Many wasted renders | `memo`, stable props, split context |
-| Large bundle | `lazy`, analyze with `rollup-plugin-visualizer` |
+## useMemo for Heavy Work
 
-## 11.9 Production build
+Filter/sort large arrays.
 
-```bash
-npm run build
-npm run preview
-```
+#### Why this matters for `useMemo for Heavy Work`
 
-Vite minifies, tree-shakes, and hashes assets. Check bundle size in build output.
+Understanding **useMemo for Heavy Work** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 11.10 Anti-patterns
+#### Quick recap
 
-| Anti-pattern | Why |
-|--------------|-----|
-| `memo` everything | Overhead without benefit |
-| Inline object/array props | Breaks memo: `style={{ color: 'red' }}` |
-| Premature `useMemo` | Adds complexity |
-| Huge Context values | All consumers re-render |
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```jsx
-// ❌ New object every render
-<Child config={{ theme: 'dark' }} />
+#### Connection to other chapters
 
-// ✅ Memoize or lift constant
-const config = useMemo(() => ({ theme: 'dark' }), []);
-<Child config={config} />
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## lazy and Suspense
+
+Code split routes.
+
+#### Why this matters for `lazy and Suspense`
+
+Understanding **lazy and Suspense** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## lazy Rules
+
+Default export; Suspense fallback.
+
+#### Why this matters for `lazy Rules`
+
+Understanding **lazy Rules** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Nested Suspense
+
+Granular loading UI.
+
+#### Why this matters for `Nested Suspense`
+
+Understanding **Nested Suspense** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Virtualization
+
+react-window for 10k rows.
+
+#### Why this matters for `Virtualization`
+
+Understanding **Virtualization** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Profiler Walkthrough
+
+Record, interact, analyze.
+
+#### Why this matters for `Profiler Walkthrough`
+
+Understanding **Profiler Walkthrough** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Production Build
+
+npm run build tree-shaking.
+
+#### Why this matters for `Production Build`
+
+Understanding **Production Build** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Anti-patterns
+
+memo everything, inline objects as props.
+
+#### Why this matters for `Anti-patterns`
+
+Understanding **Anti-patterns** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Context Performance
+
+Split contexts; memoize value.
+
+#### Why this matters for `Context Performance`
+
+Understanding **Context Performance** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 13 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice13.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice13')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 14 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice14.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice14')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 15 — Performance
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice15.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice15')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| Premature memo | Complexity without gain | Profile first |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: React.memo?**
+
+Memoized component; shallow prop compare.
+
+---
 
 ## Exercises
 
-1. **Profiler** — Find a component that re-renders unnecessarily; fix with `memo`.
-2. **Lazy route** — Split a heavy page with `lazy()` and route-level Suspense.
-3. **Stable callback** — Pass `useCallback` handler to memoized list items.
-4. **Bundle** — Run build and note largest chunks; lazy-load one of them.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Tool | Purpose |
-|------|---------|
-| `React.memo` | Skip render if props unchanged |
-| `useMemo` / `useCallback` | Stable values and functions |
-| `lazy` + `Suspense` | Code-split components |
-| Profiler | Measure before optimizing |
-| Virtualization | Large lists |
+### Exercise 1: Lazy route ⭐
 
-## Next chapter
+**Task:** Split admin page.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **memo** | Skip redundant renders |
+| **lazy** | Code splitting |
+
+## Next Chapter
 
 Continue to [Chapter 12: Patterns & Architecture](./ch12-patterns-and-architecture.md).
+

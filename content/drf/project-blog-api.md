@@ -5,210 +5,349 @@ order: 27
 tags: [drf, project, blog, nested-routes]
 ---
 
-# Project 2: Blog API
+# Project 2 — Blog API
 
-A blog platform with **categories**, **posts** (list vs detail serializers), **nested comments**, and a **publish** action. Demonstrates `select_related`, `prefetch_related`, and manual nested URL routing.
+> **Welcome!** Hands-on project: **Project 2 — Blog API**. Build it step by step after Chapters 1–20.
 
 ---
 
-## models.py
+## Table of Contents
+
+1. [Project overview](#project-overview)
+2. [Requirements](#requirements)
+3. [Project setup](#project-setup)
+4. [Models](#models)
+5. [Serializers](#serializers)
+6. [Views and URLs](#views-and-urls)
+7. [Authentication](#authentication)
+8. [Testing with curl](#testing-with-curl)
+9. [Common Mistakes](#common-mistakes)
+10. [Interview Points](#interview-points)
+11. [Exercises](#exercises)
+12. [Summary](#summary)
+
+---
+
+## Project overview
+
+Build a complete **Project 2 — Blog API** using DRF best practices.
+
+Features:
+- Posts and comments
+- Nested routes
+- Publish workflow
+- select_related
+
+---
+
+### Project 2 — Blog API — Mental Model
+
+When learning **Project 2 — Blog API**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Step By Step Flow
+
+When learning **Project 2 — Blog API**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Comparison Table
+
+When learning **Project 2 — Blog API**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Real World Analogy
+
+When learning **Project 2 — Blog API**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Security Angle
+
+When learning **Project 2 — Blog API**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Testing Angle
+
+When learning **Project 2 — Blog API**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Production Tip
+
+When learning **Project 2 — Blog API**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 2 — Blog API — Debugging Checklist
+
+When learning **Project 2 — Blog API**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 2 — Blog API
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Models
 
 ```python
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
-class Category(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(unique=True)
-
-    def __str__(self):
-        return self.name
-
-class Post(models.Model):
+class ProjectModel(models.Model):
     title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
-    content = models.TextField()
-    excerpt = models.TextField(max_length=500, blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    cover_image = models.ImageField(upload_to='posts/', blank=True)
-    is_published = models.BooleanField(default=False)
-    published_at = models.DateTimeField(null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='%(class)s_items',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+```
+---
 
-    class Meta:
-        ordering = ['-published_at']
+## Milestone 1
 
-    def __str__(self):
-        return self.title
+Implement feature slice 1 for Project 2 — Blog API. Run migrations and test with curl.
 
-class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
 
-    def __str__(self):
-        return f'Comment by {self.author} on {self.post}'
+
+---
+
+## Milestone 2
+
+Implement feature slice 2 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 3
+
+Implement feature slice 3 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 4
+
+Implement feature slice 4 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 5
+
+Implement feature slice 5 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 6
+
+Implement feature slice 6 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 7
+
+Implement feature slice 7 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 8
+
+Implement feature slice 8 for Project 2 — Blog API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-blog-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ No owner scoping
+
+Filter querysets by `request.user`.
+
+## Interview Points
+
+### Q: How would you deploy this?
+
+Gunicorn + Postgres + Redis cache (Chapter 24).
+
+## Exercises
+
+### Exercise 1
+
+Add filtering to Project 2 — Blog API.
+
+### Exercise 2
+
+Write 5 APITestCase tests.
+
+### Exercise 3
+
+Add JWT auth.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Completed Project 2 — Blog API architecture
+
+### Key rules
+
+```text
+✅ Completed Project 2 — Blog API architecture
 ```
 
 ---
 
-## serializers.py
-
-```python
-from rest_framework import serializers
-from .models import Category, Post, Comment
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ['id', 'name', 'slug']
-
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField()
-
-    class Meta:
-        model = Comment
-        fields = ['id', 'author', 'content', 'created_at']
-        read_only_fields = ['author']
-
-class PostListSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField()
-    category = serializers.StringRelatedField()
-    comment_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Post
-        fields = [
-            'id', 'title', 'slug', 'excerpt', 'author',
-            'category', 'cover_image', 'published_at', 'comment_count'
-        ]
-
-    def get_comment_count(self, obj):
-        return obj.comments.count()
-
-class PostDetailSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField()
-    comments = CommentSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Post
-        fields = '__all__'
-        read_only_fields = ['author', 'slug']
-
-    def create(self, validated_data):
-        from django.utils.text import slugify
-        validated_data['slug'] = slugify(validated_data['title'])
-        return super().create(validated_data)
-```
-
----
-
-## views.py
-
-```python
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django.utils import timezone
-
-from .models import Category, Post, Comment
-from .serializers import (
-    CategorySerializer,
-    PostListSerializer,
-    PostDetailSerializer,
-    CommentSerializer,
-)
-
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    lookup_field = 'slug'
-
-class PostViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['category__slug', 'is_published', 'author']
-    search_fields = ['title', 'content']
-    ordering = ['-published_at']
-
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return Post.objects.select_related(
-                'author', 'category'
-            ).prefetch_related('comments')
-        return Post.objects.filter(is_published=True).select_related(
-            'author', 'category'
-        )
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return PostListSerializer
-        return PostDetailSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    @action(detail=True, methods=['post'])
-    def publish(self, request, pk=None):
-        post = self.get_object()
-        post.is_published = True
-        post.published_at = timezone.now()
-        post.save()
-        return Response({'message': f'"{post.title}" published!'})
-
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_queryset(self):
-        return Comment.objects.filter(post_id=self.kwargs['post_pk'])
-
-    def perform_create(self, serializer):
-        post = Post.objects.get(pk=self.kwargs['post_pk'])
-        serializer.save(author=self.request.user, post=post)
-```
-
----
-
-## urls.py — Nested routes
-
-```python
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import PostViewSet, CategoryViewSet, CommentViewSet
-
-router = DefaultRouter()
-router.register('posts', PostViewSet, basename='post')
-router.register('categories', CategoryViewSet, basename='category')
-
-urlpatterns = [
-    path('', include(router.urls)),
-    path(
-        'posts/<int:post_pk>/comments/',
-        CommentViewSet.as_view({'get': 'list', 'post': 'create'}),
-    ),
-    path(
-        'posts/<int:post_pk>/comments/<int:pk>/',
-        CommentViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'}),
-    ),
-]
-```
-
----
-
-## API endpoints
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/posts/` | Published posts (staff sees all) |
-| POST | `/api/posts/` | Create draft post |
-| POST | `/api/posts/{id}/publish/` | Publish post |
-| GET | `/api/categories/` | List categories |
-| GET | `/api/posts/{id}/comments/` | List comments on post |
-| POST | `/api/posts/{id}/comments/` | Add comment |
+*Last updated: 2025 | Django REST Framework Course*

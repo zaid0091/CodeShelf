@@ -7,192 +7,647 @@ tags: [react, best-practices, accessibility, conventions, production]
 
 # Chapter 14: Best Practices
 
-## 14.1 Component design principles
+> **Professional React is readable, accessible, and safe — not clever.**
+> Take your time with each section — understanding beats speed.
 
-Write components that are **small, focused, and predictable**.
+---
 
-| Principle | Practice |
-|-----------|----------|
-| Single responsibility | One component, one job |
-| Pure when possible | Same props → same output |
-| Colocate related code | Keep hooks, styles, tests near feature |
-| Explicit props | Avoid huge prop bags; use composition |
+## Table of Contents
 
-```jsx
-// ❌ God component
-function Dashboard({ user, posts, comments, settings, notifications, ... }) { ... }
+1. [Single Responsibility](#single-responsibility)
+2. [Naming Conventions](#naming-conventions)
+3. [File Exports](#file-exports)
+4. [State Guidelines Ladder](#state-guidelines-ladder)
+5. [Effects Discipline](#effects-discipline)
+6. [Accessibility](#accessibility)
+7. [Modal a11y](#modal-a11y)
+8. [Security XSS](#security-xss)
+9. [Env Variables Vite](#env-variables-vite)
+10. [Error UX](#error-ux)
+11. [Code Review Checklist](#code-review-checklist)
+12. [Staying Current](#staying-current)
+13. [PropTypes and TypeScript](#proptypes-and-typescript)
+14. [Common Mistakes](#common-mistakes)
+15. [Interview Points](#interview-points)
+16. [Exercises](#exercises)
+17. [Chapter Summary](#chapter-summary)
 
-// ✅ Composed
-function Dashboard() {
-  return (
-    <PageLayout>
-      <DashboardHeader />
-      <DashboardStats />
-      <RecentActivity />
-    </PageLayout>
-  );
-}
-```
+---
 
-## 14.2 Naming conventions
+## Single Responsibility
 
-| Item | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `UserAvatar.jsx` |
-| Hooks | camelCase, `use` prefix | `useAuth.js` |
-| Event handlers | `handle` + Event | `handleSubmit` |
-| Boolean props | `is`, `has`, `should` | `isDisabled` |
-| Callback props | `on` + Event | `onChange`, `onDelete` |
+Small focused components.
 
-```jsx
-function SearchBar({ isLoading, onSearch }) {
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') onSearch(e.target.value);
-  }
-  ...
-}
-```
+#### Why this matters for `Single Responsibility`
 
-## 14.3 File and export conventions
+Understanding **Single Responsibility** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```jsx
-// One primary component per file
-export default function Modal({ isOpen, onClose, children }) { ... }
+#### Quick recap
 
-// Co-locate types (TypeScript)
-// Modal.tsx + Modal.test.tsx + Modal.module.css
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Use **named exports** for utilities and hooks; **default export** for page/feature components (team preference may vary — stay consistent).
+#### Connection to other chapters
 
-## 14.4 Keys and lists
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Always use stable keys from data ids. Never use random keys or index on reorderable lists. See [Chapter 4](./ch04-lists-and-keys.md).
+---
 
-## 14.5 State management guidelines
+## Naming Conventions
 
-```text
-1. Local useState     → UI-only, single component
-2. Lifted state       → Siblings share data
-3. Context            → Theme, auth, locale
-4. React Query        → Server/async data
-5. Zustand/Redux      → Complex global client state
-```
+PascalCase, handle/on prefix.
 
-Do not put everything in Context or Redux on day one.
+#### Why this matters for `Naming Conventions`
 
-## 14.6 Effects discipline
+Understanding **Naming Conventions** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-- Prefer computing values during render over syncing with `useEffect`
-- Fetch on user action when appropriate (button click)
-- Always clean up subscriptions and abort fetches
-- See [Chapter 5](./ch05-useEffect.md)
+#### Quick recap
 
-## 14.7 Accessibility (a11y)
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-React does not automatically make apps accessible — you must use semantic HTML and ARIA correctly.
+#### Connection to other chapters
 
-```jsx
-function Modal({ isOpen, onClose, title, children }) {
-  if (!isOpen) return null;
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
-    >
-      <h2 id="modal-title">{title}</h2>
-      {children}
-      <button onClick={onClose} aria-label="Close dialog">×</button>
-    </div>
-  );
-}
-```
+---
 
-### a11y checklist
+## File Exports
 
-| Item | Action |
-|------|--------|
-| Buttons | Use `<button>`, not `<div onClick>` for actions |
-| Forms | Associate `<label htmlFor>` with inputs |
-| Images | Meaningful `alt` text |
-| Focus | Visible focus styles; trap focus in modals |
-| Color | Do not rely on color alone for meaning |
+Default vs named consistency.
 
-Run [eslint-plugin-jsx-a11y](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y) in your project.
+#### Why this matters for `File Exports`
 
-## 14.8 Security
+Understanding **File Exports** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-| Risk | Mitigation |
-|------|------------|
-| XSS via `dangerouslySetInnerHTML` | Avoid or sanitize with DOMPurify |
-| Exposed API keys | Use env vars; never commit secrets |
-| Open redirects | Validate redirect URLs |
-| CSRF | Tokens for cookie auth |
+#### Quick recap
 
-```jsx
-// ❌ Never render raw user HTML without sanitization
-<div dangerouslySetInnerHTML={{ __html: userBio }} />
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-// ✅ Render text or sanitize first
-<p>{userBio}</p>
-```
+#### Connection to other chapters
 
-## 14.9 Environment variables (Vite)
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-const apiUrl = import.meta.env.VITE_API_URL;
+---
 
-// .env.local (gitignored)
-VITE_API_URL=https://api.example.com
-```
+## State Guidelines Ladder
 
-Only `VITE_` prefixed vars are exposed to client code.
+useState → lift → Context → Query → Redux.
 
-## 14.10 Error handling UX
+#### Why this matters for `State Guidelines Ladder`
 
-- Show friendly error messages, not stack traces
-- Offer retry for transient failures
-- Log errors to monitoring (Sentry, etc.)
-- Use error boundaries for unexpected render crashes
+Understanding **State Guidelines Ladder** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 14.11 Code review checklist
+#### Quick recap
 
-Before merging:
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-- [ ] Loading and error states handled
-- [ ] No console.log left in production paths
-- [ ] Accessible labels and keyboard support
-- [ ] No unnecessary re-renders (obvious cases)
-- [ ] Tests for critical user flows
-- [ ] Types or PropTypes for public components (if team uses them)
+#### Connection to other chapters
 
-## 14.12 Staying current
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-- Official docs: [react.dev](https://react.dev)
-- React RFCs and blog for upcoming features
-- Prefer function components and hooks in all new code
-- Migrate class components incrementally when touching legacy code
+---
+
+## Effects Discipline
+
+Don't sync derived state.
+
+#### Why this matters for `Effects Discipline`
+
+Understanding **Effects Discipline** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Accessibility
+
+button not div onClick; labels; alt.
+
+#### Why this matters for `Accessibility`
+
+Understanding **Accessibility** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Modal a11y
+
+role=dialog, Escape, focus trap.
+
+#### Why this matters for `Modal a11y`
+
+Understanding **Modal a11y** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Security XSS
+
+dangerouslySetInnerHTML only sanitized.
+
+#### Why this matters for `Security XSS`
+
+Understanding **Security XSS** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Env Variables Vite
+
+VITE_ prefix only.
+
+#### Why this matters for `Env Variables Vite`
+
+Understanding **Env Variables Vite** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Error UX
+
+Friendly messages, retry, Sentry.
+
+#### Why this matters for `Error UX`
+
+Understanding **Error UX** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Code Review Checklist
+
+Loading, a11y, tests.
+
+#### Why this matters for `Code Review Checklist`
+
+Understanding **Code Review Checklist** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Staying Current
+
+react.dev official docs.
+
+#### Why this matters for `Staying Current`
+
+Understanding **Staying Current** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## PropTypes and TypeScript
+
+Optional type safety.
+
+#### Why this matters for `PropTypes and TypeScript`
+
+Understanding **PropTypes and TypeScript** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 13 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice13.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice13')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 14 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice14.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice14')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 15 — Best Practices
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice15.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice15')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| div onClick | Not keyboard accessible | Use button |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: a11y in React?**
+
+Semantic HTML + ARIA; React doesn't auto-fix.
+
+---
 
 ## Exercises
 
-1. **Audit** — Review an old component for a11y issues; fix labels and roles.
-2. **Refactor** — Split a 200-line component into 3 focused components.
-3. **Env** — Move hardcoded API URL to `VITE_API_URL`.
-4. **Checklist** — Run through the code review checklist on your todo app.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Area | Guideline |
-|------|-----------|
-| Components | Small, composable, single purpose |
-| Naming | PascalCase components, `handle`/`on` events |
-| State | Colocate; escalate only when needed |
-| a11y | Semantic HTML + ARIA + keyboard |
-| Security | No raw HTML, no secrets in client |
+### Exercise 1: a11y audit ⭐
 
-## Next chapter
+**Task:** Fix labels on a form.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **a11y** | Semantic HTML |
+| **Security** | No raw user HTML |
+
+## Next Chapter
 
 Continue to [Chapter 15: Interview Preparation](./ch15-interview-prep.md).
+

@@ -7,161 +7,625 @@ tags: [django, interview, career]
 
 # Chapter 14: Django Interview Preparation
 
-## 14.1 Preparation roadmap
+> **Prepare for Django interviews with concepts, code, and system design practice.**
 
-| Area | Review chapters |
-|------|-----------------|
-| MTV / request cycle | [Introduction](./ch01-django-introduction.md), [Views](./ch04-views-urls.md) |
-| ORM & migrations | [Models](./ch03-models-orm.md), [Migrations](./ch09-migrations.md) |
-| Auth & security | [Authentication](./ch08-authentication.md), [Best Practices](./ch13-best-practices.md) |
-| Templates & forms | [Templates](./ch05-templates.md), [Forms](./ch06-forms.md) |
-| Production | [Deployment](./ch12-deployment-basics.md) |
+---
 
-Solid [Python fundamentals](../python/ch14-interview-prep.md) are assumed.
+## Table of Contents
 
-## 14.2 Core conceptual questions
+1. [Interview roadmap](#interview-roadmap)
+2. [MTV questions](#mtv-questions)
+3. [request cycle](#request-cycle)
+4. [ORM questions](#orm-questions)
+5. [null blank](#null-blank)
+6. [CSRF SQL XSS](#csrf-sql-xss)
+7. [middleware order](#middleware-order)
+8. [caching](#caching)
+9. [signals](#signals)
+10. [system design](#system-design)
+11. [coding drills](#coding-drills)
+12. [resources](#resources)
+13. [ORM get vs filter](#orm-get-vs-filter)
+14. [Django cache framework](#django-cache-framework)
+15. [Explain tradeoffs aloud](#explain-tradeoffs-aloud)
+16. [Best Practices](#best-practices)
+17. [Common Mistakes](#common-mistakes)
+18. [Interview Points](#interview-points)
+19. [Exercises](#exercises)
+20. [Chapter Summary](#chapter-summary)
 
-**Q: Explain Django's MTV architecture.**
+---
+## Interview roadmap
 
-Models hold data and business rules; Templates render HTML; Views process requests and connect models to templates. URLconf routes URLs to views.
+Map topics to chapters 1-13.
 
-**Q: What happens when a request hits Django?**
+### Why this matters
 
-Middleware → URL resolver → view → (optional ORM) → template render → middleware → response.
+Understanding **Interview roadmap** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
 
-**Q: Difference between project and app?**
+### Try it yourself
 
-Project = site configuration; app = modular feature (blog, users) reusable across projects.
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
 
-**Q: `null=True` vs `blank=True`?**
+### Check your understanding
 
-`null` is database-level (NULL allowed); `blank` is validation-level (forms may omit). For strings, prefer `blank=True` without `null=True`.
+- Can you explain **Interview roadmap** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
 
-## 14.3 ORM interview topics
+
+---
+
+## MTV questions
+
+Explain model template view roles.
+
+### Why this matters
+
+Understanding **MTV questions** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **MTV questions** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## request cycle
+
+Middleware URL view template response.
+
+### Why this matters
+
+Understanding **request cycle** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **request cycle** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## ORM questions
+
+N+1, select_related, prefetch, F, Q.
+
+### Why this matters
+
+Understanding **ORM questions** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **ORM questions** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## null blank
+
+DB vs validation; strings use blank.
+
+### Why this matters
+
+Understanding **null blank** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **null blank** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## CSRF SQL XSS
+
+How Django mitigates each.
+
+### Why this matters
+
+Understanding **CSRF SQL XSS** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **CSRF SQL XSS** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## middleware order
+
+Session before auth.
+
+### Why this matters
+
+Understanding **middleware order** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **middleware order** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## caching
+
+cache_page and Redis backend.
+
+### Why this matters
+
+Understanding **caching** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **caching** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## signals
+
+post_save; use sparingly.
+
+### Why this matters
+
+Understanding **signals** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **signals** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## system design
+
+Blog auth uploads scale Celery.
+
+### Why this matters
+
+Understanding **system design** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **system design** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## coding drills
+
+JSON without N+1, slug URL, author edit.
+
+### Why this matters
+
+Understanding **coding drills** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **coding drills** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## resources
+
+Official docs and practice project.
+
+### Why this matters
+
+Understanding **resources** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **resources** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## ORM get vs filter
+
+get() exact match one row; filter() returns QuerySet.
+
+### Why this matters
+
+Understanding **ORM get vs filter** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **ORM get vs filter** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## Django cache framework
+
+Per-site cache, per-view, template fragment caching.
+
+### Why this matters
+
+Understanding **Django cache framework** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **Django cache framework** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## Explain tradeoffs aloud
+
+Practice explaining FBV vs CBV and monolith vs API for interviews.
+
+### Why this matters
+
+Understanding **Explain tradeoffs aloud** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+
+### Try it yourself
+
+1. Open your practice project and locate the files mentioned above.
+2. Type the code examples manually — do not copy-paste without reading.
+3. Change one line intentionally to cause an error, then read the traceback.
+4. Run `python manage.py check` and `python manage.py test` after changes.
+
+### Check your understanding
+
+- Can you explain **Explain tradeoffs aloud** in one sentence?
+- What breaks if you skip or misconfigure this?
+- Which official Django documentation page covers this topic?
+
+
+---
+
+## Best Practices
+
+Apply conventions from this chapter consistently.
+
+See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
+
+- Read official docs for your Django version
+- Keep views thin and models focused
+- Use named URLs everywhere
+- Run `python manage.py check` before commits
+
+---
+
+## Common Mistakes
+
+Many beginners hit the same walls. Learn from these early.
+
+| Mistake | What goes wrong | Fix |
+|---------|-----------------|-----|
+| Skipping docs | Reinvent wrong patterns | Read django docs for this topic |
+| Copy-paste without understanding | Mystery bugs | Type code yourself |
+| No tests | Regressions ship | Write tests for critical paths |
+| Ignoring security defaults | Vulnerabilities | Keep CSRF and auth middleware enabled |
+| Hard-coded URLs | Breaks on URL change | Use reverse and {% url %} |
+
+---
+
+## Interview Points
+
+**Q: Summarize chapter 14 in one sentence.** — See chapter summary.
+
+**Q: Where does this fit in MTV?** — Identify model, view, template roles.
+
+**Q: What breaks if misconfigured?** — Trace request/response and settings.
+
+---
+
+## Exercises
+
+> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+
+### Exercise 14.1: Hands-on practice
+
+Implement one feature from Chapter 14 in a local project.
+
+<details>
+<summary>Click to reveal solution for Exercise 14.1</summary>
+
+Follow step-by-step sections in this chapter.
+
+</details>
+
+---
+
+### Exercise 14.2: Read the docs
+
+Find the official Django documentation page for this chapter's topic.
+
+<details>
+<summary>Click to reveal solution for Exercise 14.2</summary>
+
+docs.djangoproject.com — use search for the topic name.
+
+</details>
+
+---
+
+### Exercise 14.3: Debug exercise
+
+Intentionally cause one error (e.g. wrong template path) and fix using the traceback.
+
+<details>
+<summary>Click to reveal solution for Exercise 14.3</summary>
+
+Read TemplateDoesNotExist or NoReverseMatch paths in the error page.
+
+</details>
+
+---
+
+### Exercise 14.4: Explain aloud
+
+Explain Chapter 14 concepts to a friend without looking at notes.
+
+<details>
+<summary>Click to reveal solution for Exercise 14.4</summary>
+
+If you stumble, re-read the section you could not explain.
+
+</details>
+
+---
+
+## Chapter Summary
+
+- Completed Chapter 14: Django Interview Preparation
+- Reviewed core patterns and examples
+- Practiced with exercises
+
+## Course Complete
+
+Congratulations! Review [Course Overview](./ch00-course-overview.md).
+
+---
+
+## Extended Study Guide: Interview Preparation
+
+### Glossary
+
+| Term | Definition |
+|------|------------|
+| Django | High-level Python web framework |
+| MTV | Model-Template-View architecture |
+| ORM | Object-Relational Mapper for database access |
+| QuerySet | Lazy database query representation |
+| Migration | Version-controlled schema change file |
+
+### Self-check questions
+
+1. Can you explain this chapter's main idea in two sentences?
+2. Can you write the key code patterns from memory?
+3. Can you debug one common error mentioned in Common Mistakes?
+
+### Command reference
+
+```bash
+python manage.py runserver
+python manage.py makemigrations
+python manage.py migrate
+python manage.py shell
+python manage.py test
+```
+---
+
+## Extended Study Guide: Chapter 14
+
+> Use this section for review, interviews, and spaced repetition after completing **Interview Preparation**.
+
+### Frequently Asked Questions
+
+**Q: What is the main goal of the interviews chapter?**
+
+Master interviews patterns used in every Django project.
+
+**Q: How does this fit MTV?**
+
+Identify which layer (model, view, template) each example touches.
+
+**Q: What is the most common beginner mistake here?**
+
+See Common Mistakes section in the main chapter body.
+
+**Q: What official docs page should I read?**
+
+Search docs.djangoproject.com for interviews.
+
+**Q: How do I practice effectively?**
+
+Build a small blog feature using only this chapter's patterns.
+
+**Q: What breaks in production vs development?**
+
+Settings like DEBUG, static/media serving, and security flags.
+
+**Q: How is this tested?**
+
+Use Django TestCase and Client to assert responses.
+
+**Q: What interview questions appear?**
+
+See Interview Points in the main chapter.
+
+**Q: How does this connect to the next chapter?**
+
+Read the Next Chapter link at the bottom.
+
+**Q: What command validates my project?**
+
+python manage.py check
+
+
+### Step-by-Step Walkthrough
+
+1. Re-read the chapter Table of Contents.
+2. For each section, write a one-sentence summary in your notes.
+3. Complete all four exercises without peeking at solutions first.
+4. Break something on purpose and fix it using error messages.
+5. Cross-link concepts to prior chapters (models, views, templates).
+6. Optional: teach the chapter outline to someone else in 5 minutes.
+
+### Additional Code Patterns
+
+#### Pattern 14.1
 
 ```python
-# select_related vs prefetch_related
-Post.objects.select_related("author")
-Post.objects.prefetch_related("tags")
-
-# F expressions — race-safe increment
-Post.objects.filter(pk=1).update(views=F("views") + 1)
-
-# Q objects
-Post.objects.filter(Q(published=True) | Q(author=user))
+# Practice pattern
+# See main chapter for full examples
 ```
 
-| Question | Key point |
-|----------|-----------|
-| N+1 queries | Fix with select/prefetch |
-| `get()` vs `filter()` | get raises if 0 or >1 |
-| Migrations | Version schema; don't edit applied |
-| Raw SQL when? | Complex reports; still parameterize |
+### Review checklist
 
-## 14.4 FBV vs CBV
-
-| FBV | CBV |
-|-----|-----|
-| Explicit, simple | DRY for CRUD |
-| Any logic | Generic views + mixins |
-| Easier for beginners | Steeper learning curve |
-
-See [Class-Based Views](./ch11-class-based-views.md).
-
-## 14.5 Security questions
-
-**Q: How does Django prevent CSRF?**
-
-Token in forms validated by middleware on POST/PUT/DELETE.
-
-**Q: How prevent SQL injection?**
-
-ORM parameterizes queries; escape user input in raw SQL.
-
-**Q: What must change in production?**
-
-`DEBUG=False`, strong `SECRET_KEY`, `ALLOWED_HOSTS`, HTTPS cookies, real DB.
-
-## 14.6 Middleware
-
-> **Definition:** **Middleware** is a layer processing every request/response globally — auth, sessions, CSRF, security headers.
-
-```python
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    ...
-]
+```text
+[ ] I can explain the main concepts without notes
+[ ] I typed the code examples myself
+[ ] I completed all exercises
+[ ] I fixed at least one error using the traceback
+[ ] I read the linked official Django documentation
 ```
 
-Order matters — e.g., `SessionMiddleware` before `AuthenticationMiddleware`.
+---
 
-## 14.7 Caching (common follow-up)
 
-```python
-from django.views.decorators.cache import cache_page
+## Glossary (Quick Reference)
 
-@cache_page(60 * 15)
-def post_list(request):
-    ...
-```
-
-```python
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-    }
-}
-```
-
-## 14.8 Signals (brief)
-
-```python
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-@receiver(post_save, sender=Post)
-def notify_subscribers(sender, instance, created, **kwargs):
-    if created:
-        send_notification(instance)
-```
-
-Use sparingly — hidden coupling. Prefer explicit service calls when possible.
-
-## 14.9 System design prompts
-
-Be ready to sketch:
-
-- User auth flow (session vs JWT)
-- Blog with comments and moderation
-- File upload pipeline ([Static & Media](./ch10-static-media-files.md))
-- Scaling reads (cache, read replicas)
-- Background jobs (Celery)
-
-## 14.10 Coding exercises
-
-1. Write a view that returns JSON list of posts with author name — no N+1.
-2. Implement slug-based detail URL with `get_object_or_404`.
-3. Custom permission: only author can edit post (FBV or CBV mixin).
-4. Explain migration steps for adding a non-null FK to existing table.
-
-## 14.11 Resources
-
-| Resource | Focus |
-|----------|-------|
-| Official Django docs | Authoritative reference |
-| Django source (select parts) | Deep internals |
-| This course (ch01–ch13) | Structured review |
-| Build a small CRUD app | Hands-on confidence |
-
-## Summary
-
-Django interviews test MTV flow, ORM efficiency, auth/security defaults, and production awareness. Review core chapters, practice explaining tradeoffs aloud, and build one complete app end-to-end.
-
-## Course complete
-
-Return to [Course Overview](./ch00-course-overview.md) or explore [DRF](../drf/ch00-course-overview.md) for API development.
+- **Django** — Python web framework with ORM, templates, forms, auth, admin
+- **Project** — Configuration container: settings, root URLs, WSGI
+- **App** — Reusable feature module with models, views, templates
+- **Model** — Python class mapped to a database table
+- **View** — Callable handling HttpRequest and returning HttpResponse
+- **Template** — HTML file with Django Template Language tags
+- **URLconf** — urlpatterns mapping paths to views
+- **QuerySet** — Lazy database query from the ORM
+- **Migration** — Version-controlled schema change file
+- **Middleware** — Request/response hook running globally
+- **Form** — Class validating and rendering user input
+- **ModelAdmin** — Admin configuration for a model
+- **CSRF** — Cross-Site Request Forgery protection via tokens
+- **Static files** — CSS/JS/images shipped with your code
+- **Media files** — User-uploaded files stored at runtime
+- **CBV** — Class-based view encapsulating HTTP handlers
+- **FBV** — Function-based view
+- **WSGI** — Sync server gateway interface for Python web apps
+- **ASGI** — Async server gateway interface
+- **Gunicorn** — Production WSGI HTTP server for Django

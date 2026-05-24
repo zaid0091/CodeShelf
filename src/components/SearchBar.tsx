@@ -68,7 +68,10 @@ export function SearchBar({ onNavigate }: SearchBarProps) {
       </div>
 
       {hasQuery && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-lg border border-hairline-light bg-canvas-light shadow-card-light overflow-hidden max-h-80 overflow-y-auto">
+        <div
+          data-lenis-prevent
+          className="absolute top-full left-0 right-0 mt-2 z-50 rounded-lg border border-hairline-light bg-canvas-light shadow-card-light overflow-hidden max-h-80 overflow-y-auto"
+        >
           {results.length === 0 ? (
             <p className="px-5 py-4 text-caption text-shade-50">No results found.</p>
           ) : (

@@ -7,235 +7,656 @@ tags: [react, interview, preparation, questions]
 
 # Chapter 15: Interview Preparation
 
-## 15.1 How React interviews are structured
+> **You have learned the material — this chapter helps you communicate it under pressure.**
+> Take your time with each section — understanding beats speed.
 
-Typical React interview rounds:
+---
 
-| Round | Focus |
-|-------|-------|
-| Fundamentals | JSX, state, props, hooks |
-| Live coding | Component building, bug fixes |
-| Architecture | State design, performance, testing |
-| Behavioral | Teamwork, trade-offs, past projects |
+## Table of Contents
 
-Review [Chapters 1–14](./ch00-course-overview.md) and practice explaining concepts out loud.
+1. [Interview Structure](#interview-structure)
+2. [What is React — Answer](#what-is-react-answer)
+3. [JSX — Answer](#jsx-answer)
+4. [Props vs State](#props-vs-state)
+5. [Virtual DOM — Answer](#virtual-dom-answer)
+6. [useState — Answer](#usestate-answer)
+7. [useEffect — Answer](#useeffect-answer)
+8. [Hooks Rules — Answer](#hooks-rules-answer)
+9. [useRef vs useState](#useref-vs-usestate)
+10. [useMemo vs useCallback](#usememo-vs-usecallback)
+11. [Re-render Causes](#re-render-causes)
+12. [React.memo and Keys](#react-memo-and-keys)
+13. [Coding — Counter](#coding-counter)
+14. [Coding — Debounce](#coding-debounce)
+15. [Coding — Fetch List](#coding-fetch-list)
+16. [Architecture Questions](#architecture-questions)
+17. [React 18 Topics](#react-18-topics)
+18. [Testing Questions](#testing-questions)
+19. [Tricky — setState Async](#tricky-setstate-async)
+20. [System Design Frontend](#system-design-frontend)
+21. [Behavioral Tips](#behavioral-tips)
+22. [One Week Plan](#one-week-plan)
+23. [Cheat Sheet](#cheat-sheet)
+24. [Common Mistakes](#common-mistakes)
+25. [Interview Points](#interview-points)
+26. [Exercises](#exercises)
+27. [Chapter Summary](#chapter-summary)
 
-## 15.2 Core concepts Q&A
+---
 
-### What is React?
+## Interview Structure
 
-React is a JavaScript library for building UIs with a component-based, declarative model. It updates the DOM efficiently using a virtual DOM and reconciliation.
+Fundamentals, live code, architecture, behavioral.
 
-### What is JSX?
+#### Why this matters for `Interview Structure`
 
-JSX is syntax sugar for `React.createElement()`. It lets you write HTML-like markup in JavaScript, compiled to function calls.
+Understanding **Interview Structure** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### Props vs state?
+#### Quick recap
 
-| Props | State |
-|-------|-------|
-| Passed from parent | Internal to component |
-| Read-only | Updated via setter |
-| External configuration | Triggers re-render on change |
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-### What is the Virtual DOM?
+#### Connection to other chapters
 
-A lightweight in-memory representation of the UI. On state change, React diffs the new virtual tree against the previous one and applies minimal updates to the real DOM.
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-## 15.3 Hooks interview questions
+---
 
-### Explain useState
+## What is React — Answer
 
-Returns `[value, setValue]`. Updates schedule a re-render. Use functional updates when next state depends on previous.
+Library, components, declarative, virtual DOM.
 
-### Explain useEffect
+#### Why this matters for `What is React — Answer`
 
-Runs side effects after render. Dependency array controls re-runs. Return cleanup for subscriptions, timers, abort controllers.
+Understanding **What is React — Answer** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-### Why can't hooks be conditional?
+#### Quick recap
 
-React tracks hooks by call order. Conditional hooks would break the association between hook calls and state slots.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-### useRef vs useState?
+#### Connection to other chapters
 
-`useRef` updates `.current` without re-render — DOM refs, mutable values. `useState` triggers re-render when updated.
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-### When useMemo vs useCallback?
+---
 
-`useMemo` caches a **value**; `useCallback` caches a **function**. Both help when referential stability matters for memoized children.
+## JSX — Answer
 
-See [Chapter 6](./ch06-hooks-deep-dive.md).
+Syntactic sugar for createElement.
 
-## 15.4 Lifecycle and rendering
+#### Why this matters for `JSX — Answer`
 
-### What causes a re-render?
+Understanding **JSX — Answer** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-- State change in component
-- Parent re-render (prop reference change)
-- Context value change consumed by component
+#### Quick recap
 
-### What is React.memo?
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Higher-order component that skips re-render if props shallowly equal previous props.
+#### Connection to other chapters
 
-### Keys in lists — why?
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Keys identify list items across renders so React can match, add, remove, and reorder efficiently without resetting component state incorrectly.
+---
 
-## 15.5 Common coding challenges
+## Props vs State
 
-### 1. Counter with increment/decrement
+Table comparison.
 
-```jsx
-function Counter() {
-  const [count, setCount] = useState(0);
-  return (
-    <div>
-      <button onClick={() => setCount(c => c - 1)}>-</button>
-      <span>{count}</span>
-      <button onClick={() => setCount(c => c + 1)}>+</button>
-    </div>
-  );
-}
-```
+#### Why this matters for `Props vs State`
 
-### 2. Debounced search input
+Understanding **Props vs State** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```jsx
-function useDebounce(value, delay) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
-}
-```
+#### Quick recap
 
-### 3. Toggle accordion
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Track `openId` in parent; pass `isOpen` and `onToggle` to each item.
+#### Connection to other chapters
 
-### 4. Fetch and display list
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Model loading, error, and data states. Mention abort on unmount.
+---
 
-## 15.6 Architecture questions
+## Virtual DOM — Answer
 
-### How do you manage global state?
+Diff + minimal DOM updates.
 
-Start with colocated `useState`, lift when needed, Context for theme/auth, React Query for server data, Redux/Zustand only when complexity warrants it.
+#### Why this matters for `Virtual DOM — Answer`
 
-### Prop drilling — solutions?
+Understanding **Virtual DOM — Answer** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-Context, composition (children), custom hooks, or state library.
+#### Quick recap
 
-### How do you optimize performance?
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-Measure with Profiler first; then `memo`, `useMemo`, `useCallback`, code splitting, virtualization.
+#### Connection to other chapters
 
-## 15.7 React 18+ topics
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-| Feature | One-line answer |
-|---------|-----------------|
-| Concurrent rendering | Interruptible rendering for smoother UX |
-| Automatic batching | Multiple setStates batch in more scenarios |
-| `useTransition` | Mark updates as non-urgent |
-| `useDeferredValue` | Defer updating derived expensive UI |
-| Strict Mode double effects | Dev-only stress test for cleanup |
+---
 
-## 15.8 Testing questions
+## useState — Answer
 
-### How do you test React components?
+Tuple; functional updates.
 
-React Testing Library — render component, query by role/label, simulate user events, assert visible outcomes. Mock network at boundary.
+#### Why this matters for `useState — Answer`
 
-### What not to test?
+Understanding **useState — Answer** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-Implementation details, internal state, third-party library internals.
+#### Quick recap
 
-See [Chapter 13](./ch13-testing.md).
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 15.9 Tricky questions
+#### Connection to other chapters
 
-### setState is async — what does that mean?
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-Updates are batched and applied before next paint. Reading state immediately after `setState` may show old value — use functional updater or `useEffect` to react to new state.
+---
 
-### Index as key — when is it OK?
+## useEffect — Answer
 
-Static lists that never reorder, filter, or insert in the middle. Prefer stable ids otherwise.
+Side effects; deps; cleanup.
 
-### Controlled vs uncontrolled?
+#### Why this matters for `useEffect — Answer`
 
-Controlled: React owns value via state. Uncontrolled: DOM owns value; read with ref.
+Understanding **useEffect — Answer** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 15.10 System design (frontend)
+#### Quick recap
 
-Be ready to discuss:
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-- Folder structure for a medium SPA
-- Auth flow (token storage, refresh, protected routes)
-- Caching strategy with React Query
-- Error boundaries and fallback UI
-- Code splitting by route
+#### Connection to other chapters
 
-```text
-Example: "Design a product listing page"
-→ Route + React Query for paginated fetch
-→ Skeleton loading, error retry
-→ Filter state in URL search params
-→ Memoized ProductCard list
-→ Lazy-loaded detail modal
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-## 15.11 Behavioral tips
+---
 
-- Explain **trade-offs**, not just one solution
-- Mention **accessibility** and **error handling** unprompted
-- Walk through your **thinking** during live coding
-- Ask clarifying questions before coding
+## Hooks Rules — Answer
 
-## 15.12 Practice plan (1 week)
+Top level; React functions only.
 
-| Day | Activity |
-|-----|----------|
-| 1 | Review Ch 1–4; rebuild counter + todo without notes |
-| 2 | Review Ch 5–7; explain useEffect and Context aloud |
-| 3 | Review Ch 8–10; sketch routed app with fetch |
-| 4 | Review Ch 11–13; memo exercise + one RTL test |
-| 5 | Mock interview: 2 coding + 5 conceptual questions |
-| 6 | Review this chapter; weak areas from mock |
-| 7 | Light review; rest before real interview |
+#### Why this matters for `Hooks Rules — Answer`
 
-## 15.13 Quick reference cheat sheet
+Understanding **Hooks Rules — Answer** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```text
-Hooks:     useState, useEffect, useContext, useRef, useMemo, useCallback
-Routing:   BrowserRouter, Routes, Route, Link, useParams, useNavigate
-Data:      fetch + loading/error/data OR useQuery/useMutation
-Forms:     Controlled value + onChange; validate on submit
-Lists:     map + stable key
-Perf:      Profiler → memo, lazy, Suspense
-Test:      RTL + userEvent + getByRole
-```
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useRef vs useState
+
+Re-render difference.
+
+#### Why this matters for `useRef vs useState`
+
+Understanding **useRef vs useState** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## useMemo vs useCallback
+
+Value vs function cache.
+
+#### Why this matters for `useMemo vs useCallback`
+
+Understanding **useMemo vs useCallback** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Re-render Causes
+
+State, props, parent, context.
+
+#### Why this matters for `Re-render Causes`
+
+Understanding **Re-render Causes** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## React.memo and Keys
+
+Perf + list identity.
+
+#### Why this matters for `React.memo and Keys`
+
+Understanding **React.memo and Keys** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Coding — Counter
+
+Reference solution.
+
+#### Why this matters for `Coding — Counter`
+
+Understanding **Coding — Counter** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Coding — Debounce
+
+useDebounce hook.
+
+#### Why this matters for `Coding — Debounce`
+
+Understanding **Coding — Debounce** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Coding — Fetch List
+
+loading error data.
+
+#### Why this matters for `Coding — Fetch List`
+
+Understanding **Coding — Fetch List** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Architecture Questions
+
+Global state layers.
+
+#### Why this matters for `Architecture Questions`
+
+Understanding **Architecture Questions** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## React 18 Topics
+
+Batching, transitions, concurrent.
+
+#### Why this matters for `React 18 Topics`
+
+Understanding **React 18 Topics** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Testing Questions
+
+RTL approach.
+
+#### Why this matters for `Testing Questions`
+
+Understanding **Testing Questions** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Tricky — setState Async
+
+Batching; functional updater.
+
+#### Why this matters for `Tricky — setState Async`
+
+Understanding **Tricky — setState Async** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## System Design Frontend
+
+Product page sketch.
+
+#### Why this matters for `System Design Frontend`
+
+Understanding **System Design Frontend** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Behavioral Tips
+
+Trade-offs, a11y, think aloud.
+
+#### Why this matters for `Behavioral Tips`
+
+Understanding **Behavioral Tips** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## One Week Plan
+
+Day-by-day review table.
+
+#### Why this matters for `One Week Plan`
+
+Understanding **One Week Plan** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Cheat Sheet
+
+Hooks routing data forms.
+
+#### Why this matters for `Cheat Sheet`
+
+Understanding **Cheat Sheet** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Interview Preparation
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Interview Preparation
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Interview Preparation
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Interview Preparation
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Interview Preparation
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| Memorizing without building | Freeze in live code | Build todos weekly |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: Explain reconciliation?**
+
+Virtual DOM diff; keys help list matching.
+
+---
 
 ## Exercises
 
-1. **Mock interview** — Record yourself answering "Explain useEffect" in under 2 minutes.
-2. **Live code** — Implement debounced search against a public API in 25 minutes.
-3. **Whiteboard** — Draw component tree for an e-commerce checkout flow.
-4. **Flashcards** — Write 20 Q&A cards from sections 15.2–15.9.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Preparation | Action |
-|-------------|--------|
-| Concepts | Props, state, hooks, rendering model |
-| Coding | Counter, lists, fetch, forms |
-| Architecture | State layers, Context, React Query |
-| Soft skills | Trade-offs, clarity, a11y awareness |
+### Exercise 1: Mock interview ⭐
 
-## Course complete
+**Task:** Record 2min useEffect answer.
 
-Congratulations on finishing the React course! Return to the [Course Overview](./ch00-course-overview.md) for the full chapter index, or revisit any chapter for deeper study.
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **Practice** | Build + explain aloud |
+
+## Next Chapter
+
+Continue to [Course Overview](./ch00-course-overview.md).
+

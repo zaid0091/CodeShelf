@@ -1,11 +1,38 @@
 ---
 title: Chapter 10 — Modules and Config
-description: ES modules in TypeScript, import/export patterns, path aliases, and tsconfig.json essentials.
+description: ES modules, imports/exports, path aliases, tsconfig.json, and project references.
 order: 10
 tags: [typescript, modules, tsconfig, imports]
 ---
 
+
 # Chapter 10: Modules and Config
+
+> **Modules organize code; tsconfig controls the compiler. This chapter connects both for real projects.**
+> Take your time with each section. TypeScript rewards patience — read compiler errors carefully and experiment in a small project as you go.
+
+---
+
+
+## Table of Contents
+
+1. [ES Modules](#es-modules)
+2. [Named and Default Exports](#named-and-default-exports)
+3. [import type](#import-type)
+4. [Path Aliases](#path-aliases)
+5. [Barrel Files](#barrel-files)
+6. [tsconfig Structure](#tsconfig-structure)
+7. [strict Options](#strict-options)
+8. [Project References](#project-references)
+9. [Ambient Declarations](#ambient-declarations)
+10. [package.json types](#packagejson-types)
+11. [Vite + TS](#vite-ts)
+12. [Best Practices](#best-practices)
+13. [Interview Points](#interview-points)
+14. [Exercises](#exercises)
+15. [Chapter Summary](#chapter-summary)
+
+---
 
 ## 10.1 Modules in TypeScript
 
@@ -254,25 +281,524 @@ Vite uses esbuild for transpile; `tsc --noEmit` for type-check:
 ```
 
 > **Key takeaway:** Modules organize code; tsconfig aligns compiler with runtime. Treat tsconfig as team contract — review changes in PRs.
+<!-- codeshelf:generated-appendix -->
 
-## Practice Exercise — Chapter 10
+---
+
+## Monorepo layout
 
 ```text
-Exercise 10.1: Split modules
-  a) Create models/user.ts, services/userService.ts, index.ts barrel.
-  b) Import from app.ts with type-only imports where appropriate.
-
-Exercise 10.2: tsconfig
-  a) Enable strict + noUncheckedIndexedAccess.
-  b) Fix resulting errors in a small array-access example.
-
-Exercise 10.3: Path alias
-  a) Configure @/* → src/*.
-  b) Move a helper to src/lib/format.ts and import via @/lib/format.
-
-Exercise 10.4: Declaration file
-  a) Stub types for fictional untyped npm package "csv-magic".
-  b) Import and use in typed wrapper function.
+packages/
+  api/          ← tsconfig, src
+  web/          ← references api types
+  shared-types/ ← shared interfaces
 ```
 
-Next: [Chapter 11 — Async TypeScript](./ch11-async-typescript.md).
+Use **project references** so `tsc -b` builds in dependency order.
+
+---
+
+## Module graph — mental model
+
+```text
+app.ts  ──imports──►  user.ts
+   │                      │
+   └──imports──►  types.ts (import type only)
+```
+
+Keep **value imports** for functions/classes and **`import type`** for types to help bundlers tree-shake and avoid circular value dependencies.
+
+---
+
+## tsconfig layers
+
+| File | Purpose |
+|------|---------|
+| `tsconfig.json` | Root; may reference subprojects |
+| `tsconfig.app.json` | App source only |
+| `tsconfig.node.json` | Vite config, scripts |
+
+Split configs so editor and CI only check relevant files.
+
+---
+
+## tsconfig strict family
+
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true
+  }
+}
+```
+
+
+---
+
+## ESM import/export
+
+
+```typescript
+// math.ts
+export function add(a: number, b: number) { return a + b; }
+export default function pi() { return 3.14; }
+
+// app.ts
+import pi, { add } from "./math.js";
+import type { SomeType } from "./types.js";
+```
+
+
+---
+
+## Path aliases
+
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
+  }
+}
+```
+
+
+---
+
+## Ambient declarations
+
+
+```typescript
+declare module "*.css" {
+  const classes: { readonly [key: string]: string };
+  export default classes;
+}
+```
+
+
+---
+
+## import type
+
+
+```typescript
+import type { User } from "./models.js";
+```
+
+
+---
+
+## NodeNext resolution
+
+
+For Node ESM, use `"module": "NodeNext"` and include `.js` extensions in import specifiers.
+
+
+---
+
+## Declaration files
+
+
+Publish `declaration: true` for libraries so consumers get `.d.ts` files.
+
+
+---
+
+## Definition — Module
+
+> **Definition:** **Module** — A file that exports values/types and imports from other files — ES modules are the standard.
+
+
+---
+
+## tsconfig strict family
+
+
+| Flag | Benefit |
+|------|---------|
+| `strictNullChecks` | Catches null/undefined bugs |
+| `noImplicitAny` | Forces explicit types |
+| `noUncheckedIndexedAccess` | Indexing may be undefined |
+
+
+---
+
+## Barrel file caution
+
+
+`index.ts` re-exports can create circular imports. Prefer direct imports in large codebases.
+
+
+---
+
+## Vite + TypeScript
+
+
+Vite transpiles fast; run `tsc --noEmit` in CI for full type-checking.
+
+
+---
+
+## package.json types field
+
+
+```json
+{
+  "name": "my-lib",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } }
+}
+```
+
+
+---
+
+## include / exclude
+
+
+```json
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}
+```
+
+
+---
+
+## Review Q1
+
+**Q:** Why `.js` in import paths with NodeNext? **A:** Node ESM resolves the emitted file extension at runtime.
+
+---
+
+## Review Q2
+
+**Q:** What is `skipLibCheck`? **A:** Skips type-checking of declaration files — faster builds, fewer third-party errors.
+
+---
+
+## Review Q3
+
+**Q:** `isolatedModules`? **A:** Ensures each file can transpile alone — required by Babel/esbuild.
+
+---
+
+## Scenario — library package
+
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true
+  },
+  "include": ["src"]
+}
+```
+
+Publish only `dist/` — consumers import types from `.d.ts` files.
+
+
+---
+
+## Scenario — ambient shims
+
+
+```typescript
+// global.d.ts
+declare const __APP_VERSION__: string;
+
+// vite.config defines __APP_VERSION__ at build time
+```
+
+
+---
+
+## Best Practices
+
+- ✅ Use `import type` for type-only imports (erased, helps bundlers).
+- ✅ One tsconfig per package in monorepos; use project references.
+
+---
+
+## Common Mistakes
+
+Watch for these patterns — they cost hours in real projects.
+
+### Mistake 1: Barrel file cycles
+
+index.ts re-exports causing circular imports
+
+Import from concrete modules.
+
+---
+
+### Mistake 2: Wrong moduleResolution
+
+Cannot find module in Node ESM
+
+Set NodeNext or bundler per tool.
+
+---
+
+## Interview Points
+
+> **📌 Interview Point 1: What is moduleResolution?**
+
+How TS resolves import paths.
+
+---
+
+> **📌 Interview Point 2: import type vs import?**
+
+type-only imports elided from JS emit.
+
+---
+
+## Exercises
+
+Practice with `npx tsc --noEmit` after each exercise.
+
+### Exercise 10.1: Split modules ⭐
+
+**Task:** Move utils to separate file and import.
+
+<details><summary>💡 Hint</summary>
+
+named exports.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+// utils.ts
+export function clamp(n: number, min: number, max: number) { return Math.min(max, Math.max(min, n)); }
+// app.ts
+import { clamp } from "./utils.js";
+```
+
+</details>
+
+---
+
+### Exercise 10.2: Path alias ⭐⭐
+
+**Task:** Configure @/* paths.
+
+<details><summary>💡 Hint</summary>
+
+paths in tsconfig.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
+  }
+}
+```
+
+</details>
+
+---
+
+### Exercise 10.3: declare module ⭐⭐⭐
+
+**Task:** Ambient module for .css imports.
+
+<details><summary>💡 Hint</summary>
+
+shims.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+declare module "*.css" {
+  const classes: { readonly [key: string]: string };
+  export default classes;
+}
+```
+
+</details>
+
+---
+
+### Exercise 10.4: strict flags ⭐⭐
+
+**Task:** Document 5 strict flags in tsconfig.
+
+<details><summary>💡 Hint</summary>
+
+strict family.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
+  }
+}
+```
+
+</details>
+
+---
+
+### Exercise 10.5: type-only import ⭐⭐⭐
+
+**Task:** Refactor to import type.
+
+<details><summary>💡 Hint</summary>
+
+isolatedModules friendly.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+import type { User } from "./models.js";
+```
+
+</details>
+
+---
+
+### Exercise 10.6: Vite config ⭐⭐
+
+**Task:** Align moduleResolution bundler.
+
+<details><summary>💡 Hint</summary>
+
+Chapter tooling.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "ESNext"
+  }
+}
+```
+
+</details>
+
+---
+
+## Chapter Summary
+
+You covered a lot in this chapter. Here is a concise recap:
+
+- ES modules are standard; tsconfig must match your runtime/bundler.
+- Path aliases improve imports.
+
+---
+
+---
+
+## Navigation
+
+**⬅️ [Previous: Enums and Literals](./ch09-enums-and-literals.md)**  
+**➡️ [Next: Async TypeScript](./ch11-async-typescript.md)**
+
+---
+## Quick glossary (review)
+
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+
+*Last updated: 2025 | TypeScript course — CodeShelf*
+
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*

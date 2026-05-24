@@ -7,259 +7,646 @@ tags: [react, testing, vitest, testing-library, rtl]
 
 # Chapter 13: Testing
 
-## 13.1 Why test React apps?
+> **Test what users see — not internal hook order.**
+> Take your time with each section — understanding beats speed.
 
-Tests catch regressions, document behavior, and enable confident refactors.
+---
 
-> **Definition:** **React Testing Library (RTL)** encourages tests that resemble how users interact with your app — queries by role, label, and text rather than implementation details.
+## Table of Contents
 
-### Testing pyramid for React
+1. [Why Test React](#why-test-react)
+2. [Testing Pyramid](#testing-pyramid)
+3. [Vitest + RTL Setup](#vitest-rtl-setup)
+4. [First Test](#first-test)
+5. [Query Priority](#query-priority)
+6. [get query find variants](#get-query-find-variants)
+7. [userEvent](#userevent)
+8. [Form Testing](#form-testing)
+9. [Mock fetch](#mock-fetch)
+10. [renderWithProviders](#renderwithproviders)
+11. [renderHook](#renderhook)
+12. [What NOT to Test](#what-not-to-test)
+13. [Coverage in CI](#coverage-in-ci)
+14. [Common Mistakes](#common-mistakes)
+15. [Interview Points](#interview-points)
+16. [Exercises](#exercises)
+17. [Chapter Summary](#chapter-summary)
 
-| Layer | Tool | Focus |
-|-------|------|-------|
-| Unit | Vitest/Jest | Pure functions, hooks |
-| Component | RTL | User-visible behavior |
-| E2E | Playwright, Cypress | Full flows in browser |
+---
 
-This chapter focuses on **component tests** with Vitest + RTL (Vite default).
+## Why Test React
 
-## 13.2 Setup
+Regression safety and documentation.
 
-Vite React template with Vitest:
+#### Why this matters for `Why Test React`
 
-```bash
-npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
-```
+Understanding **Why Test React** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-```js
-// vite.config.js
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+#### Quick recap
 
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.js',
-  },
-});
-```
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-```js
-// src/test/setup.js
-import '@testing-library/jest-dom';
-```
+#### Connection to other chapters
 
-```json
-// package.json scripts
-"test": "vitest",
-"test:run": "vitest run"
-```
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-## 13.3 First component test
+---
 
-```jsx
-// Counter.jsx
-import { useState } from 'react';
+## Testing Pyramid
 
-export function Counter() {
-  const [count, setCount] = useState(0);
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(c => c + 1)}>Increment</button>
-    </div>
-  );
-}
-```
+Unit, component, E2E.
 
-```jsx
-// Counter.test.jsx
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect } from 'vitest';
-import { Counter } from './Counter.jsx';
+#### Why this matters for `Testing Pyramid`
 
-describe('Counter', () => {
-  it('increments count when button clicked', async () => {
-    const user = userEvent.setup();
-    render(<Counter />);
+Understanding **Testing Pyramid** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-    expect(screen.getByText('Count: 0')).toBeInTheDocument();
+#### Quick recap
 
-    await user.click(screen.getByRole('button', { name: /increment/i }));
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-    expect(screen.getByText('Count: 1')).toBeInTheDocument();
-  });
-});
-```
+#### Connection to other chapters
 
-## 13.4 Query priority
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-RTL recommends accessible queries:
+---
 
-| Priority | Query | Example |
-|----------|-------|---------|
-| 1 | `getByRole` | `getByRole('button', { name: 'Submit' })` |
-| 2 | `getByLabelText` | `getByLabelText('Email')` |
-| 3 | `getByPlaceholderText` | `getByPlaceholderText('Search...')` |
-| 4 | `getByText` | `getByText('Welcome')` |
-| 5 | `getByTestId` | Last resort — `getByTestId('custom-widget')` |
+## Vitest + RTL Setup
 
-### Query variants
+jsdom, setupFiles.
 
-| Method | Behavior |
-|--------|----------|
-| `getBy*` | Throws if not found |
-| `queryBy*` | Returns null if not found |
-| `findBy*` | Async — waits for element |
+#### Why this matters for `Vitest + RTL Setup`
 
-```jsx
-expect(screen.queryByText('Error')).not.toBeInTheDocument();
-await screen.findByText('Loaded');
-```
+Understanding **Vitest + RTL Setup** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-## 13.5 Testing forms
+#### Quick recap
 
-```jsx
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { LoginForm } from './LoginForm.jsx';
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-it('submits email and password', async () => {
-  const user = userEvent.setup();
-  const onSubmit = vi.fn();
+#### Connection to other chapters
 
-  render(<LoginForm onSubmit={onSubmit} />);
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  await user.type(screen.getByLabelText(/email/i), 'alice@example.com');
-  await user.type(screen.getByLabelText(/password/i), 'secret123');
-  await user.click(screen.getByRole('button', { name: /log in/i }));
+---
 
-  expect(onSubmit).toHaveBeenCalledWith({
-    email: 'alice@example.com',
-    password: 'secret123',
-  });
-});
-```
+## First Test
 
-## 13.6 Mocking fetch
+Counter click increments text.
 
-```jsx
-import { render, screen, waitFor } from '@testing-library/react';
-import { UserList } from './UserList.jsx';
+#### Why this matters for `First Test`
 
-beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn());
-});
+Understanding **First Test** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+#### Quick recap
 
-it('renders users from API', async () => {
-  fetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => [{ id: 1, name: 'Alice' }],
-  });
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-  render(<UserList />);
+#### Connection to other chapters
 
-  expect(screen.getByText(/loading/i)).toBeInTheDocument();
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-  await waitFor(() => {
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-  });
-});
-```
+---
 
-## 13.7 Testing with providers
+## Query Priority
 
-Wrap components that need Context or Router:
+getByRole > label > text > testId.
 
-```jsx
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from '../context/ThemeContext.jsx';
+#### Why this matters for `Query Priority`
 
-function renderWithProviders(ui) {
-  return render(
-    <BrowserRouter>
-      <ThemeProvider>
-        {ui}
-      </ThemeProvider>
-    </BrowserRouter>
-  );
-}
+Understanding **Query Priority** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-it('navigates to about', async () => {
-  const user = userEvent.setup();
-  renderWithProviders(<App />);
-  await user.click(screen.getByRole('link', { name: /about/i }));
-  expect(screen.getByRole('heading', { name: /about us/i })).toBeInTheDocument();
-});
-```
+#### Quick recap
 
-Extract `renderWithProviders` to `src/test/utils.jsx` for reuse.
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-## 13.8 Testing hooks
+#### Connection to other chapters
 
-Use `@testing-library/react` `renderHook`:
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```jsx
-import { renderHook, act } from '@testing-library/react';
-import { useCounter } from './useCounter.js';
+---
 
-it('increments counter', () => {
-  const { result } = renderHook(() => useCounter());
+## get query find variants
 
-  act(() => result.current.increment());
+Sync vs async.
 
-  expect(result.current.count).toBe(1);
-});
-```
+#### Why this matters for `get query find variants`
 
-## 13.9 What NOT to test
+Understanding **get query find variants** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
 
-| Avoid | Prefer |
-|-------|--------|
-| Internal state directly | Visible outcome |
-| Implementation (which hook) | User behavior |
-| Third-party library internals | Your integration |
-| Snapshot-only tests | Meaningful assertions |
+#### Quick recap
 
-```jsx
-// ❌ Testing state variable
-expect(component.state.count).toBe(1);
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
 
-// ✅ Testing what user sees
-expect(screen.getByText('Count: 1')).toBeInTheDocument();
-```
+#### Connection to other chapters
 
-## 13.10 Coverage and CI
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
 
-```bash
-npm run test:run -- --coverage
-```
+---
 
-Run tests in CI on every pull request. Aim for meaningful coverage on critical paths, not 100% for its own sake.
+## userEvent
+
+Realistic typing and click.
+
+#### Why this matters for `userEvent`
+
+Understanding **userEvent** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Form Testing
+
+onSubmit assertion.
+
+#### Why this matters for `Form Testing`
+
+Understanding **Form Testing** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Mock fetch
+
+vi.stubGlobal fetch.
+
+#### Why this matters for `Mock fetch`
+
+Understanding **Mock fetch** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## renderWithProviders
+
+Router + Context wrapper.
+
+#### Why this matters for `renderWithProviders`
+
+Understanding **renderWithProviders** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## renderHook
+
+Test custom hooks.
+
+#### Why this matters for `renderHook`
+
+Understanding **renderHook** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## What NOT to Test
+
+Implementation details.
+
+#### Why this matters for `What NOT to Test`
+
+Understanding **What NOT to Test** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+## Coverage in CI
+
+Meaningful paths not 100% chase.
+
+#### Why this matters for `Coverage in CI`
+
+Understanding **Coverage in CI** helps you avoid bugs that are hard to debug later. In interviews, you should be able to explain the idea in one or two sentences and show a minimal code example.
+
+#### Quick recap
+
+- Re-read the code sample above and type it yourself in a Vite React app.
+- Change one line at a time and observe what breaks in the browser or terminal.
+- Use React DevTools to see how parent and child components connect.
+
+#### Connection to other chapters
+
+This topic builds on earlier JavaScript skills (variables, functions, arrays, async) and connects to later React chapters. Keep a running notes file of patterns you reuse across projects.
+
+---
+
+
+## Extended Practice 1 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice1.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice1')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 2 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice2.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice2')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 3 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice3.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice3')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 4 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice4.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice4')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 5 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice5.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice5')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 6 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice6.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice6')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 7 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice7.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice7')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 8 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice8.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice8')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 9 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice9.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice9')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 10 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice10.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice10')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 11 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice11.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice11')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 12 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice12.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice12')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 13 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice13.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice13')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 14 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice14.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice14')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+
+## Extended Practice 15 — Testing
+
+Apply one idea from this chapter in isolation:
+
+1. Create `Practice15.jsx` in your Vite `src/` folder.
+2. Import it from `App.jsx` and render it.
+3. Add a `console.log('render Practice15')` at the top of the component function.
+4. Change props or state and watch the console — notice when React re-renders.
+5. Open React DevTools → Components and find your practice component.
+
+**Reflection questions:**
+
+- What was the smallest working example you could build?
+- What error did you hit first when experimenting?
+- How would you explain this topic to someone who only knows JavaScript?
+
+**Stretch goal:** Combine this practice with one concept from the previous chapter and one hook or pattern you already know.
+
+---
+## Common Mistakes
+
+| Mistake | Why it breaks | Fix |
+|---------|---------------|-----|
+| Testing state directly | Brittle | Assert DOM text |
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: RTL philosophy?**
+
+Query like users do.
+
+---
 
 ## Exercises
 
-1. **Button** — Test disabled state and click handler.
-2. **Form validation** — Assert error messages appear for invalid email.
-3. **Async list** — Mock fetch; test loading → success and loading → error.
-4. **Router** — Test navigation between two routes with RTL.
+Practice by building small pieces in a Vite React app. Try each exercise before opening solutions.
 
-## Summary
+---
 
-| Topic | Key point |
-|-------|-----------|
-| RTL | Test like a user |
-| Queries | Prefer `getByRole`, `getByLabelText` |
-| `userEvent` | Realistic interactions |
-| Providers | Wrap Context/Router in tests |
-| Mock fetch | Stub global `fetch` with Vitest |
+### Exercise 1: Button test ⭐
 
-## Next chapter
+**Task:** Click calls handler.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+Build the solution in your Vite project and compare with examples in this chapter.
+
+</details>
+
+---
+
+## Chapter Summary
+
+| Concept | Takeaway |
+|---------|----------|
+| **RTL** | User-centric tests |
+
+## Next Chapter
 
 Continue to [Chapter 14: Best Practices](./ch14-best-practices.md).
+

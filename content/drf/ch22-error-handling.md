@@ -1,5 +1,5 @@
 ---
-title: Chapter 22 — Error Handling
+title: Error Handling
 description: Custom DRF exception handlers for consistent API error responses
 order: 22
 tags: [drf, errors, exceptions, api-design]
@@ -7,104 +7,594 @@ tags: [drf, errors, exceptions, api-design]
 
 # Chapter 22: Error Handling
 
-By default, DRF returns errors in its own shape (`{"detail": "..."}` or field-keyed dicts). A **custom exception handler** wraps every error in a consistent envelope for frontends and mobile clients.
-
-## Definitions
-
-| Term | Meaning |
-|------|---------|
-| **Exception handler** | Callable registered in `REST_FRAMEWORK['EXCEPTION_HANDLER']` that converts exceptions into `Response` objects. |
-| **context** | Dict passed to the handler with `view` and `request` — useful for logging. |
-| **exception_handler** | DRF's built-in function that maps known exceptions to HTTP status codes. |
+> **Welcome!** This chapter covers **Exception handling** in Django REST Framework with beginner-friendly explanations.
 
 ---
 
-## 22.1 Custom Exception Handler
+## Table of Contents
 
-### Handler implementation
+1. [Introduction to Exception handling](#intro-exception-handling)
+2. [Core concepts](#core-exception-handling)
+3. [Step-by-step example](#example-exception-handling)
+4. [HTTP and curl examples](#curl-exception-handling)
+5. [Configuration in settings.py](#settings-exception-handling)
+6. [Advanced patterns](#advanced-exception-handling)
+7. [Testing this feature](#testing-exception-handling)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
+
+---
+
+## Introduction to Exception handling
+
+> **Definition:** **Exception handling** — a key part of building production-ready APIs with Django REST Framework.
+
+
+
+You should already know Django models, views, and URLs. Here we apply those ideas to **Exception handling**.
 
 ```python
-# books/exceptions.py
+# models.py — example domain for this chapter
+from django.db import models
 
-from rest_framework.views import exception_handler
-from rest_framework.response import Response
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)
+    def __str__(self):
+        return self.name
+```
+---
 
-    if response is not None:
-        custom_data = {
-            'success': False,
-            'status_code': response.status_code,
-            'errors': response.data
-        }
-        response.data = custom_data
-    else:
-        response = Response({
-            'success': False,
-            'status_code': 500,
-            'errors': {'detail': 'Internal server error'}
-        }, status=500)
+### Exception handling — Mental Model
 
-    return response
+When learning **Exception handling**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
 ```
 
-### Register in settings
+### Exception handling — Step By Step Flow
+
+When learning **Exception handling**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Exception handling — Comparison Table
+
+When learning **Exception handling**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Exception handling — Real World Analogy
+
+When learning **Exception handling**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Exception handling — Security Angle
+
+When learning **Exception handling**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Exception handling — Testing Angle
+
+When learning **Exception handling**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Exception handling — Production Tip
+
+When learning **Exception handling**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Exception handling — Debugging Checklist
+
+When learning **Exception handling**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Exception handling
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
 
 ```python
-# config/settings.py
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/exception-handling/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/exception-handling/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/exception-handling/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/exception-handling/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/exception-handling/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+---
+
+## Configuration in settings.py
+
+```python
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'books.exceptions.custom_exception_handler',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
 }
 ```
 
-### Example responses
+Tune defaults for **Exception handling** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
-**Validation error (400):**
+---
 
-```json
-{
-    "success": false,
-    "status_code": 400,
-    "errors": {
-        "title": ["This field is required."]
-    }
-}
+## Advanced patterns
+
+Combine **Exception handling** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
+
+```python
+from rest_framework.test import APITestCase
+
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/exception-handling/')
+        self.assertEqual(response.status_code, 200)
 ```
 
-**Not found (404):**
+---
 
-```json
-{
-    "success": false,
-    "status_code": 404,
-    "errors": {
-        "detail": "Not found."
-    }
-}
+## Deep dive 1: Exception handling in practice
+
+Scenario 1: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=1 \
+  -H "Content-Type: application/json"
 ```
 
-**Unhandled exception (500):**
 
-```json
-{
-    "success": false,
-    "status_code": 500,
-    "errors": {
-        "detail": "Internal server error"
-    }
-}
+---
+
+## Deep dive 2: Exception handling in practice
+
+Scenario 2: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=2 \
+  -H "Content-Type: application/json"
 ```
 
-### How it works
 
-1. Your view raises or returns an error (e.g. `serializer.is_valid(raise_exception=True)`).
-2. DRF calls `exception_handler(exc, context)` first — maps `ValidationError`, `NotFound`, `PermissionDenied`, etc.
-3. If it returns a `Response`, you reshape `response.data`.
-4. If it returns `None` (unknown exception), you return a generic 500 envelope.
+---
 
-### Interview points
+## Deep dive 3: Exception handling in practice
 
-- Always call DRF's `exception_handler` first — do not reimplement status code logic.
-- Log `exc` and `context` in the `else` branch for debugging (without exposing stack traces to clients).
-- Pair with `DEBUG = False` in production so Django does not leak tracebacks.
+Scenario 3: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Exception handling in practice
+
+Scenario 4: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Exception handling in practice
+
+Scenario 5: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Exception handling in practice
+
+Scenario 6: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Exception handling in practice
+
+Scenario 7: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Exception handling in practice
+
+Scenario 8: A mobile app consumes your **Exception handling** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/exception-handling/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Exception handling docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Exception handling in DRF?
+
+It is part of the request/response pipeline for Exception handling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Exception handling in DRF?
+
+It is part of the request/response pipeline for Exception handling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Exception handling in DRF?
+
+It is part of the request/response pipeline for Exception handling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Exception handling in DRF?
+
+It is part of the request/response pipeline for Exception handling.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Exception handling.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Exception handling in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
+
+```text
+✅ Understood the role of Exception handling in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
+```
+
+**➡️ [Next →](./ch23-api-documentation.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

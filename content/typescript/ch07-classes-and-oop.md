@@ -1,11 +1,37 @@
 ---
 title: Chapter 7 — Classes and OOP
-description: TypeScript classes, access modifiers, readonly, static members, abstract classes, and implements.
+description: Classes, access modifiers, readonly, static, abstract classes, and implements.
 order: 7
 tags: [typescript, classes, oop, abstract, implements]
 ---
 
+
 # Chapter 7: Classes and OOP
+
+> **TypeScript adds types to JavaScript classes — modifiers, abstract members, and interfaces implemented by classes.**
+> Take your time with each section. TypeScript rewards patience — read compiler errors carefully and experiment in a small project as you go.
+
+---
+
+
+## Table of Contents
+
+1. [Class Basics](#class-basics)
+2. [Parameter Properties](#parameter-properties)
+3. [Access Modifiers](#access-modifiers)
+4. [readonly](#readonly)
+5. [static Members](#static-members)
+6. [Inheritance](#inheritance)
+7. [override](#override)
+8. [Abstract Classes](#abstract-classes)
+9. [implements](#implements)
+10. [Getters and Setters](#getters-and-setters)
+11. [Best Practices](#best-practices)
+12. [Interview Points](#interview-points)
+13. [Exercises](#exercises)
+14. [Chapter Summary](#chapter-summary)
+
+---
 
 ## 7.1 Classes in TypeScript
 
@@ -304,26 +330,475 @@ Regular methods passed as callbacks may lose `this` — bind in constructor or u
 | Deep inheritance trees | Prefer interfaces + functions |
 
 > **Key takeaway:** TypeScript classes add visibility, abstract members, and interface implementation to JavaScript classes. Use them when encapsulation and shared behavior matter; use interfaces for shape-only contracts.
+<!-- codeshelf:generated-appendix -->
 
-## Practice Exercise — Chapter 7
+---
 
-```text
-Exercise 7.1: Payment model
-  a) Abstract class PaymentMethod with abstract charge(amount: number): Promise<boolean>.
-  b) Implement CreditCard and PayPal subclasses.
-  c) Shared method formatAmount on base class.
+## Class design — when to use classes
 
-Exercise 7.2: Access control
-  a) Class Vault with private secret, public getHint(): string.
-  b) Attempt external access — confirm compile error.
+Use classes when you have **state + behavior** that belong together:
 
-Exercise 7.3: implements
-  a) Interface Validatable { validate(): string[] } (error messages).
-  b) Class SignupForm implements Validatable with email/password fields.
+```typescript
+class ShoppingCart {
+  private items: { sku: string; qty: number }[] = [];
 
-Exercise 7.4: Generic repository
-  a) Abstract CRUDRepository<T extends { id: string }>.
-  b) Concrete MemoryRepository<T> with Map storage.
+  add(sku: string, qty: number) {
+    this.items.push({ sku, qty });
+  }
+
+  totalItems(): number {
+    return this.items.reduce((sum, i) => sum + i.qty, 0);
+  }
+}
 ```
 
-Next: [Chapter 8 — Type Narrowing](./ch08-type-narrowing.md).
+For plain data shapes, prefer `interface` + functions.
+
+---
+
+## implements vs extends
+
+- **`extends`** — inherit implementation from a parent class.
+- **`implements`** — promise your class matches an interface shape.
+
+```typescript
+interface Serializable { toJSON(): object }
+
+class User implements Serializable {
+  constructor(public name: string) {}
+  toJSON() { return { name: this.name }; }
+}
+```
+
+---
+
+## Access modifiers — visibility
+
+
+| Modifier | Class | Subclass | External |
+|----------|-------|----------|----------|
+| public | yes | yes | yes |
+| protected | yes | yes | no |
+| private | yes | no | no |
+| # private field | yes | no | no |
+
+
+---
+
+## Abstract class pattern
+
+
+```typescript
+abstract class Repository<T extends { id: string }> {
+  abstract findById(id: string): Promise<T | null>;
+  abstract save(entity: T): Promise<void>;
+}
+```
+
+
+---
+
+## Parameter properties
+
+
+```typescript
+class Point {
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+  ) {}
+}
+```
+
+
+---
+
+## implements vs extends
+
+
+```typescript
+interface Serializable {
+  toJSON(): object;
+}
+
+class User implements Serializable {
+  constructor(public name: string) {}
+  toJSON() { return { name: this.name }; }
+}
+```
+
+
+---
+
+## override keyword
+
+
+```typescript
+class Animal {
+  speak(): string { return "..."; }
+}
+class Dog extends Animal {
+  override speak(): string { return "woof"; }
+}
+```
+
+
+---
+
+## Static factory methods
+
+
+```typescript
+class User {
+  private constructor(public id: string, public name: string) {}
+  static create(name: string): User {
+    return new User(crypto.randomUUID(), name);
+  }
+}
+```
+
+
+---
+
+## Protected members
+
+
+Use `protected` when subclasses need access but external code should not.
+
+
+---
+
+## Class vs interface
+
+
+| Use | Choice |
+|-----|--------|
+| Data only | `interface` |
+| Behavior + state | `class` |
+| Contract for class | `implements` |
+
+
+---
+
+## Definition — Encapsulation
+
+> **Definition:** **Encapsulation** — Hiding internal state so outside code cannot put the object in an invalid state.
+
+
+---
+
+## Class diagram — simple hierarchy
+
+
+```text
+        Animal
+           │
+           ├── Dog
+           └── Cat
+```
+
+```typescript
+abstract class Animal {
+  abstract speak(): string;
+}
+class Dog extends Animal {
+  override speak() { return "woof"; }
+}
+```
+
+
+---
+
+## When not to use classes
+
+
+Prefer functions + interfaces when you only transform data. Use classes when you manage lifecycle and invariants (connections, caches, game entities).
+
+
+---
+
+## Interface for test doubles
+
+
+```typescript
+interface Clock { now(): Date }
+class SystemClock implements Clock { now() { return new Date(); } }
+class FakeClock implements Clock { constructor(private t: Date) {} now() { return this.t; } }
+```
+
+
+---
+
+## Review Q1
+
+**Q:** `private` vs `#private`? **A:** `private` is compile-time only; `#` is true runtime privacy.
+
+---
+
+## Review Q2
+
+**Q:** When use `abstract`? **A:** When subclasses must implement specific methods but you share base logic.
+
+---
+
+## Scenario — domain model
+
+
+```typescript
+abstract class Entity {
+  constructor(public readonly id: string) {}
+  abstract validate(): string[];
+}
+
+class Order extends Entity {
+  constructor(
+    id: string,
+    public readonly totalCents: number,
+    public readonly lines: { sku: string; qty: number }[],
+  ) {
+    super(id);
+  }
+
+  validate() {
+    const errors: string[] = [];
+    if (this.totalCents < 0) errors.push("Negative total");
+    if (this.lines.length === 0) errors.push("Empty order");
+    return errors;
+  }
+}
+```
+
+
+---
+
+## Best Practices
+
+- ✅ Prefer composition over deep inheritance trees.
+- ✅ Use `implements` to document contracts; classes for behavior with state.
+
+---
+
+## Common Mistakes
+
+Watch for these patterns — they cost hours in real projects.
+
+### Mistake 1: public everything
+
+All fields public by default habit
+
+Mark internal state `private`.
+
+---
+
+### Mistake 2: Arrow vs method in React
+
+Wrong `this` in class components
+
+Use arrow fields or bind in constructor.
+
+---
+
+## Interview Points
+
+> **📌 Interview Point 1: abstract vs interface?**
+
+abstract can have implementation; interface is shape only.
+
+---
+
+> **📌 Interview Point 2: private vs #?**
+
+private is compile-time; # is runtime private field.
+
+---
+
+## Exercises
+
+Practice with `npx tsc --noEmit` after each exercise.
+
+### Exercise 7.1: User class ⭐
+
+**Task:** Class with constructor and method.
+
+<details><summary>💡 Hint</summary>
+
+Basics.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+class User {
+  constructor(public name: string) {}
+  greet() { return `Hi, ${this.name}`; }
+}
+```
+
+</details>
+
+---
+
+### Exercise 7.2: Abstract repo ⭐⭐
+
+**Task:** Abstract Repository<T> with save/find.
+
+<details><summary>💡 Hint</summary>
+
+Abstract pattern.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+abstract class Repository<T extends { id: string }> {
+  abstract findById(id: string): Promise<T | null>;
+  abstract save(entity: T): Promise<void>;
+}
+```
+
+</details>
+
+---
+
+### Exercise 7.3: implements ⭐⭐⭐
+
+**Task:** Logger implements interface.
+
+<details><summary>💡 Hint</summary>
+
+Contract.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+interface Logger { log(msg: string): void }
+class ConsoleLogger implements Logger {
+  log(msg: string) { console.log(msg); }
+}
+```
+
+</details>
+
+---
+
+### Exercise 7.4: override ⭐⭐
+
+**Task:** Subclass override with keyword.
+
+<details><summary>💡 Hint</summary>
+
+TS 4.3+.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+class Animal { speak() { return "..."; } }
+class Dog extends Animal {
+  override speak() { return "woof"; }
+}
+```
+
+</details>
+
+---
+
+### Exercise 7.5: static util ⭐⭐⭐
+
+**Task:** MathUtils static methods.
+
+<details><summary>💡 Hint</summary>
+
+static keyword.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+class MathUtils {
+  static clamp(n: number, min: number, max: number) {
+    return Math.min(max, Math.max(min, n));
+  }
+}
+```
+
+</details>
+
+---
+
+### Exercise 7.6: Generic Queue ⭐⭐
+
+**Task:** Queue<T> class.
+
+<details><summary>💡 Hint</summary>
+
+Generic class.
+
+</details>
+
+<details><summary>✅ Solution (click to reveal)</summary>
+
+```typescript
+class Queue<T> {
+  private items: T[] = [];
+  enqueue(item: T) { this.items.push(item); }
+  dequeue(): T | undefined { return this.items.shift(); }
+}
+```
+
+</details>
+
+---
+
+## Chapter Summary
+
+You covered a lot in this chapter. Here is a concise recap:
+
+- Classes type OOP in TS; modifiers control visibility.
+- Abstract classes template shared behavior.
+
+---
+
+---
+
+## Navigation
+
+**⬅️ [Previous: Utility Types](./ch06-utility-types.md)**  
+**➡️ [Next: Type Narrowing](./ch08-type-narrowing.md)**
+
+---
+## Quick glossary (review)
+
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+- **Narrowing** — Refining a union to a specific type in a branch.
+- **Generic** — Type parameter for reusable APIs.
+- **Interface** — Named object shape contract.
+- **Utility type** — Built-in type transformer like `Partial`.
+- **Strict mode** — Bundle of safer compiler flags in tsconfig.
+- **Type erasure** — Types removed in emitted JavaScript.
+- **Declaration file** — `.d.ts` describing types for JS modules.
+- **TypeScript** — Typed superset of JavaScript that compiles to JS.
+- **Inference** — Compiler deduces types without explicit annotations.
+- **Union** — Value may be one of several types: `A | B`.
+
+*Last updated: 2025 | TypeScript course — CodeShelf*
+
+*Found an error or have a suggestion? [Open an issue on GitHub](https://github.com/zaid0091/CodeShelf/issues)*

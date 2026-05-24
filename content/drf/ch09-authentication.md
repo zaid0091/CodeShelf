@@ -7,228 +7,594 @@ tags: [drf, authentication, security]
 
 # Chapter 9: Authentication
 
-## 9.1 What is Authentication?
+> **Welcome!** This chapter covers **Authentication classes** in Django REST Framework with beginner-friendly explanations.
 
-```text
+---
 
-Authentication = "WHO are you?"
+## Table of Contents
 
-Real-world analogy:
-You walk into an office building.
-The security guard asks: "Can I see your ID card?"
-You show your ID → The guard now knows WHO you are.
-This is Authentication.
+1. [Introduction to Authentication classes](#intro-authentication-classes)
+2. [Core concepts](#core-authentication-classes)
+3. [Step-by-step example](#example-authentication-classes)
+4. [HTTP and curl examples](#curl-authentication-classes)
+5. [Configuration in settings.py](#settings-authentication-classes)
+6. [Advanced patterns](#advanced-authentication-classes)
+7. [Testing this feature](#testing-authentication-classes)
+8. [Common Mistakes](#common-mistakes)
+9. [Interview Points](#interview-points)
+10. [Exercises](#exercises)
+11. [Chapter Summary](#chapter-summary)
 
-In API terms:
-The client sends a request with credentials (token, username/password).
-DRF checks those credentials and identifies the user.
+---
 
-Authentication is NOT the same as Authorization:
+## Introduction to Authentication classes
 
-Authentication = WHO are you? → "I am John"
-Authorization  = WHAT can you do? → "John can read, but cannot delete"
+> **Definition:** **Authentication classes** — a key part of building production-ready APIs with Django REST Framework.
 
-Authentication → Chapter 9 (this chapter)
-Authorization  → Chapter 10 (Permissions)
-```
 
-## 9.2 DRF Authentication Types
 
-```text
-
-┌─────────────────────────────────────────────────────────────┐
-│                  AUTHENTICATION TYPES                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. Session Authentication                                   │
-│     How: Browser cookies                                     │
-│     Good for: Web apps with Django templates                │
-│     Not for: Mobile apps, third-party APIs                  │
-│                                                              │
-│  2. Basic Authentication                                     │
-│     How: Username:password in every request (Base64 encoded)│
-│     Good for: Testing, internal tools                       │
-│     Not for: Production (password sent every time!)         │
-│                                                              │
-│  3. Token Authentication                                     │
-│     How: Permanent token stored in database                 │
-│     Good for: Simple API authentication                     │
-│     Not for: High-security apps (token never expires)       │
-│                                                              │
-│  4. JWT Authentication (BEST for most APIs)                  │
-│     How: Access token (short-lived) + Refresh token          │
-│     Good for: Mobile apps, SPAs, microservices              │
-│     Industry standard for modern APIs                        │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 9.3 Token Authentication (Built-in)
-
-Step 1: Setup
+You should already know Django models, views, and URLs. Here we apply those ideas to **Authentication classes**.
 
 ```python
+# models.py — example domain for this chapter
+from django.db import models
 
-# config/settings.py
+class Book(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-INSTALLED_APPS = [
-    # ...
-    'rest_framework',
-    'rest_framework.authtoken',  # ← ADD THIS for token auth
-    'books',
-]
+    def __str__(self):
+        return self.name
+```
+---
 
+### Authentication classes — Mental Model
+
+When learning **Authentication classes**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Step By Step Flow
+
+When learning **Authentication classes**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Comparison Table
+
+When learning **Authentication classes**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Real World Analogy
+
+When learning **Authentication classes**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Security Angle
+
+When learning **Authentication classes**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Testing Angle
+
+When learning **Authentication classes**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Production Tip
+
+When learning **Authentication classes**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Authentication classes — Debugging Checklist
+
+When learning **Authentication classes**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Authentication classes
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Step-by-step example
+
+We build a minimal end-to-end flow: model → serializer → view → URL → test with curl.
+
+```python
+# serializers.py
+from rest_framework import serializers
+from .models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Book
+from .serializers import BookSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+```
+---
+
+## HTTP and curl examples
+
+Test every endpoint from the terminal before wiring the frontend.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X POST http://127.0.0.1:8000/api/authentication-classes/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Example"}'
+```
+
+
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+```bash
+# 
+curl -X PATCH http://127.0.0.1:8000/api/authentication-classes/1/ \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated"}'
+```
+
+
+
+```bash
+# 
+curl -X DELETE http://127.0.0.1:8000/api/authentication-classes/1/ \
+  -H "Content-Type: application/json"
+```
+
+
+
+---
+
+## Configuration in settings.py
+
+```python
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
 ```
 
-```bash
+Tune defaults for **Authentication classes** in `REST_FRAMEWORK` so you do not repeat settings on every view.
 
-# Create the token table
-python manage.py migrate
-Step 2: Create Login/Logout Views
+---
 
-```
+## Advanced patterns
+
+Combine **Authentication classes** with permissions, filtering, and pagination from other chapters.
+
+Override hooks like `get_queryset()`, `perform_create()`, or serializer `validate()` for business rules.
+
+---
+
+## Testing this feature
 
 ```python
+from rest_framework.test import APITestCase
 
-# books/views.py
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
-
-@api_view(['POST'])
-@permission_classes([AllowAny])  # Anyone can try to login
-def login_view(request):
-    """
-    POST /api/login/
-    Body: {"username": "john", "password": "secret123"}
-    
-    Returns a token that the client uses for future requests.
-    """
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    # Validate input
-    if not username or not password:
-        return Response(
-            {'error': 'Please provide both username and password'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Authenticate user (checks username + password)
-    user = authenticate(username=username, password=password)
-    
-    if user is not None:
-        # Create token if it doesn't exist, or get existing one
-        token, created = Token.objects.get_or_create(user=user)
-        
-        return Response({
-            'token': token.key,
-            'user_id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'message': 'Login successful!'
-        }, status=status.HTTP_200_OK)
-    else:
-        return Response(
-            {'error': 'Invalid username or password'},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Must be logged in to logout
-def logout_view(request):
-    """
-    POST /api/logout/
-    Header: Authorization: Token abc123...
-    
-    Deletes the user's token, forcing them to login again.
-    """
-    # Delete the token
-    request.user.auth_token.delete()
-    
-    return Response(
-        {'message': 'Logged out successfully'},
-        status=status.HTTP_200_OK
-    )
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def profile_view(request):
-    """
-    GET /api/profile/
-    Header: Authorization: Token abc123...
-    
-    Returns the current user's profile.
-    """
-    user = request.user
-    return Response({
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'is_staff': user.is_staff,
-        'date_joined': user.date_joined,
-    })
-Step 3: URLs
-
-# books/urls.py
-
-urlpatterns = [
-    # Authentication endpoints
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('profile/', views.profile_view, name='profile'),
-    
-    # API endpoints
-    path('', include(router.urls)),
-]
-Step 4: How clients use tokens
-
+class BookTests(APITestCase):
+    def test_list(self):
+        response = self.client.get('/api/authentication-classes/')
+        self.assertEqual(response.status_code, 200)
 ```
+
+---
+
+## Deep dive 1: Authentication classes in practice
+
+Scenario 1: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
 
 ```bash
-
-# 1. Login to get token
-curl -X POST http://127.0.0.1:8000/api/login/ \
-  -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "admin123"}'
-
-# Response:
-# {"token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b", 
-#  "username": "admin", ...}
-
-# 2. Use token in ALL future requests
-curl http://127.0.0.1:8000/api/books/ \
-  -H "Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
-
-# 3. Logout (delete token)
-curl -X POST http://127.0.0.1:8000/api/logout/ \
-  -H "Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+# Pagination example 1
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=1 \
+  -H "Content-Type: application/json"
 ```
 
-How Token Authentication works internally:
+
+---
+
+## Deep dive 2: Authentication classes in practice
+
+Scenario 2: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 2
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=2 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 3: Authentication classes in practice
+
+Scenario 3: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 3
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=3 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 4: Authentication classes in practice
+
+Scenario 4: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 4
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=4 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 5: Authentication classes in practice
+
+Scenario 5: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 5
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=5 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 6: Authentication classes in practice
+
+Scenario 6: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 6
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=6 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 7: Authentication classes in practice
+
+Scenario 7: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 7
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=7 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Deep dive 8: Authentication classes in practice
+
+Scenario 8: A mobile app consumes your **Authentication classes** endpoint. Document expected request headers, pagination query params, and error JSON shape.
+
+| Scenario | Expected status |
+| --- | --- |
+| Valid create | 201 |
+| Missing required field | 400 |
+| Not found | 404 |
+| Not allowed | 403 |
+
+
+
+```bash
+# Pagination example 8
+curl -X GET http://127.0.0.1:8000/api/authentication-classes/?page=8 \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ Skipping Authentication classes docs
+
+Document behavior in OpenAPI (Chapter 23).
+
+### ❌ Fat views
+
+Keep views thin; put validation in serializers.
+
+### ❌ Wrong HTTP method
+
+Match REST verbs to actions.
+
+### ❌ No authentication on write endpoints
+
+Use `IsAuthenticated` for creates/updates.
+
+### ❌ Returning 200 for everything
+
+Use precise status codes.
+
+## Interview Points
+
+### Q: What is Authentication classes in DRF?
+
+It is part of the request/response pipeline for Authentication classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Authentication classes in DRF?
+
+It is part of the request/response pipeline for Authentication classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Authentication classes in DRF?
+
+It is part of the request/response pipeline for Authentication classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+### Q: What is Authentication classes in DRF?
+
+It is part of the request/response pipeline for Authentication classes.
+
+### Q: How does it interact with serializers?
+
+Serializers validate and shape data; views orchestrate.
+
+### Q: How do you debug failures?
+
+Check status code, `response.data`, Django logs, and query count.
+
+## Exercises
+
+### Exercise 1
+
+Implement a minimal `Book` API using Authentication classes.
+
+### Exercise 2
+
+Write curl commands for list, create, update, delete.
+
+### Exercise 3
+
+Add a test with `APITestCase`.
+
+### Exercise 4
+
+List three ways this chapter's topic improves security or UX.
+
+### Exercise 5
+
+Break one rule on purpose and document the error response.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Understood the role of Authentication classes in DRF
+- Built model → serializer → view flow
+- Practiced curl and status codes
+- Avoided common beginner mistakes
+
+### Key rules
 
 ```text
-
-1. Client sends: Authorization: Token abc123xyz
-
-2. DRF TokenAuthentication:
-   a. Reads the header
-   b. Extracts "abc123xyz"
-   c. Looks up in Token table: Token.objects.get(key="abc123xyz")
-   d. If found → request.user = token.user (the User object)
-   e. If not found → returns 401 Unauthorized
-
-3. Now in your view, request.user is the authenticated user!
+✅ Understood the role of Authentication classes in DRF
+✅ Built model → serializer → view flow
+✅ Practiced curl and status codes
+✅ Avoided common beginner mistakes
 ```
+
+**➡️ [Next →](./ch10-permissions.md)**
+
+---
+
+*Last updated: 2025 | Django REST Framework Course*

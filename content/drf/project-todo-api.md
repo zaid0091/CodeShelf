@@ -5,146 +5,349 @@ order: 26
 tags: [drf, project, todo, viewset]
 ---
 
-# Project 1: Todo API
+# Project 1 — Todo API
 
-A per-user todo API demonstrating **ModelViewSet**, **owner scoping**, **filtering/search/ordering**, and **custom `@action` endpoints**.
-
-## Features
-
-| Feature | Implementation |
-|---------|----------------|
-| CRUD todos | `ModelViewSet` |
-| User isolation | `get_queryset()` filters by `owner` |
-| Filter by status/priority | `DjangoFilterBackend` |
-| Search title/description | `SearchFilter` |
-| Pending list | `@action(detail=False)` |
-| Toggle complete | `@action(detail=True, methods=['post'])` |
+> **Welcome!** Hands-on project: **Project 1 — Todo API**. Build it step by step after Chapters 1–20.
 
 ---
 
-## models.py
+## Table of Contents
+
+1. [Project overview](#project-overview)
+2. [Requirements](#requirements)
+3. [Project setup](#project-setup)
+4. [Models](#models)
+5. [Serializers](#serializers)
+6. [Views and URLs](#views-and-urls)
+7. [Authentication](#authentication)
+8. [Testing with curl](#testing-with-curl)
+9. [Common Mistakes](#common-mistakes)
+10. [Interview Points](#interview-points)
+11. [Exercises](#exercises)
+12. [Summary](#summary)
+
+---
+
+## Project overview
+
+Build a complete **Project 1 — Todo API** using DRF best practices.
+
+Features:
+- CRUD todos
+- Owner scoping
+- Filters and search
+- Custom actions
+
+---
+
+### Project 1 — Todo API — Mental Model
+
+When learning **Project 1 — Todo API**, think about the **mental model**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-1/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Step By Step Flow
+
+When learning **Project 1 — Todo API**, think about the **step-by-step flow**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-2/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Comparison Table
+
+When learning **Project 1 — Todo API**, think about the **comparison table**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-3/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Real World Analogy
+
+When learning **Project 1 — Todo API**, think about the **real-world analogy**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-4/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Security Angle
+
+When learning **Project 1 — Todo API**, think about the **security angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-5/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Testing Angle
+
+When learning **Project 1 — Todo API**, think about the **testing angle**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-6/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Production Tip
+
+When learning **Project 1 — Todo API**, think about the **production tip**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-7/ \
+  -H "Content-Type: application/json"
+```
+
+### Project 1 — Todo API — Debugging Checklist
+
+When learning **Project 1 — Todo API**, think about the **debugging checklist**. In DRF, every request passes through URL routing, authentication, permissions, throttling, parsers, the view, serializers, renderers, and finally the HTTP response. Misunderstanding one layer often looks like a bug in another — always trace the full pipeline.
+
+| Check | Question to ask |
+| --- | --- |
+| Request | What HTTP method and URL am I using? |
+| Auth | Is the user identified (`request.user`)? |
+| Permissions | Does this user have rights for this action? |
+| Data | Is the JSON body valid for the serializer? |
+| Response | Is the status code correct (201 for create, 204 for delete)? |
+
+```bash
+# Example read for Project 1 — Todo API
+curl -X GET http://127.0.0.1:8000/api/example-8/ \
+  -H "Content-Type: application/json"
+```
+
+## Models
 
 ```python
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
-class Todo(models.Model):
+class ProjectModel(models.Model):
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    is_completed = models.BooleanField(default=False)
-    priority = models.CharField(
-        max_length=10,
-        choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')],
-        default='medium'
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='%(class)s_items',
     )
-    due_date = models.DateField(null=True, blank=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='todos')
     created_at = models.DateTimeField(auto_now_add=True)
+```
+---
 
-    def __str__(self):
-        return self.title
+## Milestone 1
+
+Implement feature slice 1 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 2
+
+Implement feature slice 2 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 3
+
+Implement feature slice 3 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 4
+
+Implement feature slice 4 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 5
+
+Implement feature slice 5 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 6
+
+Implement feature slice 6 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 7
+
+Implement feature slice 7 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Milestone 8
+
+Implement feature slice 8 for Project 1 — Todo API. Run migrations and test with curl.
+
+```bash
+# 
+curl -X GET http://127.0.0.1:8000/api/project-todo-api/ \
+  -H "Content-Type: application/json"
+```
+
+
+---
+
+## Common Mistakes
+
+### ❌ No owner scoping
+
+Filter querysets by `request.user`.
+
+## Interview Points
+
+### Q: How would you deploy this?
+
+Gunicorn + Postgres + Redis cache (Chapter 24).
+
+## Exercises
+
+### Exercise 1
+
+Add filtering to Project 1 — Todo API.
+
+### Exercise 2
+
+Write 5 APITestCase tests.
+
+### Exercise 3
+
+Add JWT auth.
+
+<details>
+<summary>Sample answers (check after you try)</summary>
+
+Answers vary by design; focus on RESTful URLs, correct HTTP verbs, and DRF patterns from this chapter.
+
+</details>
+
+## Chapter Summary
+
+- Completed Project 1 — Todo API architecture
+
+### Key rules
+
+```text
+✅ Completed Project 1 — Todo API architecture
 ```
 
 ---
 
-## serializers.py
-
-```python
-from rest_framework import serializers
-from .models import Todo
-
-class TodoSerializer(serializers.ModelSerializer):
-    is_overdue = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Todo
-        fields = '__all__'
-        read_only_fields = ['owner']
-
-    def get_is_overdue(self, obj):
-        from datetime import date
-        if obj.due_date and not obj.is_completed:
-            return obj.due_date < date.today()
-        return False
-```
-
----
-
-## views.py
-
-```python
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
-
-from .models import Todo
-from .serializers import TodoSerializer
-
-class TodoViewSet(viewsets.ModelViewSet):
-    serializer_class = TodoSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['is_completed', 'priority']
-    search_fields = ['title', 'description']
-    ordering_fields = ['created_at', 'due_date', 'priority']
-
-    def get_queryset(self):
-        return Todo.objects.filter(owner=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-    @action(detail=False, methods=['get'])
-    def pending(self, request):
-        todos = self.get_queryset().filter(is_completed=False)
-        serializer = self.get_serializer(todos, many=True)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=['post'])
-    def toggle(self, request, pk=None):
-        todo = self.get_object()
-        todo.is_completed = not todo.is_completed
-        todo.save()
-        return Response(self.get_serializer(todo).data)
-```
-
----
-
-## urls.py
-
-```python
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import TodoViewSet
-
-router = DefaultRouter()
-router.register('todos', TodoViewSet, basename='todo')
-
-urlpatterns = [
-    path('', include(router.urls)),
-]
-```
-
----
-
-## API endpoints
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/todos/` | List user's todos |
-| POST | `/api/todos/` | Create todo |
-| GET | `/api/todos/{id}/` | Retrieve todo |
-| PUT/PATCH | `/api/todos/{id}/` | Update todo |
-| DELETE | `/api/todos/{id}/` | Delete todo |
-| GET | `/api/todos/pending/` | Incomplete todos |
-| POST | `/api/todos/{id}/toggle/` | Toggle `is_completed` |
-
-### Example queries
-
-```
-GET /api/todos/?is_completed=false&priority=high
-GET /api/todos/?search=meeting&ordering=-due_date
-```
+*Last updated: 2025 | Django REST Framework Course*

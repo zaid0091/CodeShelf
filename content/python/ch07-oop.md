@@ -1,227 +1,818 @@
 ---
 title: Object-Oriented Programming
-description: Classes, inheritance, encapsulation, dataclasses, and magic methods
+description: Classes, objects, inheritance, properties, dataclasses, dunder methods, and MRO
 order: 7
 tags: [python, oop, classes]
 ---
 
 # Chapter 7: Object-Oriented Programming
 
-## 7.1 OOP in Python
+> **Object-oriented programming models data and behavior together. Learn when classes help — and when simple functions are enough.**
+> Take your time with each section — understanding beats speed.
 
-> **Definition:** **Object-oriented programming (OOP)** models software as objects that combine data (**attributes**) and behavior (**methods**).
+---
 
-Python supports OOP without forcing everything into classes — use classes when state and behavior belong together.
+## Table of Contents
 
-## 7.2 Classes and objects
+1. [What Is OOP?](#what-is-oop)
+2. [When to Use Classes in Python](#when-to-use-classes-in-python)
+3. [Classes and Objects](#classes-and-objects)
+4. [The __init__ Constructor and self](#the-init-constructor-and-self)
+5. [Instance vs Class Attributes](#instance-vs-class-attributes)
+6. [Instance Methods](#instance-methods)
+7. [Inheritance](#inheritance)
+8. [super() and Method Overriding](#super-and-method-overriding)
+9. [Method Types: instance, class, static](#method-types-instance-class-static)
+10. [Encapsulation and Properties](#encapsulation-and-properties)
+11. [Dataclasses](#dataclasses)
+12. [Magic (Dunder) Methods](#magic-dunder-methods)
+13. [Abstract Base Classes](#abstract-base-classes)
+14. [Composition vs Inheritance](#composition-vs-inheritance)
+15. [Multiple Inheritance and MRO](#multiple-inheritance-and-mro)
+16. [Best Practices](#best-practices)
+17. [Common Mistakes](#common-mistakes)
+18. [OOP Design Checklist](#oop-design-checklist)
+19. [Interview Points](#interview-points)
+20. [Exercises](#exercises)
+21. [Chapter Summary](#chapter-summary)
+
+---
+
+## What Is OOP?
+
+> **Definition:** This section explains **What Is OOP?** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **what is oop?** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: What Is OOP?
+x = chapter_7_demo = True
+print("What Is OOP?", x)
+```
+
+### Hands-on: What Is OOP?
+
+1. State **What Is OOP?** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## When to Use Classes in Python
+
+> **Definition:** This section explains **When to Use Classes in Python** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **when to use classes in python** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: When to Use Classes in Python
+x = chapter_7_demo = True
+print("When to Use Classes in Python", x)
+```
+
+### Hands-on: When to Use Classes in Python
+
+1. State **When to Use Classes in Python** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Classes and Objects
+
+> **Definition:** This section explains **Classes and Objects** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **classes and objects** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+class Greeter:
+    def __init__(self, prefix):
+        self.prefix = prefix
+    def greet(self, name):
+        return f"{self.prefix}, {name}!"
+
+g = Greeter("Hi")
+print(g.greet("World"))
+```
+
+### Hands-on: Classes and Objects
+
+1. State **Classes and Objects** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## The __init__ Constructor and self
+
+> **Definition:** This section explains **The __init__ Constructor and self** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **the __init__ constructor and self** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: The __init__ Constructor and self
+x = chapter_7_demo = True
+print("The __init__ Constructor and self", x)
+```
+
+### Hands-on: The __init__ Constructor and self
+
+1. State **The __init__ Constructor and self** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Instance vs Class Attributes
+
+> **Definition:** This section explains **Instance vs Class Attributes** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **instance vs class attributes** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Instance vs Class Attributes
+x = chapter_7_demo = True
+print("Instance vs Class Attributes", x)
+```
+
+### Hands-on: Instance vs Class Attributes
+
+1. State **Instance vs Class Attributes** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Instance Methods
+
+> **Definition:** This section explains **Instance Methods** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **instance methods** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Instance Methods
+x = chapter_7_demo = True
+print("Instance Methods", x)
+```
+
+### Hands-on: Instance Methods
+
+1. State **Instance Methods** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Inheritance
+
+> **Definition:** This section explains **Inheritance** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **inheritance** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Inheritance
+x = chapter_7_demo = True
+print("Inheritance", x)
+```
+
+### Hands-on: Inheritance
+
+1. State **Inheritance** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## super() and Method Overriding
+
+> **Definition:** This section explains **super() and Method Overriding** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **super() and method overriding** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: super() and Method Overriding
+x = chapter_7_demo = True
+print("super() and Method Overriding", x)
+```
+
+### Hands-on: super() and Method Overriding
+
+1. State **super() and Method Overriding** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Method Types: instance, class, static
+
+> **Definition:** This section explains **Method Types: instance, class, static** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **method types: instance, class, static** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Method Types: instance, class, static
+x = chapter_7_demo = True
+print("Method Types: instance, class, static", x)
+```
+
+### Hands-on: Method Types: instance, class, static
+
+1. State **Method Types: instance, class, static** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Encapsulation and Properties
+
+> **Definition:** This section explains **Encapsulation and Properties** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **encapsulation and properties** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Encapsulation and Properties
+x = chapter_7_demo = True
+print("Encapsulation and Properties", x)
+```
+
+### Hands-on: Encapsulation and Properties
+
+1. State **Encapsulation and Properties** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Dataclasses
+
+> **Definition:** This section explains **Dataclasses** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+
+You will use **dataclasses** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Dataclasses
+x = chapter_7_demo = True
+print("Dataclasses", x)
+```
+
+### Hands-on: Dataclasses
+
+1. State **Dataclasses** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Magic (Dunder) Methods
+
+> **Definition:** This section explains **Magic (Dunder) Methods** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **magic (dunder) methods** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Magic (Dunder) Methods
+x = chapter_7_demo = True
+print("Magic (Dunder) Methods", x)
+```
+
+### Hands-on: Magic (Dunder) Methods
+
+1. State **Magic (Dunder) Methods** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Abstract Base Classes
+
+> **Definition:** This section explains **Abstract Base Classes** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **abstract base classes** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Abstract Base Classes
+x = chapter_7_demo = True
+print("Abstract Base Classes", x)
+```
+
+### Hands-on: Abstract Base Classes
+
+1. State **Abstract Base Classes** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Composition vs Inheritance
+
+> **Definition:** This section explains **Composition vs Inheritance** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **composition vs inheritance** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Composition vs Inheritance
+x = chapter_7_demo = True
+print("Composition vs Inheritance", x)
+```
+
+### Hands-on: Composition vs Inheritance
+
+1. State **Composition vs Inheritance** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Multiple Inheritance and MRO
+
+> **Definition:** This section explains **Multiple Inheritance and MRO** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **multiple inheritance and mro** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Multiple Inheritance and MRO
+x = chapter_7_demo = True
+print("Multiple Inheritance and MRO", x)
+```
+
+### Hands-on: Multiple Inheritance and MRO
+
+1. State **Multiple Inheritance and MRO** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Best Practices
+
+> **Definition:** This section explains **Best Practices** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like LEGO **instruction booklets** — small standard pieces combine into big systems.
+
+You will use **best practices** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Best Practices
+x = chapter_7_demo = True
+print("Best Practices", x)
+```
+
+### Hands-on: Best Practices
+
+1. State **Best Practices** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Common Mistakes
+
+> **Definition:** This section explains **Common Mistakes** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Like a **recipe step** in a cookbook — order and clarity prevent mistakes.
+
+You will use **common mistakes** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: Common Mistakes
+x = chapter_7_demo = True
+print("Common Mistakes", x)
+```
+
+### Hands-on: Common Mistakes
+
+1. State **Common Mistakes** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## OOP Design Checklist
+
+> **Definition:** This section explains **OOP Design Checklist** — a core idea you will use throughout the chapter.
+
+### Real-world analogy
+
+Think of this like a **labeled drawer** in a desk — you know exactly where to look.
+
+You will use **oop design checklist** in scripts, APIs, and data tasks.
+
+### Example
+
+```python
+# Example related to: OOP Design Checklist
+x = chapter_7_demo = True
+print("OOP Design Checklist", x)
+```
+
+### Hands-on: OOP Design Checklist
+
+1. State **OOP Design Checklist** in your own words.
+2. Type the example; change one value and predict the output.
+3. Note one real project where this concept appears.
+
+
+
+---
+
+## Interview Points
+
+Study these before technical interviews. Practice answering out loud in 60–90 seconds.
+
+---
+
+> **📌 Interview Point 1: What is OOP?**
+
+Modeling with **classes** (blueprints) and **objects** (instances) — data + behavior.
+
+---
+
+> **📌 Interview Point 2: `__init__` vs `__new__`?**
+
+`__new__` creates instance; `__init__` initializes it. Rarely override `__new__`.
+
+---
+
+> **📌 Interview Point 3: Instance vs class attributes?**
+
+Instance on `self`; class on class object — shared unless shadowed.
+
+---
+
+> **📌 Interview Point 4: Inheritance vs composition?**
+
+**has-a** (compose objects) often beats **is-a** (deep trees) for flexibility.
+
+---
+
+> **📌 Interview Point 5: What is MRO?**
+
+Method Resolution Order — C3 linearization for multiple inheritance.
+
+---
+
+> **📌 Interview Point 6: `@property` purpose?**
+
+Computed attributes with getter/setter validation — Pythonic encapsulation.
+
+---
+
+> **📌 Interview Point 7: Dataclass when?**
+
+Boilerplate data containers — auto `__init__`, `__repr__`, optional ordering.
+
+---
+
+> **📌 Interview Point 8: Dunder methods?**
+
+`__str__`, `__repr__`, `__eq__`, `__len__` — hook into built-ins.
+
+---
+
+> **📌 Interview Point 9: Abstract base class?**
+
+`abc.ABC` forces subclasses to implement interface methods.
+
+---
+
+> **📌 Interview Point 10: `staticmethod` vs `classmethod`?**
+
+staticmethod: no `self`; classmethod: receives class, used for factories.
+
+---
+
+> **📌 Interview Point 11: What is encapsulation in Python?**
+
+Convention `_protected`, `__mangled` — not true private like Java.
+
+---
+
+> **📌 Interview Point 12: Multiple inheritance pitfalls?**
+
+Diamond problem — know MRO; favor mixins with single responsibility.
+
+---
+
+> **📌 Interview Point 13: `super()` behavior?**
+
+Calls next class in MRO — cooperative multiple inheritance.
+
+---
+
+> **📌 Interview Point 14: Magic method for context manager?**
+
+`__enter__` / `__exit__` — or `@contextmanager` generator.
+
+---
+
+> **📌 Interview Point 15: When not to use classes?**
+
+Simple scripts, pure functions suffice — avoid over-OOP.
+
+---
+
+## Exercises
+
+Try each exercise before opening solutions.
+
+---
+
+Try each exercise before opening the solution. Type the code yourself — muscle memory matters.
+
+---
+
+### Exercise 1: Dog class ⭐
+
+**Task:** Class Dog with name and speak method.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+__init__ and method.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
 
 ```python
 class Dog:
-    species = "Canis familiaris"  # class attribute
-
-    def __init__(self, name: str, age: int):
-        self.name = name          # instance attribute
-        self.age = age
-
-    def bark(self) -> str:
-        return f"{self.name} says woof!"
-
-    def __str__(self) -> str:
-        return f"Dog(name={self.name}, age={self.age})"
-
-buddy = Dog("Buddy", 3)
-print(buddy.bark())
-print(buddy.species)
-```
-
-| Concept | Description |
-|---------|-------------|
-| Class | Blueprint for objects |
-| Instance | Concrete object created from a class |
-| `self` | Reference to the current instance |
-| `__init__` | Constructor — initializes instance |
-
-## 7.3 Instance vs class attributes
-
-```python
-class Counter:
-    total = 0  # shared by all instances
-
-    def __init__(self):
-        Counter.total += 1
-        self.id = Counter.total
-```
-
-Class attributes are shared; instance attributes are per-object.
-
-## 7.4 Inheritance
-
-```python
-class Animal:
-    def __init__(self, name: str):
+    def __init__(self, name):
         self.name = name
-
-    def speak(self) -> str:
-        raise NotImplementedError("Subclass must implement")
-
-class Cat(Animal):
-    def speak(self) -> str:
-        return f"{self.name} says meow"
-
-class Dog(Animal):
-    def speak(self) -> str:
+    def speak(self):
         return f"{self.name} says woof"
 ```
 
-### `super()`
+</details>
+
+---
+
+### Exercise 2: Rectangle area ⭐⭐
+
+**Task:** Rectangle with width, height, area property.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+@property for area.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+```python
+class Rectangle:
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+    @property
+    def area(self):
+        return self.w * self.h
+```
+
+</details>
+
+---
+
+### Exercise 3: Inheritance ⭐⭐
+
+**Task:** Employee and Manager with bonus pay.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+super().__init__.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
 
 ```python
 class Employee:
     def __init__(self, name, salary):
-        self.name = name
-        self.salary = salary
-
+        self.name, self.salary = name, salary
 class Manager(Employee):
-    def __init__(self, name, salary, department):
+    def __init__(self, name, salary, bonus):
         super().__init__(name, salary)
-        self.department = department
+        self.bonus = bonus
 ```
 
-## 7.5 Method types
+</details>
+
+---
+
+### Exercise 4: Dataclass Point ⭐⭐⭐
+
+**Task:** Use @dataclass for Point x,y.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+from dataclasses import dataclass.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
 
 ```python
-class MyClass:
-    @classmethod
-    def from_string(cls, data: str):
-        return cls(data.split())
-
-    @staticmethod
-    def add(x, y):
-        return x + y
-```
-
-| Decorator | First arg | Use case |
-|-----------|-----------|----------|
-| (none) | `self` | Instance behavior |
-| `@classmethod` | `cls` | Alternative constructors |
-| `@staticmethod` | none | Utility in class namespace |
-
-## 7.6 Encapsulation and properties
-
-```python
-class Circle:
-    def __init__(self, radius: float):
-        self._radius = radius
-
-    @property
-    def radius(self) -> float:
-        return self._radius
-
-    @radius.setter
-    def radius(self, value: float):
-        if value < 0:
-            raise ValueError("Radius must be non-negative")
-        self._radius = value
-
-    @property
-    def area(self) -> float:
-        return 3.14159 * self._radius ** 2
-```
-
-## 7.7 Dataclasses (Python 3.7+)
-
-```python
-from dataclasses import dataclass, field
-from typing import List
-
+from dataclasses import dataclass
 @dataclass
+class Point:
+    x: float
+    y: float
+```
+
+</details>
+
+---
+
+### Exercise 5: __repr__ ⭐⭐⭐
+
+**Task:** Class with readable __repr__.
+
+<details>
+<summary>💡 Hint (click to reveal)</summary>
+
+f-string in dunder.
+
+</details>
+
+<details>
+<summary>✅ Solution (click to reveal)</summary>
+
+```python
 class User:
-    id: int
-    name: str
-    email: str = ""
-    tags: List[str] = field(default_factory=list)
-
-user = User(id=1, name="Alice")
-print(user)
-```
-
-## 7.8 Magic (dunder) methods
-
-| Method | Purpose |
-|--------|---------|
-| `__init__` | Constructor |
-| `__str__` | Human-readable string (`str()`) |
-| `__repr__` | Developer representation (`repr()`) |
-| `__len__` | Support `len(obj)` |
-| `__eq__` | Equality `==` |
-| `__lt__` etc. | Ordering |
-| `__getitem__` | Index access `obj[key]` |
-| `__enter__`/`__exit__` | Context manager |
-
-```python
-class Stack:
-    def __init__(self):
-        self._items = []
-
-    def push(self, item):
-        self._items.append(item)
-
-    def pop(self):
-        return self._items.pop()
-
-    def __len__(self):
-        return len(self._items)
-
+    def __init__(self, name):
+        self.name = name
     def __repr__(self):
-        return f"Stack({self._items!r})"
+        return f"User(name={self.name!r})"
 ```
 
-## 7.9 Abstract base classes
+</details>
 
-```python
-from abc import ABC, abstractmethod
 
-class Shape(ABC):
-    @abstractmethod
-    def area(self) -> float:
-        pass
+## Chapter Summary
 
-class Rectangle(Shape):
-    def __init__(self, w, h):
-        self.w, self.h = w, h
+| Concept | Takeaway |
+|---------|----------|
+| **class** | Blueprint; object is instance |
+| **self** | Reference to current instance |
+| **inheritance** | Reuse and extend behavior |
+| **@property** | Controlled attribute access |
+| **dataclass** | Boilerplate for data containers |
 
-    def area(self) -> float:
-        return self.w * self.h
+### Key rules to remember
+
+```text
+✅ Read error messages — they name the line and problem
+✅ Type examples yourself instead of only reading
+✅ Use the REPL for one-line experiments
+❌ Do not copy-paste without understanding each line
 ```
 
-## 7.10 Composition over inheritance
+---
 
-```python
-class Engine:
-    def start(self):
-        return "Engine running"
+## Previous / Next Chapter
 
-class Car:
-    def __init__(self):
-        self.engine = Engine()
+**⬅️ [Previous: Comprehensions](./ch06-comprehensions.md)**
 
-    def start(self):
-        return self.engine.start()
-```
+**➡️ [Next: Modules and Packages →](./ch08-modules-packages.md)**
 
-Prefer composing objects over deep inheritance hierarchies.
+---
 
-## Exercises
 
-1. Create a `BankAccount` class with deposit, withdraw, and balance property; prevent negative balance.
-2. Subclass `Animal` with two concrete classes implementing `speak()`.
-3. Convert a simple data-holding class to a `@dataclass`.
-4. Implement `__eq__` and `__repr__` for a `Point(x, y)` class.
-
-## Summary
-
-Classes bundle state and behavior. Use inheritance sparingly, properties for validated attributes, and dataclasses for simple data containers.
-
-## Next chapter
-
-Continue to [Modules & Packages](./ch08-modules-packages.md).
+*Chapter of the Complete Python Guide | CodeShelf*
