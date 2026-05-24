@@ -1,0 +1,33 @@
+Chapter 22: Error Handling
+22.1 Custom Exception Handler
+Python
+
+# books/exceptions.py
+
+from rest_framework.views import exception_handler
+from rest_framework.response import Response
+
+def custom_exception_handler(exc, context):
+    response = exception_handler(exc, context)
+    
+    if response is not None:
+        custom_data = {
+            'success': False,
+            'status_code': response.status_code,
+            'errors': response.data
+        }
+        response.data = custom_data
+    else:
+        response = Response({
+            'success': False,
+            'status_code': 500,
+            'errors': {'detail': 'Internal server error'}
+        }, status=500)
+    
+    return response
+Python
+
+# config/settings.py
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'books.exceptions.custom_exception_handler',
+}

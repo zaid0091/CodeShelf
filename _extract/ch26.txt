@@ -1,0 +1,67 @@
+Chapter 26: Interview Preparation
+Common DRF Interview Questions
+text
+
+Q1: What is the difference between Serializer and ModelSerializer?
+A: Serializer requires manually defining every field and create()/update() 
+   methods. ModelSerializer auto-generates fields from the model, auto-creates 
+   create()/update() methods, and includes model validators. Use Serializer 
+   for non-model data (login forms). Use ModelSerializer for model-based APIs.
+
+Q2: What is the difference between APIView and ViewSet?
+A: APIView handles one URL endpoint with separate methods (get, post, put, delete).
+   ViewSet handles all CRUD operations for a model in one class with actions 
+   (list, create, retrieve, update, destroy). ViewSets work with Routers 
+   for automatic URL generation.
+
+Q3: Explain the DRF request lifecycle.
+A: Request → URL Resolution → Authentication → Permission Check → 
+   Throttle Check → Content Negotiation → Parser → View Logic → 
+   Serialization → Renderer → Response
+
+Q4: What is the difference between authentication and permission?
+A: Authentication identifies WHO the user is (verifies identity).
+   Permission determines WHAT the user can do (verifies access rights).
+   Authentication runs first, then permissions.
+
+Q5: What is the N+1 query problem and how to fix it?
+A: When you have related objects, Django makes 1 query for the main objects 
+   and N additional queries for each related object. Fix with 
+   select_related() for ForeignKey (SQL JOIN) and prefetch_related() 
+   for reverse relations (separate query + Python join).
+
+Q6: What is the difference between select_related and prefetch_related?
+A: select_related uses SQL JOIN in a single query — for ForeignKey and 
+   OneToOneField. prefetch_related makes a separate query for related 
+   objects and joins in Python — for ManyToMany and reverse ForeignKey.
+
+Q7: How does JWT authentication work?
+A: User logs in with credentials → Server generates Access Token (short-lived) 
+   and Refresh Token (long-lived). Client sends Access Token with each request. 
+   When it expires, client uses Refresh Token to get a new Access Token. 
+   JWT is stateless — no database lookup needed per request.
+
+Q8: What is the difference between has_permission and has_object_permission?
+A: has_permission runs for ALL requests at the view level (before object lookup).
+   has_object_permission runs only for single-object operations at the 
+   object level (after the object is retrieved). has_permission must 
+   return True for has_object_permission to be called.
+
+Q9: How do you handle file uploads in DRF?
+A: Use ImageField/FileField in the model, MultiPartParser and FormParser 
+   as parser_classes in the view, configure MEDIA_URL and MEDIA_ROOT in 
+   settings, and serve media files in development using static().
+
+Q10: What pagination types does DRF support?
+A: PageNumberPagination (?page=2), LimitOffsetPagination 
+   (?limit=10&offset=20), and CursorPagination (encoded cursor, 
+   best for infinite scroll). You can also create custom pagination 
+   by overriding get_paginated_response().
+
+Q11: How do you optimize a DRF API for production?
+A: Use select_related/prefetch_related, pagination, caching 
+   (cache_page), only() to select specific DB columns, proper 
+   indexing, separate"
+
+add this for drf, dont skip anything, everything, add proper definiton and proper everything
+</user_query>
