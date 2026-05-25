@@ -9,6 +9,17 @@
   filter: brightness(1.15) contrast(1.05);
 }
 
+/* Django brand uses a deeply pigmented green (#092e20) that vanishes on dark
+   canvas. Brighten the bitmap so it reads as the Django light green (~#24B880)
+   while keeping the original artwork untouched on .track-light surfaces. */
+.dark .topic-icon[src*='django.svg'] {
+  filter: brightness(4) saturate(1.15);
+}
+
+.dark .track-light .topic-icon[src*='django.svg'] {
+  filter: none;
+}
+
 /* Docs navbar */
 .dark .navbar--light.navbar--scrolled {
   background-color: rgba(18, 24, 28, 0.82);
