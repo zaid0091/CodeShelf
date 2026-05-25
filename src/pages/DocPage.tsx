@@ -1,8 +1,11 @@
-import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useParams } from 'react-router-dom'
 import { getPage, getTopics } from '@/lib/content'
 import { MarkdownContent } from '@/components/MarkdownContent'
 import { ScrollReveal } from '@/components/ScrollReveal'
+import { DocPageHero } from '@/components/DocPageHero'
+import { DocPageNav } from '@/components/DocPageNav'
+import { DocPageToc } from '@/components/DocPageToc'
+import { DocReadingProgress } from '@/components/DocReadingProgress'
 import { NotFoundPage } from './NotFoundPage'
 
 export function DocPage() {
@@ -19,54 +22,28 @@ export function DocPage() {
   const next = currentIndex < pages.length - 1 ? pages[currentIndex + 1] : null
 
   return (
-    <article>
-      <ScrollReveal animation="fade-up" duration={0.85} distance={32}>
-        <header className="doc-page__header mb-10">
-          <p className="text-eyebrow text-shade-50 mb-2">Chapter</p>
-          <h1 className="font-display text-display-xl text-ink max-w-4xl">{page.title}</h1>
-        </header>
-      </ScrollReveal>
+    <div className="doc-page" key={page.path}>
+      <DocReadingProgress />
 
-      <ScrollReveal animation="fade-up" delay={0.08} duration={0.9} distance={28}>
-        <MarkdownContent content={page.content} topic={page.topic} />
-      </ScrollReveal>
+      <div className="doc-page__layout">
+        <article className="doc-page__article">
+          <DocPageHero
+            page={page}
+            chapterIndex={currentIndex}
+            chapterCount={pages.length}
+          />
 
-      {(prev || next) && (
-        <ScrollReveal animation="fade-up" delay={0.12} duration={0.85} distance={24}>
-          <nav className="mt-16 pt-8 border-t border-hairline-light flex justify-between gap-6">
-            {prev ? (
-              <Link
-                to={prev.path}
-                className="group flex flex-col gap-2 text-left max-w-[45%] p-4 -m-4 rounded-lg hover:bg-canvas-light transition-colors"
-              >
-                <span className="flex items-center gap-1 text-eyebrow !normal-case text-shade-50">
-                  <ChevronLeft size={14} strokeWidth={1.5} /> Previous
-                </span>
-                <span className="text-sm font-medium text-ink group-hover:underline underline-offset-2">
-                  {prev.title}
-                </span>
-              </Link>
-            ) : (
-              <span />
-            )}
-            {next ? (
-              <Link
-                to={next.path}
-                className="group flex flex-col gap-2 text-right max-w-[45%] p-4 -m-4 rounded-lg hover:bg-canvas-light transition-colors ml-auto"
-              >
-                <span className="flex items-center justify-end gap-1 text-eyebrow !normal-case text-shade-50">
-                  Next <ChevronRight size={14} strokeWidth={1.5} />
-                </span>
-                <span className="text-sm font-medium text-ink group-hover:underline underline-offset-2">
-                  {next.title}
-                </span>
-              </Link>
-            ) : (
-              <span />
-            )}
-          </nav>
-        </ScrollReveal>
-      )}
-    </article>
+          <ScrollReveal animation="fade-up" delay={0.08} duration={0.9} distance={24}>
+            <div className="doc-page__body">
+              <MarkdownContent content={page.content} topic={page.topic} />
+            </div>
+          </ScrollReveal>
+
+          <DocPageNav prev={prev} next={next} />
+        </article>
+
+        <DocPageToc contentKey={page.path} />
+      </div>
+    </div>
   )
 }
