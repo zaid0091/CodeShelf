@@ -2342,6 +2342,64 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   outline: none;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Giant brand wordmark — full-bleed display logotype at the foot of the page
+   (visual reference: the "Antigravity" floor wordmark pattern). Uses clean
+   geometric Inter at medium weight with tight letterspacing and a subtle
+   vertical gradient so it reads as a premium architectural element rather
+   than a heavy block of text.
+   ────────────────────────────────────────────────────────────────────────── */
+.site-footer__wordmark {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 3rem 1rem 0.5rem;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.site-footer__wordmark-text {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 17vw, 20rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  white-space: nowrap;
+  color: var(--color-on-primary);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.85) 55%,
+    rgba(193, 251, 212, 0.45) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* Soft fade at the bottom edge so the descender melts into the floor line */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 80%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 80%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+@media (min-width: 1024px) {
+  .site-footer__wordmark {
+    padding: 4rem 1rem 0.5rem;
+  }
+}
+
 .site-footer__floor {
   position: relative;
   z-index: 1;
