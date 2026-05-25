@@ -90,25 +90,61 @@ html.lenis.lenis-smooth {
 /* Scroll-triggered reveal — initial state before GSAP runs */
 [data-scroll] {
   opacity: 0;
+  will-change: transform, opacity, filter, clip-path;
+}
+
+/* Clip-path animations keep the element opaque so the clip itself does the reveal */
+[data-scroll][data-scroll-animation="clip-up"] {
+  opacity: 1;
+  clip-path: inset(0% 0% 100% 0%);
+}
+
+[data-scroll][data-scroll-animation="clip-right"] {
+  opacity: 1;
+  clip-path: inset(0% 100% 0% 0%);
+}
+
+/* Text-split reveals: hide parent until GSAP splits & primes the chars */
+[data-scroll][data-scroll-animation="text-chars"],
+[data-scroll][data-scroll-animation="text-words"] {
+  opacity: 0;
+}
+
+[data-scroll][data-scroll-animation="text-chars"].is-split,
+[data-scroll][data-scroll-animation="text-words"].is-split {
+  opacity: 1;
+}
+
+/* Per-word / per-char primitives */
+.split-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  line-height: inherit;
+}
+
+.split-char {
+  display: inline-block;
   will-change: transform, opacity;
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
 }
 
-[data-scroll] a,
-[data-scroll] button {
-  pointer-events: none;
-}
-
-[data-scroll].is-revealed a,
-[data-scroll].is-revealed button,
-[data-scroll][data-scroll-revealed] a,
-[data-scroll][data-scroll-revealed] button {
-  pointer-events: auto;
-}
+/* Interactive children inside [data-scroll] remain clickable throughout the
+   reveal — opacity 0 already prevents accidental clicks visually, and gating
+   pointer-events caused dead buttons on touch (where GSAP never runs) and
+   during the brief animation window. */
 
 @media (prefers-reduced-motion: reduce) {
-  [data-scroll] {
+  [data-scroll],
+  [data-scroll][data-scroll-animation="clip-up"],
+  [data-scroll][data-scroll-animation="clip-right"],
+  [data-scroll][data-scroll-animation="text-chars"],
+  [data-scroll][data-scroll-animation="text-words"] {
     opacity: 1;
+    clip-path: none !important;
     transform: none !important;
+    filter: none !important;
     will-change: auto;
   }
 }

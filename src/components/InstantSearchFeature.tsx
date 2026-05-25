@@ -9,16 +9,31 @@ export function InstantSearchFeature() {
     useSmoothCardGlow<HTMLElement>('search-feature--hover')
 
   return (
-    <section className="search-feature" aria-labelledby="search-feature-title">
+    <section
+      className="search-feature"
+      aria-labelledby="search-feature-title"
+      data-parallax-container
+    >
       <div className="search-feature__ambient" aria-hidden>
-        <div className="search-feature__glow search-feature__glow--aloe" />
-        <div className="search-feature__glow search-feature__glow--cool" />
+        <div
+          className="search-feature__glow search-feature__glow--aloe"
+          data-parallax-speed="-0.1"
+        />
+        <div
+          className="search-feature__glow search-feature__glow--cool"
+          data-parallax-speed="0.08"
+        />
         <div className="search-feature__mesh" />
         <div className="search-feature__beam-h" />
       </div>
 
       <div className="search-feature__inner">
-        <ScrollReveal animation="fade-scale" duration={0.95} distance={28}>
+        <ScrollReveal
+          animation="tilt-in"
+          duration={1.1}
+          distance={48}
+          start="top 88%"
+        >
           <article
             ref={cardRef}
             className="search-feature__card"
@@ -34,22 +49,52 @@ export function InstantSearchFeature() {
 
             <div className="search-feature__layout">
               <div className="search-feature__main">
-                <div className="search-feature__icon-well" aria-hidden>
+                <ScrollReveal
+                  animation="fade-scale"
+                  delay={0.25}
+                  duration={0.85}
+                  distance={0}
+                  start="top 88%"
+                  className="search-feature__icon-well"
+                >
                   <span className="search-feature__icon-ring" />
                   <Search size={22} strokeWidth={1.5} className="search-feature__icon" />
-                </div>
+                </ScrollReveal>
 
                 <div className="search-feature__copy">
-                  <div className="search-feature__eyebrow">
+                  <ScrollReveal
+                    animation="fade-up"
+                    delay={0.3}
+                    distance={16}
+                    duration={0.7}
+                    start="top 88%"
+                    className="search-feature__eyebrow"
+                  >
                     <Command size={12} strokeWidth={1.5} aria-hidden />
                     <span className="text-eyebrow text-link-cool-1 mb-0">Command palette</span>
-                  </div>
+                  </ScrollReveal>
 
-                  <h2 id="search-feature-title" className="search-feature__title font-display">
+                  <ScrollReveal
+                    as="h2"
+                    id="search-feature-title"
+                    animation="text-chars"
+                    duration={0.95}
+                    stagger={0.025}
+                    delay={0.35}
+                    start="top 88%"
+                    className="search-feature__title font-display"
+                  >
                     Instant search
-                  </h2>
+                  </ScrollReveal>
 
-                  <p className="search-feature__desc text-caption text-link-cool-2">
+                  <ScrollReveal
+                    as="p"
+                    animation="blur-in"
+                    delay={0.55}
+                    duration={0.95}
+                    start="top 88%"
+                    className="search-feature__desc text-caption text-link-cool-2"
+                  >
                     Press{' '}
                     <span className="search-feature__kbd-group" aria-label="Control plus K">
                       <kbd className="search-feature__kbd">Ctrl</kbd>
@@ -57,30 +102,51 @@ export function InstantSearchFeature() {
                     </span>{' '}
                     anywhere in the docs to jump across every note, topic, and chapter—in one
                     keystroke.
-                  </p>
+                  </ScrollReveal>
 
-                  <div className="search-feature__chips" aria-hidden>
+                  <ScrollReveal
+                    animation="fade-up"
+                    delay={0.7}
+                    distance={14}
+                    duration={0.7}
+                    start="top 88%"
+                    className="search-feature__chips"
+                  >
                     <span className="search-feature__chip">Fuzzy match</span>
                     <span className="search-feature__chip">Ranked results</span>
                     <span className="search-feature__chip">Keyboard first</span>
-                  </div>
+                  </ScrollReveal>
 
-                  <button
-                    type="button"
-                    className="search-feature__cta"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      openSearch()
-                    }}
+                  <ScrollReveal
+                    animation="fade-up"
+                    delay={0.85}
+                    distance={14}
+                    duration={0.7}
+                    start="top 88%"
                   >
-                    Try search now
-                    <span className="search-feature__cta-kbd">Ctrl K</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="search-feature__cta"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openSearch()
+                      }}
+                    >
+                      Try search now
+                      <span className="search-feature__cta-kbd">Ctrl K</span>
+                    </button>
+                  </ScrollReveal>
                 </div>
               </div>
 
-              <div className="search-feature__preview" aria-hidden>
-                <div className="search-feature__preview-panel">
+              <ScrollReveal
+                animation="clip-up"
+                delay={0.45}
+                duration={1.1}
+                start="top 88%"
+                className="search-feature__preview"
+              >
+                <div className="search-feature__preview-panel" aria-hidden>
                   <span className="search-feature__preview-border" />
                   <div className="search-feature__preview-bar">
                     <Search size={14} strokeWidth={1.5} className="text-link-cool-1" />
@@ -102,7 +168,7 @@ export function InstantSearchFeature() {
                     </li>
                   </ul>
                 </div>
-              </div>
+              </ScrollReveal>
             </div>
           </article>
         </ScrollReveal>

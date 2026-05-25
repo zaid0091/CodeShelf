@@ -19,8 +19,18 @@ function TopicCard({
   const { cardRef, onPointerEnter, onPointerMove, onPointerLeave } =
     useSmoothCardGlow<HTMLAnchorElement>()
 
+  // Staggered cascade entrance — each card waits a touch longer than the previous
+  const enterDelay = 0.06 + index * 0.07
+
   return (
-    <div className="h-full min-w-0">
+    <ScrollReveal
+      animation="tilt-in"
+      duration={1.05}
+      delay={enterDelay}
+      distance={42}
+      start="top 92%"
+      className="h-full min-w-0"
+    >
       <Link
         ref={cardRef}
         to={getCourseStartPath(topicId)}
@@ -55,7 +65,7 @@ function TopicCard({
           <ArrowUpRight size={18} strokeWidth={1.5} />
         </span>
       </Link>
-    </div>
+    </ScrollReveal>
   )
 }
 
@@ -65,28 +75,48 @@ export function TopicsSection() {
   return (
     <section className="topics-section">
       <div className="topics-section__ambient" aria-hidden>
-        <div className="topics-section__glow topics-section__glow--aloe" />
-        <div className="topics-section__glow topics-section__glow--cool" />
+        <div className="topics-section__glow topics-section__glow--aloe" data-parallax-speed="-0.08" />
+        <div className="topics-section__glow topics-section__glow--cool" data-parallax-speed="0.06" />
         <div className="topics-section__grid" />
         <div className="topics-section__fade" />
       </div>
 
       <div className="topics-section__inner">
-        <ScrollReveal animation="fade-up" duration={0.95} distance={32}>
-          <header className="topics-header">
+        <header className="topics-header">
+          <ScrollReveal animation="fade-up" duration={0.7} distance={18} start="top 90%">
             <div className="topics-header__rail" aria-hidden />
+          </ScrollReveal>
+
+          <ScrollReveal animation="fade-up" delay={0.05} duration={0.8} distance={22} start="top 92%">
             <div className="topics-eyebrow">
               <span className="topics-eyebrow__dot" aria-hidden />
               <p className="text-eyebrow text-link-cool-1 mb-0">Topics</p>
             </div>
-            <h2 className="topics-header__title font-display text-display-lg text-on-primary">
-              Everything you need to revise.
-            </h2>
-            <p className="topics-header__desc text-body-lg text-link-cool-2 max-w-xl">
-              Six curated tracks — structured notes you can open and revise in seconds.
-            </p>
-          </header>
-        </ScrollReveal>
+          </ScrollReveal>
+
+          <ScrollReveal
+            as="h2"
+            animation="text-chars"
+            duration={1}
+            stagger={0.02}
+            delay={0.12}
+            start="top 90%"
+            className="topics-header__title font-display text-display-lg text-on-primary"
+          >
+            Everything you need to revise.
+          </ScrollReveal>
+
+          <ScrollReveal
+            as="p"
+            animation="blur-in"
+            delay={0.35}
+            duration={1}
+            start="top 92%"
+            className="topics-header__desc text-body-lg text-link-cool-2 max-w-xl"
+          >
+            Six curated tracks — structured notes you can open and revise in seconds.
+          </ScrollReveal>
+        </header>
 
         <div className="topics-grid">
           {topics.map((topic, index) => (

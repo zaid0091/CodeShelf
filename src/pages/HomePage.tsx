@@ -9,6 +9,7 @@ import { TopicIcon } from '@/components/TopicIcon'
 import { TopicsSection } from '@/components/TopicsSection'
 import { SiteFooter } from '@/components/SiteFooter'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
+import { ScrollReveal } from '@/components/ScrollReveal'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { useLenisScrolled } from '@/hooks/useLenisScrolled'
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice'
@@ -79,17 +80,39 @@ function HomePageContent() {
                 <p className="text-eyebrow text-link-cool-1 mb-0">Personal documentation</p>
               </div>
               <div className="hero-title-wrap">
-                <h1 className="hero-title font-display text-display-hero text-on-primary max-w-4xl mb-8">
+                <ScrollReveal
+                  as="h1"
+                  animation="text-chars"
+                  duration={1}
+                  stagger={0.02}
+                  delay={0.05}
+                  start="top 95%"
+                  className="hero-title font-display text-display-hero text-on-primary max-w-4xl mb-8"
+                >
                   Your coding notes,
                   <br />
                   beautifully organized.
-                </h1>
+                </ScrollReveal>
               </div>
-              <p className="hero-desc text-body-lg text-link-cool-2 max-w-xl mb-12 leading-relaxed">
+              <ScrollReveal
+                as="p"
+                animation="blur-in"
+                delay={0.4}
+                duration={0.9}
+                start="top 95%"
+                className="hero-desc text-body-lg text-link-cool-2 max-w-xl mb-12 leading-relaxed"
+              >
                 Quick revision for TypeScript, JavaScript, React, Python, Django, and Django REST Framework.
                 No backend — just your notes, ready when you are.
-              </p>
-              <div className="hero-actions">
+              </ScrollReveal>
+              <ScrollReveal
+                animation="fade-up"
+                delay={0.55}
+                distance={20}
+                duration={0.7}
+                start="top 95%"
+                className="hero-actions"
+              >
                 <ButtonLink
                   to="/docs"
                   variant="hero-cta"
@@ -99,26 +122,43 @@ function HomePageContent() {
                   <ArrowRight size={18} strokeWidth={1.5} />
                 </ButtonLink>
                 <div className="hero-actions-glow" aria-hidden="true" />
-              </div>
-              <div className="hero-metrics" aria-hidden="true">
+              </ScrollReveal>
+              <ScrollReveal
+                animation="fade-up"
+                delay={0.7}
+                distance={14}
+                duration={0.6}
+                start="top 95%"
+                className="hero-metrics"
+                ariaHidden
+              >
                 {topics.map((topic) => (
                   <span key={topic.id} className="hero-metric">
                     <TopicIcon topicId={topic.id} size={18} />
                   </span>
                 ))}
-              </div>
+              </ScrollReveal>
             </div>
 
             <div aria-hidden="true" className="hero-visual hidden lg:block">
-              <div className="hero-orbit hero-orbit--outer" />
-              <div className="hero-orbit hero-orbit--inner" />
+              <div className="hero-orbit hero-orbit--outer" data-parallax-speed="-0.04" />
+              <div className="hero-orbit hero-orbit--inner" data-parallax-speed="-0.07" />
               {topics.slice(0, 4).map((topic, i) => (
-                <div key={topic.id} className={`hero-float-badge hero-float-badge--${i + 1}`}>
+                <div
+                  key={topic.id}
+                  className={`hero-float-badge hero-float-badge--${i + 1}`}
+                  data-parallax-speed={(0.06 + i * 0.04).toString()}
+                  data-parallax-rotate={(i % 2 === 0 ? -8 : 6).toString()}
+                >
                   <TopicIcon topicId={topic.id} size={20} />
                 </div>
               ))}
               <div className="hero-preview-stage">
-                <div className="hero-preview-float-wrap">
+                <div
+                  className="hero-preview-float-wrap"
+                  data-parallax-speed="-0.05"
+                  data-parallax-rotate="-3"
+                >
                   <div className="hero-preview">
                     <div className="hero-preview-glow" />
                     <div className="hero-preview-card hero-preview-card--back" />
