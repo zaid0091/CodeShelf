@@ -1,10 +1,11 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { ChevronRight, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { getPage, getCourseStartPath } from '@/lib/content'
 import { SearchBar } from '@/components/SearchBar'
 import { TopicIcon } from '@/components/TopicIcon'
 import { DocsThemeToggle } from '@/components/DocsThemeToggle'
 import { useTheme } from '@/hooks/useTheme'
+import { useSearchUI } from '@/contexts/SearchUIContext'
 import { NavbarButtonLink, NavbarIconButton } from '@/components/ui/NavbarButton'
 
 interface DocsNavbarProps {
@@ -12,6 +13,7 @@ interface DocsNavbarProps {
   sidebarOpen: boolean
   onToggleSidebar: () => void
 }
+
 
 function DocsBreadcrumb() {
   const location = useLocation()
@@ -67,8 +69,7 @@ export function DocsNavbar({
 }: DocsNavbarProps) {
   const { theme } = useTheme()
   const navTone = theme === 'dark' ? 'dark' : 'light'
-  const location = useLocation()
-  const isDocPage = /^\/docs\/[^/]+\/[^/]+/.test(location.pathname)
+  const { openSearch } = useSearchUI()
 
   return (
     <header
@@ -78,7 +79,7 @@ export function DocsNavbar({
         'navbar--light',
         'navbar--premium-docs',
         'shrink-0',
-        'z-[60]',
+        'z-60',
         'border-b',
         scrolled ? 'navbar--scrolled docs-navbar--scrolled' : 'navbar--transparent',
       ].join(' ')}
@@ -95,7 +96,7 @@ export function DocsNavbar({
               e.stopPropagation()
               onToggleSidebar()
             }}
-            className="docs-navbar__menu-btn shrink-0"
+            className="docs-navbar__menu-btn"
             aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
             aria-expanded={sidebarOpen}
             aria-controls="docs-sidebar"
@@ -107,13 +108,13 @@ export function DocsNavbar({
             )}
           </NavbarIconButton>
 
-          <Link to="/" className="docs-navbar__logo font-logo shrink-0">
+          <Link to="/" className="docs-navbar__logo font-logo">
             CodeShelf
           </Link>
 
-          <span className="docs-navbar__divider hidden md:block" aria-hidden />
+          <span className="docs-navbar__divider" aria-hidden />
 
-          <div className="docs-navbar__crumb-wrap hidden sm:block min-w-0">
+          <div className="docs-navbar__crumb-wrap">
             <DocsBreadcrumb />
           </div>
         </div>
@@ -122,20 +123,28 @@ export function DocsNavbar({
           <SearchBar variant="premium" />
         </div>
 
-        <div className="docs-navbar__actions shrink-0">
+        <div className="docs-navbar__actions">
+          <NavbarIconButton
+            tone={navTone}
+            onClick={openSearch}
+            className="docs-navbar__mobile-search"
+            aria-label="Open search"
+          >
+            <Search size={18} strokeWidth={1.5} />
+          </NavbarIconButton>
           <DocsThemeToggle />
-          {isDocPage && (
-            <NavbarButtonLink to="/docs" tone={navTone} className="hidden md:inline-flex">
-              All topics
-            </NavbarButtonLink>
-          )}
-          <NavbarButtonLink to="/" tone={navTone} emphasis="accent" className="hidden sm:inline-flex">
+          <NavbarButtonLink
+            to="/"
+            tone={navTone}
+            emphasis="accent"
+            className="docs-navbar__home"
+          >
             Home
           </NavbarButtonLink>
         </div>
       </div>
 
-      <div className="docs-navbar__mobile-crumb sm:hidden px-5 pb-3 lg:px-8">
+      <div className="docs-navbar__mobile-crumb">
         <DocsBreadcrumb />
       </div>
     </header>

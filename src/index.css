@@ -272,10 +272,10 @@ header.navbar.fixed + .hero-section--advanced {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 2.5rem;
-  padding: 0.5rem 1.25rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.95rem;
   border-radius: var(--radius-pill);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.02em;
   text-decoration: none;
@@ -431,10 +431,18 @@ header.navbar.fixed + .hero-section--advanced {
 }
 
 .navbar-btn--icon {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   min-height: 0;
   padding: 0;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .navbar-btn--icon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
 
 .navbar--scrolled .navbar-btn--dark {
@@ -453,6 +461,14 @@ header.navbar.fixed + .hero-section--advanced {
   .navbar-btn:hover,
   .navbar-btn:focus-visible {
     transform: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .navbar-btn {
+    min-height: 2.5rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -1284,8 +1300,15 @@ header.navbar.fixed + .hero-section--advanced {
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.75rem 1rem;
-  padding: 0.875rem 1.25rem;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .docs-navbar__inner {
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -1298,16 +1321,34 @@ header.navbar.fixed + .hero-section--advanced {
 .docs-navbar__start {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   min-width: 0;
   flex: 1 1 auto;
 }
 
+@media (min-width: 640px) {
+  .docs-navbar__start {
+    gap: 0.75rem;
+  }
+}
+
+.docs-navbar__menu-btn {
+  flex-shrink: 0;
+}
+
 .docs-navbar__logo {
-  font-size: 1.25rem;
+  flex-shrink: 0;
+  font-size: 1.0625rem;
   color: var(--color-ink);
   text-decoration: none;
   transition: color 0.35s ease, text-shadow 0.35s ease;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .docs-navbar__logo {
+    font-size: 1.25rem;
+  }
 }
 
 .docs-navbar__logo:hover {
@@ -1315,6 +1356,7 @@ header.navbar.fixed + .hero-section--advanced {
 }
 
 .docs-navbar__divider {
+  display: none;
   width: 1px;
   height: 1.75rem;
   background: linear-gradient(
@@ -1326,10 +1368,24 @@ header.navbar.fixed + .hero-section--advanced {
   flex-shrink: 0;
 }
 
+@media (min-width: 1024px) {
+  .docs-navbar__divider {
+    display: block;
+  }
+}
+
+/* Inline breadcrumb — only at ≥1024px (mobile-crumb takes over below) */
 .docs-navbar__crumb-wrap {
+  display: none;
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .docs-navbar__crumb-wrap {
+    display: block;
+  }
 }
 
 .docs-navbar__crumb,
@@ -1440,18 +1496,58 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   flex-shrink: 0;
 }
 
+/* Search bar (desktop only, ≥1024px) */
 .docs-navbar__search {
-  flex: 1 1 280px;
-  max-width: 28rem;
+  display: none;
   min-width: 0;
 }
 
+@media (min-width: 1024px) {
+  .docs-navbar__search {
+    display: block;
+    flex: 1 1 240px;
+    max-width: 28rem;
+  }
+}
+
+/* Actions cluster */
 .docs-navbar__actions {
   position: relative;
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+@media (min-width: 640px) {
+  .docs-navbar__actions {
+    gap: 0.5rem;
+  }
+}
+
+/* Mobile search icon — visible <1024px */
+.docs-navbar__mobile-search {
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .docs-navbar__mobile-search {
+    display: none;
+  }
+}
+
+/* Home button — visible only at very wide viewports */
+.docs-navbar__home {
+  display: none !important;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1280px) {
+  .docs-navbar__home {
+    display: inline-flex !important;
+  }
 }
 
 .docs-theme-toggle {
@@ -1460,12 +1556,26 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   pointer-events: auto;
 }
 
+/* Mobile breadcrumb — its own row, hidden at ≥1024px */
 .docs-navbar__mobile-crumb {
   position: relative;
   z-index: 1;
+  padding: 0 0.85rem 0.6rem;
   border-top: 1px solid rgba(0, 0, 0, 0.04);
   background: rgba(255, 255, 255, 0.35);
   overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .docs-navbar__mobile-crumb {
+    padding: 0 1.25rem 0.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .docs-navbar__mobile-crumb {
+    display: none;
+  }
 }
 
 .docs-navbar__mobile-crumb .docs-navbar__crumb-item--topic {

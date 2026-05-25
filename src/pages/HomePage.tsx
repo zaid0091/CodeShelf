@@ -30,13 +30,17 @@ function HomePageContent() {
           scrolled ? 'navbar--scrolled' : 'navbar--transparent'
         }`}
       >
-        <div className="max-w-[90rem] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
-          <Link to="/" className="font-logo text-xl text-on-primary">
+        <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-5 flex items-center justify-between gap-3 min-w-0">
+          <Link
+            to="/"
+            className="font-logo text-lg sm:text-xl text-on-primary shrink-0 min-w-0 truncate"
+          >
             CodeShelf
           </Link>
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <NavbarButtonLink to="/docs/typescript/ch00-course-overview" tone="dark">
-              Browse docs
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <NavbarButtonLink to="/docs" tone="dark">
+              <span className="sm:hidden">Docs</span>
+              <span className="hidden sm:inline">Browse docs</span>
             </NavbarButtonLink>
             <NavbarButtonLink
               to="/docs/drf/ch00-course-overview"
