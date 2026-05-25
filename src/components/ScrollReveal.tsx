@@ -1,4 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 type ScrollAnimation = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'fade-scale'
@@ -27,8 +28,9 @@ export function ScrollReveal({
   style,
 }: ScrollRevealProps) {
   const reducedMotion = usePrefersReducedMotion()
+  const isTouch = useIsTouchDevice()
 
-  if (reducedMotion) {
+  if (reducedMotion || isTouch) {
     return (
       <Tag className={className} style={style}>
         {children}

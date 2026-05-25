@@ -11,6 +11,7 @@ import { SiteFooter } from '@/components/SiteFooter'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { useLenisScrolled } from '@/hooks/useLenisScrolled'
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useWindowScrolled } from '@/hooks/useScrolled'
 import { getLenisOptions } from '@/lib/lenisConfig'
@@ -179,9 +180,15 @@ function HomePageContent() {
 
 export function HomePage() {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const isTouch = useIsTouchDevice()
 
-  if (prefersReducedMotion) {
-    return <HomePageContent />
+  if (prefersReducedMotion || isTouch) {
+    return (
+      <>
+        <ScrollToTop />
+        <HomePageContent />
+      </>
+    )
   }
 
   return (

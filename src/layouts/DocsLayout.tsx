@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { DocsNavbar } from '@/components/DocsNavbar'
 import { LenisScrollSetup } from '@/components/LenisScrollSetup'
 import { ScrollToTop } from '@/components/ScrollToTop'
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice'
 import { useLenisScrolled } from '@/hooks/useLenisScrolled'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -223,12 +224,14 @@ function DocsLayoutNativeScroll() {
 
 export function DocsLayout() {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const isTouch = useIsTouchDevice()
+  const useNativeScroll = prefersReducedMotion || isTouch
   const { theme } = useTheme()
   const themeClass = docsThemeClass(theme)
 
   return (
     <div className={['track-light h-screen overflow-hidden', themeClass].filter(Boolean).join(' ')}>
-      {prefersReducedMotion ? <DocsLayoutNativeScroll /> : <DocsLayoutSmooth />}
+      {useNativeScroll ? <DocsLayoutNativeScroll /> : <DocsLayoutSmooth />}
     </div>
   )
 }
