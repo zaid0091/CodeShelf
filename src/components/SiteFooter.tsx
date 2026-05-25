@@ -133,7 +133,7 @@ export function SiteFooter() {
       </ScrollReveal>
 
       <div className="site-footer__wordmark" aria-hidden>
-        <span className="site-footer__wordmark-text font-display">CodeShelf</span>
+        <span className="site-footer__wordmark-text font-logo">CodeShelf</span>
       </div>
 
       <div className="site-footer__floor" aria-hidden>
