@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ReactLenis } from 'lenis/react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Layers, Search, Zap, BookOpen, Code2, Sparkles } from 'lucide-react'
 import { InstantSearchFeature } from '@/components/InstantSearchFeature'
 import { getTopics } from '@/lib/content'
 import { ButtonLink } from '@/components/ui/Button'
@@ -216,6 +216,212 @@ function HomePageContent() {
       <TopicsSection />
 
       <InstantSearchFeature />
+
+      {/* ── Learning-path draw-on section ── */}
+      <section
+        className="learning-path-section"
+        data-learning-path
+        aria-label="Your learning journey"
+      >
+        <div className="learning-path-section__ambient" aria-hidden>
+          <div className="learning-path-section__glow" />
+        </div>
+
+        <div className="learning-path-section__inner">
+          <ScrollReveal
+            animation="fade-up"
+            duration={0.8}
+            distance={22}
+            start="top 88%"
+            className="learning-path-section__header"
+          >
+            <div className="lp-eyebrow">
+              <span className="lp-eyebrow__dot" aria-hidden />
+              <p className="text-eyebrow text-link-cool-1 mb-0">Learning path</p>
+            </div>
+            <h2 className="font-display text-display-lg text-on-primary mt-3 mb-4">
+              Go from zero to fluent.
+            </h2>
+            <p className="text-body-lg text-link-cool-2 max-w-lg mx-auto text-center">
+              A structured path through every topic — so you always know what to learn next.
+            </p>
+          </ScrollReveal>
+
+          {/* SVG path + milestone nodes */}
+          <div className="lp-canvas" aria-hidden>
+            <svg
+              className="lp-svg"
+              viewBox="0 0 900 420"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {/* Glowing track */}
+              <path
+                d="M 60 210 C 180 80 340 340 520 200 C 700 60 760 340 860 210"
+                stroke="url(#lp-grad)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                data-path-draw
+              />
+              {/* Ghost track (dim) */}
+              <path
+                d="M 60 210 C 180 80 340 340 520 200 C 700 60 760 340 860 210"
+                stroke="rgba(255,255,255,0.06)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <defs>
+                <linearGradient id="lp-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#c1fbd4" />
+                  <stop offset="50%" stopColor="#6ee7b7" />
+                  <stop offset="100%" stopColor="#38bdf8" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* Milestone nodes */}
+            {[
+              { x: '6.5%', y: '50%', Icon: BookOpen, label: 'Foundations' },
+              { x: '33%', y: '16%', Icon: Code2, label: 'TypeScript' },
+              { x: '57%', y: '52%', Icon: Layers, label: 'React' },
+              { x: '84%', y: '20%', Icon: Zap, label: 'Django REST' },
+              { x: '95%', y: '50%', Icon: Sparkles, label: 'Master' },
+            ].map(({ x, y, Icon, label }) => (
+              <div
+                key={label}
+                className="lp-node"
+                style={{ left: x, top: y }}
+                data-path-node
+              >
+                <span className="lp-node__ring" aria-hidden />
+                <span className="lp-node__core">
+                  <Icon size={14} strokeWidth={1.5} />
+                </span>
+                <span className="lp-node__label" data-path-label>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Feature showcase — 2-row grid ── */}
+      <section
+        className="showcase-section"
+        data-showcase
+        aria-label="Feature showcase"
+      >
+        <div className="showcase-section__inner">
+          <ScrollReveal
+            animation="fade-up"
+            duration={0.8}
+            distance={22}
+            start="top 88%"
+            className="text-center"
+          >
+            <div className="lp-eyebrow showcase-section__eyebrow">
+              <span className="lp-eyebrow__dot" aria-hidden />
+              <p className="text-eyebrow text-link-cool-1 mb-0">Features</p>
+            </div>
+            <h2 className="font-display text-display-lg text-on-primary mt-3 mb-2">
+              Built for speed.
+            </h2>
+            <p className="text-body-lg text-link-cool-2 max-w-xl mx-auto mt-3 mb-0">
+              Everything you need for fast, focused revision — right in your browser.
+            </p>
+          </ScrollReveal>
+
+          <div className="showcase-grid">
+            {/* Row 1 — 3 cards */}
+            <div className="showcase-row showcase-row--top">
+              {[
+                {
+                  icon: <Search size={26} strokeWidth={1.3} />,
+                  title: 'Instant search',
+                  body: 'Find any note across all topics in milliseconds — no server required.',
+                  accent: '#c1fbd4',
+                },
+                {
+                  icon: <Layers size={26} strokeWidth={1.3} />,
+                  title: 'Six curated tracks',
+                  body: 'TypeScript · JavaScript · React · Python · Django · DRF — all in one place.',
+                  accent: '#6ee7b7',
+                },
+                {
+                  icon: <Code2 size={26} strokeWidth={1.3} />,
+                  title: 'Syntax-highlighted code',
+                  body: 'Every snippet rendered with rich syntax highlighting for fast scanning.',
+                  accent: '#38bdf8',
+                },
+              ].map(({ icon, title, body, accent }, i) => (
+                <ScrollReveal
+                  key={title}
+                  animation="tilt-in"
+                  duration={0.95}
+                  delay={0.05 + i * 0.08}
+                  distance={36}
+                  start="top 92%"
+                >
+                  <div
+                    className="showcase-card"
+                    style={{ '--card-accent': accent } as React.CSSProperties}
+                  >
+                    <span className="showcase-card__glow" aria-hidden />
+                    <span className="showcase-card__border" aria-hidden />
+                    <div className="showcase-card__icon-well">
+                      <span style={{ color: accent }}>{icon}</span>
+                    </div>
+                    <h3 className="showcase-card__title font-display">{title}</h3>
+                    <p className="showcase-card__body">{body}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            {/* Row 2 — 2 cards, centred */}
+            <div className="showcase-row showcase-row--bottom">
+              {[
+                {
+                  icon: <Zap size={26} strokeWidth={1.3} />,
+                  title: 'Offline-ready',
+                  body: 'Pure static site — no backend, no loading spinners, works anywhere.',
+                  accent: '#818cf8',
+                },
+                {
+                  icon: <BookOpen size={26} strokeWidth={1.3} />,
+                  title: 'Structured chapters',
+                  body: 'Notes grouped into chapters so revision feels like reading a real book.',
+                  accent: '#fb7185',
+                },
+              ].map(({ icon, title, body, accent }, i) => (
+                <ScrollReveal
+                  key={title}
+                  animation="tilt-in"
+                  duration={0.95}
+                  delay={0.05 + i * 0.08}
+                  distance={36}
+                  start="top 92%"
+                >
+                  <div
+                    className="showcase-card"
+                    style={{ '--card-accent': accent } as React.CSSProperties}
+                  >
+                    <span className="showcase-card__glow" aria-hidden />
+                    <span className="showcase-card__border" aria-hidden />
+                    <div className="showcase-card__icon-well">
+                      <span style={{ color: accent }}>{icon}</span>
+                    </div>
+                    <h3 className="showcase-card__title font-display">{title}</h3>
+                    <p className="showcase-card__body">{body}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <SiteFooter />
     </div>

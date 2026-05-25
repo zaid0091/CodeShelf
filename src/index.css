@@ -5859,3 +5859,356 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 
 /* Docs dark mode — component glass/gradients (after all theme tokens) */
 @import "./styles/dark-mode.css";
+
+/* ============================================================
+   LEARNING PATH SECTION
+   ============================================================ */
+
+.learning-path-section {
+  position: relative;
+  background: var(--color-canvas-night);
+  overflow: hidden;
+  padding: 7rem 0 5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.learning-path-section__ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.learning-path-section__glow {
+  position: absolute;
+  width: 600px;
+  height: 400px;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, rgba(193, 251, 212, 0.07) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.learning-path-section__inner {
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+.learning-path-section__header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lp-eyebrow__dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c1fbd4;
+  box-shadow: 0 0 8px 2px rgba(193, 251, 212, 0.5);
+}
+
+/* Canvas that holds the SVG + absolute-positioned nodes */
+.lp-canvas {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  height: 420px;
+}
+
+.lp-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Milestone nodes */
+.lp-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  /* start hidden; GSAP will reveal */
+  opacity: 0;
+  scale: 0;
+}
+
+.lp-node__ring {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(193, 251, 212, 0.2);
+  animation: lp-ring-pulse 3s ease-in-out infinite;
+}
+
+@keyframes lp-ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.35); opacity: 0; }
+}
+
+.lp-node__core {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d1a14 0%, #0a0a0a 100%);
+  border: 1px solid rgba(193, 251, 212, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c1fbd4;
+  box-shadow: 0 0 16px rgba(193, 251, 212, 0.18), 0 2px 8px rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 1;
+}
+
+.lp-node__label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(193, 251, 212, 0.7);
+  white-space: nowrap;
+  /* start hidden; GSAP will reveal */
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+/* ============================================================
+   HORIZONTAL SHOWCASE SECTION
+   ============================================================ */
+
+.showcase-section {
+  position: relative;
+  background: var(--color-canvas-night);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.showcase-section__inner {
+  position: relative;
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 7rem;
+}
+
+@media (min-width: 768px) {
+  .showcase-section__inner {
+    padding: 7rem 2.5rem 8rem;
+  }
+}
+
+.showcase-section__eyebrow {
+  justify-content: center;
+}
+
+/* Two-row grid: 3 cards on top, 2 centred on bottom */
+.showcase-grid {
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .showcase-grid {
+    margin-top: 5rem;
+    gap: 1.75rem;
+  }
+}
+
+.showcase-row {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .showcase-row {
+    gap: 1.75rem;
+  }
+}
+
+.showcase-row--top {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .showcase-row--top {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .showcase-row--top {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.showcase-row--bottom {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .showcase-row--bottom {
+    /* Center two cards by leaving 1/6 empty on each side */
+    grid-template-columns: 1fr 1fr;
+    max-width: 60%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .showcase-row--bottom {
+    max-width: 66.66%;
+  }
+}
+
+.showcase-track {
+  display: flex;
+  gap: 2rem;
+  padding: 0 4rem 8rem;
+  width: max-content;
+  will-change: transform;
+  align-items: stretch;
+}
+
+.showcase-card {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.012) 100%);
+  border-radius: 24px;
+  padding: 2.25rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  isolation: isolate;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .showcase-card {
+    padding: 2.75rem 2.25rem 2.5rem;
+  }
+}
+
+.showcase-card:hover {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.showcase-card__border {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  transition: border-color 0.35s ease;
+}
+
+.showcase-card:hover .showcase-card__border {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Top accent stripe on hover */
+.showcase-card__border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  border-top: 1.5px solid var(--card-accent, #c1fbd4);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.showcase-card:hover .showcase-card__border::before {
+  opacity: 0.45;
+}
+
+.showcase-card__glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 25px;
+  background: radial-gradient(ellipse at 50% -10%, var(--card-accent, #c1fbd4) 0%, transparent 55%);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: opacity 0.4s ease;
+}
+
+.showcase-card:hover .showcase-card__glow {
+  opacity: 0.18;
+}
+
+/* Icon well — square pill with subtle accent bg */
+.showcase-card__icon-well {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.showcase-card:hover .showcase-card__icon-well {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.showcase-card__icon-well::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  background: radial-gradient(ellipse at 50% 0%, var(--card-accent, #c1fbd4) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.showcase-card:hover .showcase-card__icon-well::after {
+  opacity: 0.25;
+}
+
+.showcase-card__title {
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--color-on-primary);
+  margin-bottom: 0.65rem;
+  letter-spacing: -0.01em;
+}
+
+.showcase-card__body {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--color-link-cool-2);
+  margin: 0;
+  flex: 1;
+}
+
+/* Reduced-motion: skip GSAP initial hidden state */
+@media (prefers-reduced-motion: reduce) {
+  .lp-node,
+  .lp-node__label {
+    opacity: 1 !important;
+    transform: none !important;
+    scale: 1 !important;
+  }
+
+  .lp-node__ring {
+    animation: none;
+  }
+}
