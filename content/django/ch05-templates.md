@@ -1,650 +1,707 @@
 ---
 title: Templates
-description: Django template language, inheritance, context, filters, and tags
+description: Master the Django Template Language — variables, tags, filters, inheritance, includes, CSRF, escaping, and custom template tags
 order: 5
-tags: [django, templates, dtl]
+tags: [django, templates, dtl, html, frontend]
 ---
 
-# Chapter 5: Templates
+# Chapter 5 — Templates
 
-> **Templates turn data into HTML — learn the Django Template Language (DTL) properly.**
-
----
-
-## Table of Contents
-
-1. [Template System Overview](#template-system-overview)
-2. [Template Layout and Namespaces](#template-layout-and-namespaces)
-3. [Syntax: Variables Tags Comments](#syntax:-variables-tags-comments)
-4. [Inheritance and Blocks](#inheritance-and-blocks)
-5. [Loops and Conditionals](#loops-and-conditionals)
-6. [url and static Tags](#url-and-static-tags)
-7. [Filters Reference](#filters-reference)
-8. [Context and Processors](#context-and-processors)
-9. [Custom Tags and Filters](#custom-tags-and-filters)
-10. [CSRF in Forms](#csrf-in-forms)
-11. [XSS and Escaping](#xss-and-escaping)
-12. [Debugging Templates](#debugging-templates)
-13. [Including Partials](#including-partials)
-14. [Template Loaders](#template-loaders)
-15. [Built-in Template Reference](#built-in-template-reference)
-16. [Best Practices](#best-practices)
-17. [Common Mistakes](#common-mistakes)
-18. [Interview Points](#interview-points)
-19. [Exercises](#exercises)
-20. [Chapter Summary](#chapter-summary)
-
----
-## Template System Overview
-
-> **Definition:** Templates separate presentation from Python logic.
-
-Django Template Language avoids arbitrary Python in HTML for security. Views call `render(request, template, context)`.
-
-### Why this matters
-
-Understanding **Template System Overview** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Template System Overview** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+> Turn data into HTML — write secure, reusable, inheritable templates with the Django Template Language (DTL).
+>
+> **Difficulty:** Beginner &nbsp;·&nbsp; **Estimated time:** 45 – 60 min &nbsp;·&nbsp; **Prerequisites:** [Chapter 4 — Views and URLs](./ch04-views-urls.md), basic HTML
 
 ---
 
-## Template Layout and Namespaces
+## Learning Outcome
+
+By the end of this lesson, you will be able to:
+
+- ✔ Configure the **template loader** and place templates in the right folder
+- ✔ Use DTL **variables** `{{ … }}`, **tags** `{% … %}`, and **comments** `{# … #}`
+- ✔ Build a **base layout** and extend it with `{% extends %}` + `{% block %}`
+- ✔ Render lists with `{% for %}` (and `{% empty %}`) and conditions with `{% if %}` / `{% elif %}` / `{% else %}`
+- ✔ Apply **filters** like `|date`, `|default`, `|truncatewords`, `|pluralize`, `|length`
+- ✔ Generate links and assets safely with `{% url %}` and `{% static %}`
+- ✔ Protect every POST form with **`{% csrf_token %}`**
+- ✔ Trust Django's **auto-escaping** and know when (and why not) to use `|safe`
+- ✔ Reuse fragments with `{% include %}` and inject globals via **context processors**
+- ✔ Write your own **custom template tags and filters**
+
+---
+
+## Visual Preview
+
+Three files turn into one rendered page:
+
+```text
+┌────────────────────────────┐    ┌─────────────────────────┐
+│ blog/views.py              │    │ blog/post_list.html     │
+│                            │    │                         │
+│ posts = Post.objects       │    │ {% extends "base.html"  │
+│   .filter(published=True)  │    │   %}                    │
+│                            │    │ {% block content %}     │
+│ render(request,            │ ─▶ │   {% for p in posts %}  │
+│   "blog/post_list.html",   │    │     <h2>{{ p.title }}   │
+│   {"posts": posts})        │    │   {% endfor %}          │
+└────────────────────────────┘    │ {% endblock %}          │
+                                  └────────────┬────────────┘
+                                               │
+                                               ▼
+                                  ┌─────────────────────────┐
+                                  │ rendered HTML           │
+                                  │                         │
+                                  │ <h2>Hello Django</h2>   │
+                                  │ <h2>Templates rock</h2> │
+                                  │ <h2>DTL deep dive</h2>  │
+                                  └─────────────────────────┘
+```
+
+By the end of this lesson, the page above will inherit a base layout, render dynamic links with `{% url %}`, escape user content automatically, and degrade gracefully when the post list is empty.
+
+---
+
+## Core Concept
+
+### Templates separate logic from presentation
+
+> **Definition — Template:** A text file (usually HTML) with **placeholders** (`{{ var }}`) and **control structures** (`{% if %}`, `{% for %}`) that Django renders into a final string for the browser.
+
+DTL deliberately limits what you can do — there is no `if x = call_python_function()` because that kind of logic belongs in **views** or **template tags**, not in HTML.
+
+### Three syntactic primitives
+
+| Syntax | Used for | Example |
+|--------|----------|---------|
+| `{{ variable }}` | Output a value (auto-escaped) | `{{ post.title }}` |
+| `{% tag %}` | Control flow / template logic | `{% if user.is_authenticated %}` |
+| `{# comment #}` | Template-only comment (not rendered) | `{# TODO: refactor #}` |
+
+### Template inheritance is the killer feature
+
+A **base** template defines `{% block name %}…{% endblock %}` slots. **Child** templates use `{% extends %}` and override the blocks they care about. You write your shared layout, navigation, and footer **once**.
+
+### Auto-escaping is on by default
+
+Every `{{ value }}` is escaped — `<`, `>`, `&`, `"`, and `'` become HTML entities. This neutralizes **XSS** attacks. The escape only relaxes when you explicitly opt out with `|safe` or `{% autoescape off %}`.
+
+### App-namespaced template paths
+
+Even though all apps' `templates/` folders are searched, you should always nest your template inside an app subfolder:
 
 ```text
 blog/templates/blog/post_list.html
 ```
 
-App name subfolder prevents template name collisions.
-
-### Why this matters
-
-Understanding **Template Layout and Namespaces** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Template Layout and Namespaces** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+This prevents `accounts/post_list.html` from accidentally shadowing `blog/post_list.html`.
 
 ---
 
-## Syntax: Variables Tags Comments
+## Syntax
+
+The four DTL constructs you will use every day:
 
 ```django
-{{ post.title }}
-{% if user.is_authenticated %}{% endif %}
-{# comment #}
+{{ variable }}                              {# variable output #}
+{{ variable|filter:argument }}              {# value with filter applied #}
+
+{% tag %} ... {% endtag %}                  {# block tag #}
+{% standalone_tag arg1 arg2 %}              {# inline tag #}
+
+{# comment that won't appear in the rendered HTML #}
 ```
 
-### Why this matters
-
-Understanding **Syntax: Variables Tags Comments** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Syntax: Variables Tags Comments** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Inheritance and Blocks
+The minimum **base / child** template skeleton:
 
 ```django
-{% extends "blog/base.html" %}
-{% block content %}...{% endblock %}
+{# base.html #}
+<!doctype html>
+<html>
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>
 ```
 
-### Why this matters
-
-Understanding **Inheritance and Blocks** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Inheritance and Blocks** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Loops and Conditionals
-
 ```django
-{% for post in posts %}{{ forloop.counter }}{% empty %}No posts{% endfor %}
+{# child.html #}
+{% extends "base.html" %}
+{% block content %}
+  Hello!
+{% endblock %}
 ```
 
-### Why this matters
-
-Understanding **Loops and Conditionals** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Loops and Conditionals** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
 ---
 
-## url and static Tags
+## Live Code Playground
+
+A complete blog template stack — base layout, list page, detail page, partial, and a custom filter.
+
+### `mysite/settings.py` (templates entry — usually already correct)
+
+```python
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],     # project-wide templates
+        "APP_DIRS": True,                     # also search blog/templates/, accounts/templates/, ...
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+```
+
+### `templates/base.html`
 
 ```django
-{% url 'post-detail' pk=post.pk %}
 {% load static %}
-<link href="{% static 'css/style.css' %}">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}My Blog{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <header>
+    <a href="{% url 'blog:post-list' %}">Blog</a>
+    {% if user.is_authenticated %}
+      <span>Hi, {{ user.username }}</span>
+    {% endif %}
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>&copy; {% now "Y" %} CodeShelf</footer>
+</body>
+</html>
 ```
 
-### Why this matters
-
-Understanding **url and static Tags** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **url and static Tags** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Filters Reference
-
-| Filter | Use |
-|--------|-----|
-| date | Format datetime |
-| default | Fallback |
-| truncatewords | Shorten text |
-
-### Why this matters
-
-Understanding **Filters Reference** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Filters Reference** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Context and Processors
-
-Context processors inject `user`, `request`, `messages` globally.
-
-### Why this matters
-
-Understanding **Context and Processors** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Context and Processors** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Custom Tags and Filters
-
-Create `templatetags/` module with `@register.filter`.
-
-### Why this matters
-
-Understanding **Custom Tags and Filters** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Custom Tags and Filters** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## CSRF in Forms
-
-`{% csrf_token %}` required on POST forms.
-
-### Why this matters
-
-Understanding **CSRF in Forms** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **CSRF in Forms** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## XSS and Escaping
-
-Auto-escape in `{{ }}`. Never `|safe` on user content.
-
-### Why this matters
-
-Understanding **XSS and Escaping** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **XSS and Escaping** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Debugging Templates
-
-Read TemplateDoesNotExist searched paths list.
-
-### Why this matters
-
-Understanding **Debugging Templates** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Debugging Templates** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Including Partials
+### `blog/templates/blog/post_list.html`
 
 ```django
-{% include "blog/partials/pagination.html" %}
+{% extends "base.html" %}
+
+{% block title %}Posts — {{ block.super }}{% endblock %}
+
+{% block content %}
+  <h1>Latest posts</h1>
+
+  <ul class="post-list">
+    {% for post in posts %}
+      <li>
+        <a href="{% url 'blog:post-detail' pk=post.pk %}">{{ post.title }}</a>
+        <small>{{ post.created_at|date:"M j, Y" }}</small>
+        <p>{{ post.body|truncatewords:20 }}</p>
+      </li>
+    {% empty %}
+      <li>No posts yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
 ```
 
-Pass context with `with`:`{% include "x" with foo=bar %}`.
+### `blog/templates/blog/post_detail.html`
 
-### Why this matters
+```django
+{% extends "base.html" %}
 
-Understanding **Including Partials** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+{% block title %}{{ post.title }}{% endblock %}
 
-### Try it yourself
+{% block content %}
+  <article>
+    <h1>{{ post.title }}</h1>
+    <p>Published {{ post.created_at|date:"F j, Y" }} · {{ post.body|wordcount }} words</p>
+    <div>{{ post.body|linebreaks }}</div>
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+    {% include "blog/partials/comment_form.html" with post=post %}
+  </article>
+{% endblock %}
+```
 
-### Check your understanding
+### `blog/templates/blog/partials/comment_form.html`
 
-- Can you explain **Including Partials** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+```django
+<form method="post" action="{% url 'blog:comment-create' pk=post.pk %}">
+  {% csrf_token %}
+  <textarea name="body" required></textarea>
+  <button type="submit">Post comment</button>
+</form>
+```
 
+### A custom filter — `blog/templatetags/blog_extras.py`
 
----
+```python
+from django import template
 
-## Template Loaders
-
-Filesystem and app_directories loaders search DIRS then each app's templates/.
-
-### Why this matters
-
-Understanding **Template Loaders** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Template Loaders** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+register = template.Library()
 
 
----
+@register.filter
+def reading_minutes(text, wpm=200):
+    """Estimate reading time in minutes."""
+    word_count = len(text.split())
+    return max(1, round(word_count / wpm))
+```
 
-## Built-in Template Reference
+Use it in a template:
 
-Bookmark Django docs: Built-in template tags and filters. Learn `widthratio`, `yesno`, `pluralize` when needed.
+```django
+{% load blog_extras %}
+<small>{{ post.body|reading_minutes }} min read</small>
+```
 
-### Why this matters
-
-Understanding **Built-in Template Reference** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Built-in Template Reference** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+> 💡 **Tip:** After adding a `templatetags/` package, restart `runserver`. Django caches loaded tag libraries.
 
 ---
 
-## Best Practices
+## Step-by-Step Example
 
-Apply conventions from this chapter consistently.
+Build the **`base.html` → `post_list.html`** flow from zero so every step is testable.
 
-See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
+### Step 1 — Verify the template settings
 
-- Read official docs for your Django version
-- Keep views thin and models focused
-- Use named URLs everywhere
-- Run `python manage.py check` before commits
+Open `mysite/settings.py` and confirm:
+
+```python
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+    },
+]
+```
+
+`APP_DIRS=True` makes Django search `<app>/templates/` automatically. `DIRS` lets you keep shared templates (like `base.html`) at the project root.
+
+### Step 2 — Create the project-level `base.html`
+
+```text
+templates/base.html
+```
+
+```django
+<!doctype html>
+<html>
+<head><title>{% block title %}Blog{% endblock %}</title></head>
+<body>
+  {% block content %}{% endblock %}
+</body>
+</html>
+```
+
+### Step 3 — Create the app-namespaced child template
+
+```text
+blog/templates/blog/post_list.html
+```
+
+```django
+{% extends "base.html" %}
+{% block title %}Posts{% endblock %}
+{% block content %}
+  <h1>Posts</h1>
+  <ul>
+    {% for post in posts %}
+      <li>{{ post.title }}</li>
+    {% empty %}
+      <li>No posts yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+```
+
+### Step 4 — Wire it up from a view
+
+```python
+# blog/views.py
+from django.shortcuts import render
+from .models import Post
+
+def post_list(request):
+    posts = Post.objects.filter(published=True)
+    return render(request, "blog/post_list.html", {"posts": posts})
+```
+
+### Step 5 — Hit the URL
+
+`/blog/` should now render the inherited layout with the dynamic post list. If the list is empty, you should see **"No posts yet."** — the `{% empty %}` branch.
+
+### Step 6 — Add a filter
+
+Change the loop body to:
+
+```django
+<li>
+  {{ post.title }} — {{ post.created_at|date:"M j, Y" }}
+  <p>{{ post.body|truncatewords:15 }}</p>
+</li>
+```
+
+You instantly get formatted dates and a short summary — without touching the view.
+
+### Step 7 — Add a partial
+
+Move the `<li>...</li>` into `blog/templates/blog/partials/post_card.html` and replace it with:
+
+```django
+{% include "blog/partials/post_card.html" with post=post %}
+```
+
+The page renders identically, but the partial is now reusable on the home page, search results, or anywhere else.
+
+---
+
+## Try It Yourself
+
+> **Task:** Add a **search bar** to `post_list.html` that:
+>
+> 1. Lives inside a partial at `blog/templates/blog/partials/search_bar.html`.
+> 2. Includes the search bar at the top of `post_list.html` using `{% include %}`.
+> 3. POSTs to the same URL with a CSRF token.
+> 4. Pre-fills the input with the current `q` value if one was submitted.
+> 5. Shows a friendly **"No results for 'foo'"** message when the query returns no posts (use `{% if posts %} … {% else %} … {% endif %}` or the `{% empty %}` branch).
+
+Hints:
+
+- The view should already pass `q` and `posts` in the context (see Chapter 4's playground).
+- Inside the partial, write `<input name="q" value="{{ q|default:'' }}">`.
+- Use `{% csrf_token %}` even on a method-`get` form? **No** — CSRF only protects unsafe methods (POST/PUT/DELETE). For a search bar, `method="get"` is correct and no token is needed.
+
+Try it before peeking at the solution.
+
+---
+
+## Solution
+
+<details>
+<summary>Click to reveal the solution</summary>
+
+### `blog/templates/blog/partials/search_bar.html`
+
+```django
+<form method="get" action="{% url 'blog:post-list' %}" class="search-bar">
+  <input
+    type="search"
+    name="q"
+    value="{{ q|default:'' }}"
+    placeholder="Search posts..."
+  >
+  <button type="submit">Search</button>
+</form>
+```
+
+### `blog/templates/blog/post_list.html`
+
+```django
+{% extends "base.html" %}
+
+{% block title %}Posts{% endblock %}
+
+{% block content %}
+  <h1>Posts</h1>
+
+  {% include "blog/partials/search_bar.html" %}
+
+  {% if q %}
+    <p>Showing results for "<strong>{{ q }}</strong>"</p>
+  {% endif %}
+
+  <ul>
+    {% for post in posts %}
+      <li>
+        <a href="{% url 'blog:post-detail' pk=post.pk %}">{{ post.title }}</a>
+        <small>{{ post.created_at|date:"M j, Y" }}</small>
+      </li>
+    {% empty %}
+      {% if q %}
+        <li>No results for "{{ q }}".</li>
+      {% else %}
+        <li>No posts yet.</li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+{% endblock %}
+```
+
+### What's happening
+
+1. `{% include "blog/partials/search_bar.html" %}` reuses one HTML chunk on every page that needs search.
+2. `value="{{ q|default:'' }}"` keeps the user's query visible after submit. The `|default:''` filter handles the case where `q` is `None`.
+3. `method="get"` puts the query in the URL (`?q=django`) — bookmarkable and CSRF-token-free.
+4. `{% empty %}` runs only when the QuerySet is empty, and the nested `{% if q %}` differentiates "no results for this search" vs. "no posts at all".
+
+</details>
+
+---
+
+## Key Notes & Tips
+
+> 💡 **Tip:** Always nest templates inside an app folder — `blog/templates/blog/post_list.html`, not `blog/templates/post_list.html`. This avoids name collisions across apps.
+
+> 💡 **Tip:** Use `{% url 'name' %}` in templates instead of writing literal URLs. The day you change a route, every template still works.
+
+> 💡 **Tip:** `{{ value|default:"—" }}` and `{{ value|default_if_none:"—" }}` differ — the first treats `False` and `""` as "missing", the second only triggers on `None`.
+
+> 💡 **Tip:** `block.super` lets a child append to a parent block instead of replacing it: `{% block title %}{{ block.super }} — Posts{% endblock %}`.
+
+> ⚠️ **Warning:** Never write `{{ user_input|safe }}`. The `|safe` filter disables auto-escaping and re-opens the door to XSS. Only use it on content **you** generated (e.g., already-sanitized markdown).
+
+> ⚠️ **Warning:** `{% csrf_token %}` is **required** on every `<form method="post">`. Forgetting it produces a `403 Forbidden — CSRF verification failed` error.
+
+> ⚠️ **Warning:** `TemplateDoesNotExist` lists **every path Django searched**. Read it carefully — your template is almost always one folder away from where Django expected it.
+
+> 💡 **Tip:** Restart the dev server after creating a `templatetags/` package or adding a new `__init__.py`. Django won't pick up new tag libraries until it does a full discovery pass.
 
 ---
 
 ## Common Mistakes
 
-Many beginners hit the same walls. Learn from these early.
-
-| Mistake | What goes wrong | Fix |
-|---------|-----------------|-----|
-| Skipping docs | Reinvent wrong patterns | Read django docs for this topic |
-| Copy-paste without understanding | Mystery bugs | Type code yourself |
-| No tests | Regressions ship | Write tests for critical paths |
-| Ignoring security defaults | Vulnerabilities | Keep CSRF and auth middleware enabled |
-| Hard-coded URLs | Breaks on URL change | Use reverse and {% url %} |
-
----
-
-## Interview Points
-
-**Q: Summarize chapter 5 in one sentence.** — See chapter summary.
-
-**Q: Where does this fit in MTV?** — Identify model, view, template roles.
-
-**Q: What breaks if misconfigured?** — Trace request/response and settings.
+- ❌ **Putting templates directly in `blog/templates/post_list.html`.** They work, but they collide with other apps. Always nest in an app subfolder.
+- ❌ **Forgetting `{% csrf_token %}` inside POST forms.** Django returns 403 and you spend 20 minutes searching for the cause.
+- ❌ **Trusting user input with `|safe`.** That single character disables Django's XSS protection on that variable.
+- ❌ **Putting business logic in templates.** If you find yourself wanting `{% if a > b and c.startswith("x") %}`, move that decision into the view or a model property.
+- ❌ **Hard-coding URLs in `<a href>`.** Use `{% url 'app:name' %}` so renaming a route never breaks a link.
+- ❌ **Forgetting `{% load static %}`** before `{% static 'css/style.css' %}`. Django raises `'static' is not a registered tag library`.
+- ❌ **Forgetting `{% load <app>_extras %}`** in templates that use your custom filters.
+- ❌ **Calling methods with arguments in templates.** DTL doesn't allow it — write a model property or template tag instead.
+- ❌ **Indenting `{% include %}` arguments incorrectly.** `{% include "x.html" with foo=bar baz=qux %}` — no commas, no quotes around variable names.
 
 ---
 
-## Exercises
+## Mini Quiz
 
-> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+**Q1.** Which directive is used to inherit from a parent template?
 
-### Exercise 5.1: Hands-on practice
+- A) `{% include "base.html" %}`
+- B) `{% extends "base.html" %}` ✔
+- C) `{% block "base.html" %}`
+- D) `{% inherit "base.html" %}`
 
-Implement one feature from Chapter 5 in a local project.
+**Q2.** What does Django do with `{{ post.title }}` by default?
 
-<details>
-<summary>Click to reveal solution for Exercise 5.1</summary>
+- A) Outputs the raw value
+- B) **Auto-escapes** HTML special characters to prevent XSS ✔
+- C) Strips HTML tags entirely
+- D) Wraps it in a `<p>` tag
 
-Follow step-by-step sections in this chapter.
+**Q3.** What is the **correct** path for a `post_list.html` template that belongs to the `blog` app?
 
-</details>
+- A) `templates/post_list.html`
+- B) `blog/post_list.html`
+- C) `blog/templates/post_list.html`
+- D) `blog/templates/blog/post_list.html` ✔
 
----
+**Q4.** Which tag must appear inside every `<form method="post">`?
 
-### Exercise 5.2: Read the docs
+- A) `{% form_token %}`
+- B) `{% csrf_token %}` ✔
+- C) `{% security_token %}`
+- D) `{% post_token %}`
 
-Find the official Django documentation page for this chapter's topic.
+**Q5.** What does `{{ post.body|truncatewords:15 }}` do?
 
-<details>
-<summary>Click to reveal solution for Exercise 5.2</summary>
-
-docs.djangoproject.com — use search for the topic name.
-
-</details>
-
----
-
-### Exercise 5.3: Debug exercise
-
-Intentionally cause one error (e.g. wrong template path) and fix using the traceback.
-
-<details>
-<summary>Click to reveal solution for Exercise 5.3</summary>
-
-Read TemplateDoesNotExist or NoReverseMatch paths in the error page.
-
-</details>
+- A) Truncates `post.body` to the first 15 **characters**
+- B) Truncates `post.body` to the first 15 **words** ✔
+- C) Returns the 15th word in `post.body`
+- D) Splits `post.body` into 15-word chunks
 
 ---
 
-### Exercise 5.4: Explain aloud
+## Real World Example
 
-Explain Chapter 5 concepts to a friend without looking at notes.
+A typical product layout uses every concept from this chapter at the same time.
 
-<details>
-<summary>Click to reveal solution for Exercise 5.4</summary>
+### `templates/base.html`
 
-If you stumble, re-read the section you could not explain.
+```django
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Acme{% endblock %}</title>
 
-</details>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
 
----
-## Chapter Summary
+  {% include "partials/navbar.html" %}
 
-Excellent work completing Chapter 5. Here is what you learned:
+  <main class="container">
+    {% if messages %}
+      <div class="flash-messages">
+        {% for message in messages %}
+          <div class="flash flash--{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-- Completed Chapter 5: Templates
-- Reviewed core patterns and examples
-- Practiced with exercises
+    {% block content %}{% endblock %}
+  </main>
 
-### Key rules to remember
+  {% include "partials/footer.html" %}
 
-```
-✅ Practice in a real project
-✅ Use official docs
-❌ Skip migrations
-❌ Disable security middleware in production
+  <script src="{% static 'js/app.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>
 ```
 
+### A page that uses every primitive at once
+
+```django
+{% extends "base.html" %}
+{% load static blog_extras %}
+
+{% block title %}{{ project.name }} — {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+  <meta name="description" content="{{ project.summary|truncatechars:160 }}">
+{% endblock %}
+
+{% block content %}
+  <header class="project-header">
+    <h1>{{ project.name }}</h1>
+    <p>
+      Created {{ project.created_at|date:"F j, Y" }}
+      · {{ project.tasks.count }} task{{ project.tasks.count|pluralize }}
+      · {{ project.description|reading_minutes }} min read
+    </p>
+  </header>
+
+  {% if project.tasks.all %}
+    <ul class="task-list">
+      {% for task in project.tasks.all %}
+        {% include "tasks/partials/task_card.html" with task=task %}
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No tasks yet. <a href="{% url 'tasks:create' project_id=project.id %}">Create the first one →</a></p>
+  {% endif %}
+
+  {% if request.user == project.owner %}
+    <form method="post" action="{% url 'projects:archive' project.id %}">
+      {% csrf_token %}
+      <button type="submit">Archive project</button>
+    </form>
+  {% endif %}
+{% endblock %}
+```
+
+**What this demonstrates:**
+
+| Pattern | Where |
+|---------|-------|
+| `{% extends %}` | Inherits the project layout |
+| `{% block %}` + `block.super` | Composes the page title with the site title |
+| `{% load static blog_extras %}` | Multiple libraries on one line |
+| `{% include … with … %}` | Reusable task card with explicit context |
+| `{% if request.user == project.owner %}` | Conditional UI based on the auth user |
+| `{% csrf_token %}` | Required for the archive POST form |
+| Filters (`date`, `truncatechars`, `pluralize`, custom `reading_minutes`) | Presentation logic kept out of Python |
+| `{% url %}` | Every link is name-based, never hard-coded |
+| `messages` from a context processor | Flash messages without manual context |
+
+This is the templating layer of a real Django product, condensed into one screen.
+
 ---
 
-## Next Chapter
+## Summary
 
-Continue to the next chapter.
+Today you learned:
 
-**➡️ [Next Chapter →](./ch06-forms.md)**
+- ✔ Templates separate **presentation from logic** — DTL is intentionally limited so business rules stay in views and models.
+- ✔ Three primitives: `{{ variable }}`, `{% tag %}`, `{# comment #}`.
+- ✔ `{% extends %}` + `{% block %}` is the foundation of every Django UI — write your layout once.
+- ✔ `{% for %}` with `{% empty %}` and `{% if %}` cover almost every loop and condition you need.
+- ✔ Filters (`|date`, `|default`, `|truncatewords`, `|pluralize`, `|length`, …) format values without touching Python.
+- ✔ Always link with `{% url 'app:name' %}` and load assets with `{% static 'path' %}` after `{% load static %}`.
+- ✔ Auto-escaping protects you from XSS — never disable it on user content.
+- ✔ Every POST form needs `{% csrf_token %}` — Django enforces it via middleware.
+- ✔ Reuse fragments with `{% include "x.html" with var=value %}`.
+- ✔ Custom filters and tags live in `<app>/templatetags/` and unlock per-project formatting helpers.
 
----
+### Key Takeaways
 
-*Chapter 5 of the Complete Django Guide | [Report an issue](https://github.com/zaid0091/CodeShelf/issues)*
+```text
+✅ Nest templates in app subfolders to avoid name collisions
+✅ Use {% extends %} + {% block %} for every page
+✅ Trust auto-escaping; avoid |safe on user content
+✅ {% csrf_token %} on every <form method="post">
+✅ Use {% url 'app:name' %} — never hard-code paths
+✅ Filters belong in templates; logic belongs in views
+✅ Custom tags live in <app>/templatetags/<name>.py
+```
 
----
+### Tag and Filter Cheat Sheet
 
-## Extended Study Guide: Templates
+```django
+{# Variables #}
+{{ post.title }}                 {# attribute access #}
+{{ posts|length }}               {# pipe to filter #}
+{{ value|default:"—" }}          {# fallback #}
+{{ value|default_if_none:"—" }}  {# fallback only on None #}
+
+{# Tags #}
+{% if condition %} … {% elif … %} … {% else %} … {% endif %}
+{% for item in items %} … {% empty %} … {% endfor %}
+{% url 'app:name' arg1=value %}
+{% load static %}
+{% static 'css/style.css' %}
+{% csrf_token %}
+{% include "partials/x.html" with foo=bar %}
+{% extends "base.html" %}
+{% block content %} … {% endblock %}
+{% now "Y-m-d" %}
+
+{# Common filters #}
+|date:"M j, Y"
+|time:"H:i"
+|truncatewords:20
+|truncatechars:160
+|linebreaks
+|linebreaksbr
+|length
+|pluralize         {# “1 post” / “2 posts” #}
+|yesno:"yes,no,maybe"
+|lower / |upper / |title / |capfirst
+|safe              {# disables escaping — use with care #}
+|escape            {# force escaping #}
+```
 
 ### Glossary
 
 | Term | Definition |
 |------|------------|
-| Django | High-level Python web framework |
-| MTV | Model-Template-View architecture |
-| ORM | Object-Relational Mapper for database access |
-| QuerySet | Lazy database query representation |
-| Migration | Version-controlled schema change file |
+| Template | Text file with `{{ }}` and `{% %}` placeholders that Django renders into HTML |
+| DTL | Django Template Language — the syntax used in `.html` templates |
+| Variable | `{{ name }}` — outputs an auto-escaped value |
+| Tag | `{% name %}` — control flow and template logic |
+| Filter | `{{ value|name:arg }}` — transforms a value before output |
+| `block` / `extends` | Slots used for template inheritance |
+| `include` | Renders another template inline, optionally with extra context |
+| Auto-escape | Default protection against XSS — escapes `< > & " '` |
+| `\|safe` | Filter that opts a value out of auto-escaping |
+| `csrf_token` | Hidden field protecting POST/PUT/DELETE forms |
+| Context processor | Function that adds variables to every template's context |
+| Custom tag/filter | User-defined helper registered in `<app>/templatetags/` |
+| Template loader | Class that finds template files (filesystem, app dirs, …) |
+| `TemplateDoesNotExist` | Exception listing every path Django searched |
 
-### Self-check questions
-
-1. Can you explain this chapter's main idea in two sentences?
-2. Can you write the key code patterns from memory?
-3. Can you debug one common error mentioned in Common Mistakes?
-
-### Command reference
-
-```bash
-python manage.py runserver
-python manage.py makemigrations
-python manage.py migrate
-python manage.py shell
-python manage.py test
-```
 ---
 
-## Extended Study Guide: Chapter 5
+## Next Lesson Navigation
 
-> Use this section for review, interviews, and spaced repetition after completing **Templates**.
-
-### Frequently Asked Questions
-
-**Q: What is the main goal of the DTL chapter?**
-
-Master DTL patterns used in every Django project.
-
-**Q: How does this fit MTV?**
-
-Identify which layer (model, view, template) each example touches.
-
-**Q: What is the most common beginner mistake here?**
-
-See Common Mistakes section in the main chapter body.
-
-**Q: What official docs page should I read?**
-
-Search docs.djangoproject.com for DTL.
-
-**Q: How do I practice effectively?**
-
-Build a small blog feature using only this chapter's patterns.
-
-**Q: What breaks in production vs development?**
-
-Settings like DEBUG, static/media serving, and security flags.
-
-**Q: How is this tested?**
-
-Use Django TestCase and Client to assert responses.
-
-**Q: What interview questions appear?**
-
-See Interview Points in the main chapter.
-
-**Q: How does this connect to the next chapter?**
-
-Read the Next Chapter link at the bottom.
-
-**Q: What command validates my project?**
-
-python manage.py check
-
-
-### Step-by-Step Walkthrough
-
-1. Re-read the chapter Table of Contents.
-2. For each section, write a one-sentence summary in your notes.
-3. Complete all four exercises without peeking at solutions first.
-4. Break something on purpose and fix it using error messages.
-5. Cross-link concepts to prior chapters (models, views, templates).
-6. Optional: teach the chapter outline to someone else in 5 minutes.
-
-### Additional Code Patterns
-
-#### Pattern 5.1
-
-```python
-# Practice pattern
-# See main chapter for full examples
-```
-
-### Review checklist
-
-```text
-[ ] I can explain the main concepts without notes
-[ ] I typed the code examples myself
-[ ] I completed all exercises
-[ ] I fixed at least one error using the traceback
-[ ] I read the linked official Django documentation
-```
+| ← Previous Lesson | Next Lesson → |
+|-------------------|---------------|
+| [Views and URLs](./ch04-views-urls.md) | [Forms](./ch06-forms.md) |

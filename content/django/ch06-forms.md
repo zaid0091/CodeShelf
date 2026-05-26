@@ -1,631 +1,793 @@
 ---
 title: Forms
-description: Django Form and ModelForm, validation, CSRF, and form rendering in templates
+description: Build, validate, and render user input safely with forms.Form and ModelForm — including CSRF, widgets, custom validation, file uploads, and formsets
 order: 6
-tags: [django, forms, csrf]
+tags: [django, forms, modelform, validation, csrf]
 ---
 
-# Chapter 6: Forms
+# Chapter 6 — Forms
 
-> **Forms handle user input safely — validation, HTML, and CSRF protection built in.**
-
----
-
-## Table of Contents
-
-1. [Why Forms](#why-forms)
-2. [Form Class](#form-class)
-3. [Validation](#validation)
-4. [Views with Forms](#views-with-forms)
-5. [Template Rendering](#template-rendering)
-6. [ModelForm](#modelform)
-7. [CSRF](#csrf)
-8. [Widgets](#widgets)
-9. [Errors](#errors)
-10. [Formsets](#formsets)
-11. [File Uploads](#file-uploads)
-12. [Security](#security)
-13. [Field Types Reference](#field-types-reference)
-14. [ModelForm Meta exclude](#modelform-meta-exclude)
-15. [Displaying Validation Errors](#displaying-validation-errors)
-16. [Best Practices](#best-practices)
-17. [Common Mistakes](#common-mistakes)
-18. [Interview Points](#interview-points)
-19. [Exercises](#exercises)
-20. [Chapter Summary](#chapter-summary)
-
----
-## Why Forms
-
-Forms validate input and render HTML consistently.
-
-### Why this matters
-
-Understanding **Why Forms** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Why Forms** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+> Validate user input, render HTML, surface errors, and stay safe from CSRF — all from one Python class.
+>
+> **Difficulty:** Intermediate &nbsp;·&nbsp; **Estimated time:** 50 – 70 min &nbsp;·&nbsp; **Prerequisites:** [Chapter 5 — Templates](./ch05-templates.md), familiarity with `request.POST` from [Chapter 4](./ch04-views-urls.md)
 
 ---
 
-## Form Class
+## Learning Outcome
 
-```python
-class ContactForm(forms.Form):
-    email = forms.EmailField()
+By the end of this lesson, you will be able to:
+
+- ✔ Define a **`forms.Form`** with the right field types and options
+- ✔ Process forms in a view with the canonical **GET-empty / POST-bound** pattern
+- ✔ Use **`is_valid()`**, **`cleaned_data`**, **`clean_<field>()`**, and **`clean()`** for validation
+- ✔ Render forms with `{{ form.as_p }}`, manual loops, and per-field error display
+- ✔ Bind a **`ModelForm`** to a model and call `form.save()` to persist data
+- ✔ Add **CSRF protection** to every POST form
+- ✔ Customize **widgets** with CSS classes, placeholders, and HTML attributes
+- ✔ Handle **file uploads** with `enctype="multipart/form-data"` and `request.FILES`
+- ✔ Manage multiple rows at once with **formsets** and **`modelformset_factory`**
+- ✔ Avoid **mass-assignment** by listing fields explicitly
+
+---
+
+## Visual Preview
+
+The full lifecycle of a Django form, from empty render to validated save:
+
+```text
+GET  /contact/
+        │
+        ▼
+   form = ContactForm()        ← unbound, no data
+        │
+        ▼
+   render(request, "contact.html", {"form": form})
+        │
+        ▼
+   ┌──────────────────────────────────────────┐
+   │ <form method="post">                     │
+   │   {% csrf_token %}                       │
+   │   {{ form.as_p }}                        │
+   │   <button type="submit">Send</button>    │
+   │ </form>                                  │
+   └──────────────────────────────────────────┘
+
+POST /contact/   (user submits)
+        │
+        ▼
+   form = ContactForm(request.POST)
+        │
+        ▼
+   form.is_valid() ────── False ──▶ re-render with form.errors
+        │ True
+        ▼
+   form.cleaned_data["email"]
+        │
+        ▼
+   send mail / save model / redirect
 ```
 
-### Why this matters
-
-Understanding **Form Class** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Form Class** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+The key insight: **the same view handles both GET and POST**, and the same form class produces the HTML, validates the data, and exposes the errors.
 
 ---
 
-## Validation
+## Core Concept
 
-`is_valid()`, `cleaned_data`, `clean_<field>`, `clean()`.
+### What a Form does
 
-### Why this matters
+> **Definition — Form:** A Python class (subclass of `forms.Form`) that bundles three responsibilities: **render** HTML inputs, **validate** submitted data, and **expose** cleaned values and errors.
 
-Understanding **Validation** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+Without forms you'd hand-write HTML, repeat validation logic in every view, and build error UIs from scratch. Forms collapse all of that into one class.
 
-### Try it yourself
+### Bound vs. unbound
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+> **Definition — Unbound form:** `Form()` — no data attached, no validation runs, no errors. Rendered for the initial GET.
+>
+> **Definition — Bound form:** `Form(request.POST)` — data attached, ready to validate. Rendered after a failed POST.
 
-### Check your understanding
+A form **doesn't know if it's valid** until you call `form.is_valid()`. Calling `is_valid()` runs every field's validators, your `clean_<field>()` methods, and your `clean()` method, and populates `form.cleaned_data` and `form.errors`.
 
-- Can you explain **Validation** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+### Three layers of validation
 
+1. **Field validation** — `EmailField()` checks for valid email syntax automatically.
+2. **`clean_<field>()`** — your method to validate one field (e.g., reject a banned username).
+3. **`clean()`** — your method to validate **across fields** (e.g., "password" must equal "password_confirm").
 
----
+Each layer runs in order; `cleaned_data` only contains the values that passed.
 
-## Views with Forms
+### `Form` vs. `ModelForm`
 
-GET empty form; POST bound form; redirect on success.
+| | **`forms.Form`** | **`forms.ModelForm`** |
+|---|------------------|----------------------|
+| Used for | Arbitrary input (search, contact, login) | Creating / editing model instances |
+| Defines fields | Manually | Auto-generates from a model |
+| Saves data | You call `Model.objects.create(...)` | `form.save()` does it for you |
+| Best for | One-off forms | CRUD pages |
 
-### Why this matters
+### CSRF in one sentence
 
-Understanding **Views with Forms** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+> **Definition — CSRF (Cross-Site Request Forgery):** An attack that tricks a logged-in user into submitting a request from another origin. Django blocks it by requiring a hidden `csrfmiddlewaretoken` on every unsafe request.
 
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Views with Forms** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Every `<form method="post">` needs `{% csrf_token %}`. AJAX POSTs need the `X-CSRFToken` header.
 
 ---
 
-## Template Rendering
+## Syntax
 
-`as_p`, manual loop, field.errors.
+The minimum **`Form`** definition:
 
-### Why this matters
+```python
+from django import forms
 
-Understanding **Template Rendering** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+class MyForm(forms.Form):
+    field_name = forms.FieldType(<options>)
+```
 
-### Try it yourself
+The minimum **`ModelForm`** definition:
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+```python
+class MyModelForm(forms.ModelForm):
+    class Meta:
+        model = MyModel
+        fields = ["title", "body"]
+```
 
-### Check your understanding
+The canonical **view pattern**:
 
-- Can you explain **Template Rendering** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## ModelForm
-
-`class Meta: model = Post; fields = [...]`
-
-### Why this matters
-
-Understanding **ModelForm** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **ModelForm** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+```python
+def my_view(request):
+    if request.method == "POST":
+        form = MyForm(request.POST)
+        if form.is_valid():
+            # ... use form.cleaned_data
+            return redirect("success-url")
+    else:
+        form = MyForm()
+    return render(request, "template.html", {"form": form})
+```
 
 ---
 
-## CSRF
+## Live Code Playground
 
-Middleware + `{% csrf_token %}` + AJAX header.
+A complete contact form with validation, plus a `ModelForm` for `Post`. Drop these into the `blog` app from earlier chapters.
 
-### Why this matters
+### `blog/forms.py`
 
-Understanding **CSRF** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+```python
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import Post
 
-### Try it yourself
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+class ContactForm(forms.Form):
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "input", "placeholder": "Your name"}),
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"class": "input", "placeholder": "you@example.com"}),
+    )
+    subject = forms.ChoiceField(
+        choices=[
+            ("", "Pick a topic"),
+            ("billing", "Billing"),
+            ("support", "Support"),
+            ("other", "Other"),
+        ],
+        widget=forms.Select(attrs={"class": "input"}),
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "input", "rows": 5}),
+        min_length=10,
+    )
+    accept_terms = forms.BooleanField(label="I accept the terms")
 
-### Check your understanding
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        if name.lower() == "admin":
+            raise ValidationError("That name is reserved.")
+        return name
 
-- Can you explain **CSRF** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+    def clean(self):
+        cleaned = super().clean()
+        subject = cleaned.get("subject")
+        message = cleaned.get("message", "")
+        if subject == "billing" and "invoice" not in message.lower():
+            raise ValidationError(
+                "For billing questions, please include an invoice number."
+            )
+        return cleaned
 
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["title", "slug", "body", "published"]
+        widgets = {
+            "body": forms.Textarea(attrs={"rows": 8, "class": "input"}),
+        }
+        labels = {
+            "body": "Post content",
+        }
+        help_texts = {
+            "slug": "URL-friendly version of the title (lowercase, dashes).",
+        }
+```
+
+### `blog/views.py`
+
+```python
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .forms import ContactForm, PostForm
+
+
+def contact(request):
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            # in real life: send_mail(...) or save to DB
+            messages.success(request, f"Thanks {data['name']}, we'll be in touch.")
+            return redirect("blog:contact")
+    else:
+        form = ContactForm()
+    return render(request, "blog/contact.html", {"form": form})
+
+
+def post_create(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save()
+            return redirect("blog:post-detail", pk=post.pk)
+    else:
+        form = PostForm()
+    return render(request, "blog/post_form.html", {"form": form, "mode": "create"})
+
+
+def post_edit(request, pk):
+    post = Post.objects.get(pk=pk)
+    if request.method == "POST":
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect("blog:post-detail", pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, "blog/post_form.html", {"form": form, "mode": "edit"})
+```
+
+### `blog/templates/blog/contact.html`
+
+```django
+{% extends "base.html" %}
+{% block title %}Contact{% endblock %}
+
+{% block content %}
+  <h1>Contact us</h1>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="form-errors">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    {% for field in form %}
+      <div class="form-row {% if field.errors %}has-error{% endif %}">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+          <small>{{ field.help_text }}</small>
+        {% endif %}
+        {% if field.errors %}
+          <ul class="errors">
+            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <button type="submit">Send</button>
+  </form>
+{% endblock %}
+```
+
+> 💡 **Tip:** The `novalidate` attribute disables the browser's built-in HTML5 validation so you can test Django's server-side validation. Remove it in production if you want both layers.
 
 ---
 
-## Widgets
+## Step-by-Step Example
 
-attrs for CSS classes on widgets.
+Build the **contact form** from zero so each step is testable.
 
-### Why this matters
+### Step 1 — Create the form class
 
-Understanding **Widgets** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+In `blog/forms.py`:
 
-### Try it yourself
+```python
+from django import forms
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+class ContactForm(forms.Form):
+    name    = forms.CharField(max_length=100)
+    email   = forms.EmailField()
+    message = forms.CharField(widget=forms.Textarea, min_length=10)
+```
 
-### Check your understanding
+### Step 2 — Add the canonical view
 
-- Can you explain **Widgets** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+```python
+# blog/views.py
+from django.shortcuts import render, redirect
+from .forms import ContactForm
 
+def contact(request):
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)   # your real logic goes here
+            return redirect("blog:contact")
+    else:
+        form = ContactForm()
+    return render(request, "blog/contact.html", {"form": form})
+```
 
----
+### Step 3 — Wire the URL
 
-## Errors
+```python
+# blog/urls.py
+path("contact/", views.contact, name="contact"),
+```
 
-field.errors and non_field_errors.
+### Step 4 — Render the form (quickest possible template)
 
-### Why this matters
+```django
+{% extends "base.html" %}
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Send</button>
+  </form>
+{% endblock %}
+```
 
-Understanding **Errors** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+### Step 5 — Submit a bad payload
 
-### Try it yourself
+Try `email = not-an-email`. Django re-renders the page with a red error next to the email field — no extra code on your part.
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+### Step 6 — Add a custom field validator
 
-### Check your understanding
+```python
+def clean_name(self):
+    name = self.cleaned_data["name"].strip()
+    if name.lower() == "admin":
+        raise ValidationError("That name is reserved.")
+    return name
+```
 
-- Can you explain **Errors** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+Submit `name = admin` → see your custom error.
 
+### Step 7 — Add a cross-field validator
 
----
+```python
+def clean(self):
+    cleaned = super().clean()
+    if cleaned.get("name", "").lower() in cleaned.get("message", "").lower():
+        raise ValidationError("Please don't include your name in the message.")
+    return cleaned
+```
 
-## Formsets
+Errors raised in `clean()` show up as **`form.non_field_errors`** — render them above the form.
 
-modelformset_factory for multiple rows.
+### Step 8 — Switch to manual rendering
 
-### Why this matters
-
-Understanding **Formsets** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Formsets** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## File Uploads
-
-multipart enctype and request.FILES.
-
-### Why this matters
-
-Understanding **File Uploads** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **File Uploads** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Replace `{{ form.as_p }}` with the per-field loop from the playground. You get full control over CSS classes, error placement, and help text.
 
 ---
 
-## Security
+## Try It Yourself
 
-Only expose intended fields in ModelForm Meta.fields.
+> **Task:** Build a **registration form** that:
+>
+> 1. Asks for `username`, `email`, `password`, and `password_confirm`.
+> 2. Rejects usernames shorter than 3 characters or already taken (`User.objects.filter(username=...).exists()`).
+> 3. Requires the password to be at least 8 characters and to **match** `password_confirm`.
+> 4. Renders password fields with `forms.PasswordInput()` widgets.
+> 5. On success, creates the user and redirects to `/login/`.
 
-### Why this matters
+Hints:
 
-Understanding **Security** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+- Validate the username inside `clean_username()`.
+- Validate the password match inside `clean()` (it needs **two** fields, so the per-field method won't work).
+- Use `User.objects.create_user(username=..., email=..., password=...)` so the password is hashed properly — never `User.objects.create()` for passwords.
+- `forms.PasswordInput()` is the widget; the field is still `forms.CharField`.
 
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Security** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Try it before peeking at the solution.
 
 ---
 
-## Field Types Reference
+## Solution
 
-| Field | Input |
-|-------|-------|
-| CharField | text |
-| EmailField | email |
-| ChoiceField | select |
-| BooleanField | checkbox |
+<details>
+<summary>Click to reveal the solution</summary>
 
-### Why this matters
+### `accounts/forms.py`
 
-Understanding **Field Types Reference** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+```python
+from django import forms
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
-### Try it yourself
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+class RegisterForm(forms.Form):
+    username = forms.CharField(min_length=3, max_length=150)
+    email = forms.EmailField()
+    password = forms.CharField(
+        min_length=8,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        label="Confirm password",
+    )
 
-### Check your understanding
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError("That username is already taken.")
+        return username
 
-- Can you explain **Field Types Reference** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+    def clean(self):
+        cleaned = super().clean()
+        pwd = cleaned.get("password")
+        confirm = cleaned.get("password_confirm")
+        if pwd and confirm and pwd != confirm:
+            self.add_error("password_confirm", "Passwords do not match.")
+        return cleaned
+```
 
+### `accounts/views.py`
+
+```python
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from .forms import RegisterForm
+
+
+def register(request):
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            User.objects.create_user(
+                username=data["username"],
+                email=data["email"],
+                password=data["password"],
+            )
+            return redirect("accounts:login")
+    else:
+        form = RegisterForm()
+    return render(request, "accounts/register.html", {"form": form})
+```
+
+### `accounts/templates/accounts/register.html`
+
+```django
+{% extends "base.html" %}
+{% block content %}
+  <h1>Create an account</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <p>
+        {{ field.label_tag }}
+        {{ field }}
+        {{ field.errors }}
+      </p>
+    {% endfor %}
+    <button type="submit">Register</button>
+  </form>
+{% endblock %}
+```
+
+### Why this works
+
+1. `clean_username()` validates **one** field — uniqueness — and runs before `clean()`.
+2. `clean()` validates **two** fields together; we attach the error to `password_confirm` with `self.add_error()` so the error appears next to that field instead of in `non_field_errors`.
+3. `User.objects.create_user(..., password=...)` hashes the password automatically. `User.objects.create(..., password=...)` would store it in plaintext.
+4. `widget=forms.PasswordInput()` flips the `<input>` from `type="text"` to `type="password"` — the field type stays `CharField`.
+
+</details>
 
 ---
 
-## ModelForm Meta exclude
+## Key Notes & Tips
 
-Prefer explicit `fields` over broad `exclude` — prevents mass-assignment of sensitive columns.
+> 💡 **Tip:** `form.cleaned_data` only exists **after** `form.is_valid()` returns `True`. Calling it before is a `AttributeError` waiting to happen.
 
-### Why this matters
+> 💡 **Tip:** When editing an existing object, pass `instance=obj` to your `ModelForm`: `PostForm(request.POST, instance=post)`. The form pre-fills with the object's current values and `save()` updates that row instead of creating a new one.
 
-Understanding **ModelForm Meta exclude** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+> 💡 **Tip:** For an "edit" view, the same template renders both create and edit pages — the `instance=` argument and the URL are the only differences.
 
-### Try it yourself
+> 💡 **Tip:** `form.add_error("field_name", "message")` lets you attach an error to a specific field from inside `clean()`. Use it when you need cross-field validation but want the error to appear next to a single input.
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+> ⚠️ **Warning:** Use `fields = [...]` on `ModelForm.Meta`, **never** `fields = "__all__"` for forms exposed to untrusted users. The latter accepts every model field, including ones you didn't intend (like `is_staff`, `owner`, `price`).
 
-### Check your understanding
+> ⚠️ **Warning:** File upload forms need **two** things: `enctype="multipart/form-data"` on the `<form>` and `request.FILES` passed to the form: `MyForm(request.POST, request.FILES)`.
 
-- Can you explain **ModelForm Meta exclude** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+> ⚠️ **Warning:** AJAX POST without the CSRF token returns **403 Forbidden**. Send the token in the `X-CSRFToken` header (read it from the `csrftoken` cookie or `{{ csrf_token }}`).
 
-
----
-
-## Displaying Validation Errors
-
-Loop `field.errors` in template; show `form.non_field_errors` for `clean()` failures.
-
-### Why this matters
-
-Understanding **Displaying Validation Errors** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Displaying Validation Errors** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Best Practices
-
-Apply conventions from this chapter consistently.
-
-See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
-
-- Read official docs for your Django version
-- Keep views thin and models focused
-- Use named URLs everywhere
-- Run `python manage.py check` before commits
+> ⚠️ **Warning:** Never `User.objects.create(password=raw_password)` — that stores the password in plain text. Use `User.objects.create_user(...)` or `user.set_password(...)` followed by `user.save()`.
 
 ---
 
 ## Common Mistakes
 
-Many beginners hit the same walls. Learn from these early.
-
-| Mistake | What goes wrong | Fix |
-|---------|-----------------|-----|
-| Skipping docs | Reinvent wrong patterns | Read django docs for this topic |
-| Copy-paste without understanding | Mystery bugs | Type code yourself |
-| No tests | Regressions ship | Write tests for critical paths |
-| Ignoring security defaults | Vulnerabilities | Keep CSRF and auth middleware enabled |
-| Hard-coded URLs | Breaks on URL change | Use reverse and {% url %} |
-
----
-
-## Interview Points
-
-**Q: Summarize chapter 6 in one sentence.** — See chapter summary.
-
-**Q: Where does this fit in MTV?** — Identify model, view, template roles.
-
-**Q: What breaks if misconfigured?** — Trace request/response and settings.
+- ❌ **Forgetting `{% csrf_token %}`.** Every `<form method="post">` returns 403 without it.
+- ❌ **Using `form.data` instead of `form.cleaned_data`.** `data` is the raw, un-validated input; `cleaned_data` is the type-cast, validated result.
+- ❌ **Calling `form.cleaned_data` before `form.is_valid()`.** Always check `is_valid()` first.
+- ❌ **`fields = "__all__"` on a `ModelForm` exposed to users.** Mass-assignment vulnerability — attackers can set any column.
+- ❌ **Using `User.objects.create()` for new users.** That skips password hashing. Use `create_user()` or `set_password()` + `save()`.
+- ❌ **Validating two fields in `clean_<field>()`.** Per-field clean only sees its own value. Cross-field validation belongs in `clean()`.
+- ❌ **Forgetting `request.FILES` on file-upload forms.** The form has no idea a file was uploaded; `cleaned_data["avatar"]` will be `None`.
+- ❌ **Forgetting `enctype="multipart/form-data"`.** Without it, browsers don't send file bytes.
+- ❌ **Trusting `request.POST.get("price")` for important data.** Use a `Form` so the value is type-cast, validated, and rejected if missing.
 
 ---
 
-## Exercises
+## Mini Quiz
 
-> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+**Q1.** Which method should you call **before** reading `form.cleaned_data`?
 
-### Exercise 6.1: Hands-on practice
+- A) `form.clean()`
+- B) `form.is_valid()` ✔
+- C) `form.save()`
+- D) `form.full_clean()`
 
-Implement one feature from Chapter 6 in a local project.
+**Q2.** Where does an error raised inside the form's `clean()` method (without `add_error`) appear?
 
-<details>
-<summary>Click to reveal solution for Exercise 6.1</summary>
+- A) On the first field of the form
+- B) In `form.non_field_errors` ✔
+- C) Silently swallowed
+- D) On every field
 
-Follow step-by-step sections in this chapter.
+**Q3.** Which **`ModelForm`** option introduces a mass-assignment risk on user-facing forms?
 
-</details>
+- A) `fields = ["title"]`
+- B) `exclude = ["created_at"]`
+- C) `fields = "__all__"` ✔
+- D) `widgets = {...}`
 
----
+**Q4.** What two things are required to handle file uploads correctly?
 
-### Exercise 6.2: Read the docs
+- A) `enctype="multipart/form-data"` on the `<form>` and `request.FILES` passed to the form ✔
+- B) `enctype="text/plain"` and `request.POST`
+- C) Just `request.FILES`
+- D) `enctype="application/x-www-form-urlencoded"` and `request.GET`
 
-Find the official Django documentation page for this chapter's topic.
+**Q5.** Which method correctly creates a new Django user with a hashed password?
 
-<details>
-<summary>Click to reveal solution for Exercise 6.2</summary>
-
-docs.djangoproject.com — use search for the topic name.
-
-</details>
-
----
-
-### Exercise 6.3: Debug exercise
-
-Intentionally cause one error (e.g. wrong template path) and fix using the traceback.
-
-<details>
-<summary>Click to reveal solution for Exercise 6.3</summary>
-
-Read TemplateDoesNotExist or NoReverseMatch paths in the error page.
-
-</details>
+- A) `User.objects.create(username=u, password=p)`
+- B) `User(username=u, password=p).save()`
+- C) `User.objects.create_user(username=u, password=p)` ✔
+- D) `User.objects.bulk_create([User(username=u, password=p)])`
 
 ---
 
-### Exercise 6.4: Explain aloud
+## Real World Example
 
-Explain Chapter 6 concepts to a friend without looking at notes.
+A typical SaaS "post a job" form combines a `ModelForm`, file upload, custom validation, and the create-or-edit pattern.
 
-<details>
-<summary>Click to reveal solution for Exercise 6.4</summary>
+### `jobs/models.py`
 
-If you stumble, re-read the section you could not explain.
-
-</details>
-
----
-## Chapter Summary
-
-Excellent work completing Chapter 6. Here is what you learned:
-
-- Completed Chapter 6: Forms
-- Reviewed core patterns and examples
-- Practiced with exercises
-
-### Key rules to remember
-
-```
-✅ Practice in a real project
-✅ Use official docs
-❌ Skip migrations
-❌ Disable security middleware in production
+```python
+class Job(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    salary_min = models.PositiveIntegerField()
+    salary_max = models.PositiveIntegerField()
+    company_logo = models.ImageField(upload_to="logos/", blank=True)
+    is_remote = models.BooleanField(default=False)
+    posted_by = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 ```
 
+### `jobs/forms.py`
+
+```python
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import Job
+
+
+class JobForm(forms.ModelForm):
+    class Meta:
+        model = Job
+        fields = ["title", "description", "salary_min", "salary_max",
+                  "company_logo", "is_remote"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 8}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        lo, hi = cleaned.get("salary_min"), cleaned.get("salary_max")
+        if lo is not None and hi is not None and lo > hi:
+            self.add_error("salary_max", "Maximum salary must be ≥ minimum.")
+        return cleaned
+
+    def clean_company_logo(self):
+        logo = self.cleaned_data.get("company_logo")
+        if logo and logo.size > 2 * 1024 * 1024:
+            raise ValidationError("Logo must be smaller than 2 MB.")
+        return logo
+```
+
+### `jobs/views.py`
+
+```python
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from .forms import JobForm
+from .models import Job
+
+
+@login_required
+def job_create(request):
+    if request.method == "POST":
+        form = JobForm(request.POST, request.FILES)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.posted_by = request.user
+            job.save()
+            return redirect("jobs:detail", pk=job.pk)
+    else:
+        form = JobForm()
+    return render(request, "jobs/form.html", {"form": form, "mode": "create"})
+
+
+@login_required
+def job_edit(request, pk):
+    job = get_object_or_404(Job, pk=pk, posted_by=request.user)
+    form = JobForm(request.POST or None, request.FILES or None, instance=job)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("jobs:detail", pk=job.pk)
+    return render(request, "jobs/form.html", {"form": form, "mode": "edit"})
+```
+
+### Template (shared by create and edit)
+
+```django
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <div class="form-row">
+      {{ field.label_tag }} {{ field }}
+      {{ field.errors }}
+    </div>
+  {% endfor %}
+  <button type="submit">{% if mode == "edit" %}Save changes{% else %}Post job{% endif %}</button>
+</form>
+```
+
+**What this demonstrates:**
+
+| Pattern | Where |
+|---------|-------|
+| Explicit `fields = [...]` on `Meta` | Prevents mass-assigning `posted_by`, `created_at` |
+| Cross-field `clean()` | `salary_min ≤ salary_max` |
+| Per-field `clean_<field>()` | Logo size limit (2 MB) |
+| `commit=False` | Attach the current user before the row hits the database |
+| `instance=job` | Same form class for both create and edit |
+| `request.FILES` + `enctype="multipart/form-data"` | File upload flows |
+| Owner-scoped `get_object_or_404` | Users can't edit other users' jobs |
+| `@login_required` | Forms require an authenticated user |
+
+This is the form layer of a real Django product, condensed into one screen.
+
 ---
 
-## Next Chapter
+## Summary
 
-Continue to the next chapter.
+Today you learned:
 
-**➡️ [Next Chapter →](./ch07-admin-panel.md)**
+- ✔ A **Form** bundles HTML rendering, validation, and error handling into one Python class.
+- ✔ Forms are **unbound** (no data) on GET and **bound** (with `request.POST`) on POST.
+- ✔ Validation runs in three layers: field validators → `clean_<field>()` → `clean()`.
+- ✔ `form.cleaned_data` is the type-cast, validated result; access it **only after** `is_valid()` is true.
+- ✔ A **`ModelForm`** auto-generates fields from a model and lets you persist with `form.save()` (use `commit=False` if you need to set extra fields first).
+- ✔ Always pass **explicit `fields = [...]`** to a `ModelForm` to avoid mass-assignment.
+- ✔ Every POST form needs **`{% csrf_token %}`**; AJAX needs the **`X-CSRFToken`** header.
+- ✔ **Widgets** customize HTML attributes (`class`, `placeholder`, `rows`); the field type controls validation.
+- ✔ File uploads require `enctype="multipart/form-data"` and `request.FILES`.
+- ✔ **Formsets** (`formset_factory`, `modelformset_factory`) handle multiple rows in one submission.
 
----
+### Key Takeaways
 
-*Chapter 6 of the Complete Django Guide | [Report an issue](https://github.com/zaid0091/CodeShelf/issues)*
+```text
+✅ Use forms.Form for arbitrary input, ModelForm for CRUD
+✅ Always check form.is_valid() before reading cleaned_data
+✅ clean_<field>() for one field, clean() for cross-field
+✅ Pass explicit fields=[...] on ModelForm.Meta — never "__all__"
+✅ {% csrf_token %} on every POST form, X-CSRFToken on AJAX
+✅ enctype="multipart/form-data" + request.FILES for uploads
+✅ form.save(commit=False) when you need to set extra fields
+✅ Use User.objects.create_user() — never .create() for passwords
+```
 
----
+### Cheat Sheet
 
-## Extended Study Guide: Forms
+```python
+# View pattern
+def my_view(request):
+    if request.method == "POST":
+        form = MyForm(request.POST, request.FILES)   # FILES only for uploads
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.owner = request.user
+            obj.save()
+            return redirect("success")
+    else:
+        form = MyForm()
+    return render(request, "template.html", {"form": form})
+
+# ModelForm
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["title", "body"]
+        widgets = {"body": forms.Textarea(attrs={"rows": 8})}
+
+# Custom validation
+def clean_username(self):              # one field
+    ...
+def clean(self):                        # cross-field
+    cleaned = super().clean()
+    self.add_error("field_name", "msg")
+    return cleaned
+
+# Formset
+from django.forms import modelformset_factory
+PostFormSet = modelformset_factory(Post, fields=["title", "body"], extra=2)
+formset = PostFormSet(request.POST or None, queryset=Post.objects.filter(...))
+if formset.is_valid():
+    formset.save()
+```
 
 ### Glossary
 
 | Term | Definition |
 |------|------------|
-| Django | High-level Python web framework |
-| MTV | Model-Template-View architecture |
-| ORM | Object-Relational Mapper for database access |
-| QuerySet | Lazy database query representation |
-| Migration | Version-controlled schema change file |
+| Form | Class that renders HTML, validates input, and exposes errors |
+| ModelForm | Form auto-generated from a model |
+| Bound form | Form constructed with submitted data (`Form(request.POST)`) |
+| Unbound form | Form with no data attached (`Form()`) |
+| `is_valid()` | Runs all validators and populates `cleaned_data` / `errors` |
+| `cleaned_data` | Validated, type-cast values keyed by field name |
+| `clean_<field>()` | Hook for validating a single field |
+| `clean()` | Hook for cross-field validation |
+| `add_error()` | Attaches an error to a specific field from inside `clean()` |
+| `non_field_errors` | Errors raised in `clean()` without a target field |
+| Widget | Controls HTML rendering of a field (input, textarea, select) |
+| CSRF | Cross-Site Request Forgery — blocked by `{% csrf_token %}` |
+| Mass assignment | Accepting more fields than intended (e.g., `__all__`) |
+| Formset | Collection of forms processed as one submission |
+| ModelFormSet | Formset bound to a queryset of model instances |
+| `commit=False` | `save()` option to defer DB write so you can set more fields |
 
-### Self-check questions
-
-1. Can you explain this chapter's main idea in two sentences?
-2. Can you write the key code patterns from memory?
-3. Can you debug one common error mentioned in Common Mistakes?
-
-### Command reference
-
-```bash
-python manage.py runserver
-python manage.py makemigrations
-python manage.py migrate
-python manage.py shell
-python manage.py test
-```
 ---
 
-## Extended Study Guide: Chapter 6
+## Next Lesson Navigation
 
-> Use this section for review, interviews, and spaced repetition after completing **Forms**.
-
-### Frequently Asked Questions
-
-**Q: What is the main goal of the forms and CSRF chapter?**
-
-Master forms and CSRF patterns used in every Django project.
-
-**Q: How does this fit MTV?**
-
-Identify which layer (model, view, template) each example touches.
-
-**Q: What is the most common beginner mistake here?**
-
-See Common Mistakes section in the main chapter body.
-
-**Q: What official docs page should I read?**
-
-Search docs.djangoproject.com for forms and CSRF.
-
-**Q: How do I practice effectively?**
-
-Build a small blog feature using only this chapter's patterns.
-
-**Q: What breaks in production vs development?**
-
-Settings like DEBUG, static/media serving, and security flags.
-
-**Q: How is this tested?**
-
-Use Django TestCase and Client to assert responses.
-
-**Q: What interview questions appear?**
-
-See Interview Points in the main chapter.
-
-**Q: How does this connect to the next chapter?**
-
-Read the Next Chapter link at the bottom.
-
-**Q: What command validates my project?**
-
-python manage.py check
-
-
-### Step-by-Step Walkthrough
-
-1. Re-read the chapter Table of Contents.
-2. For each section, write a one-sentence summary in your notes.
-3. Complete all four exercises without peeking at solutions first.
-4. Break something on purpose and fix it using error messages.
-5. Cross-link concepts to prior chapters (models, views, templates).
-6. Optional: teach the chapter outline to someone else in 5 minutes.
-
-### Additional Code Patterns
-
-#### Pattern 6.1
-
-```python
-# Practice pattern
-# See main chapter for full examples
-```
-
-### Review checklist
-
-```text
-[ ] I can explain the main concepts without notes
-[ ] I typed the code examples myself
-[ ] I completed all exercises
-[ ] I fixed at least one error using the traceback
-[ ] I read the linked official Django documentation
-```
+| ← Previous Lesson | Next Lesson → |
+|-------------------|---------------|
+| [Templates](./ch05-templates.md) | [Admin Panel](./ch07-admin-panel.md) |

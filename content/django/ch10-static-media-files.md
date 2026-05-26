@@ -1,623 +1,834 @@
 ---
 title: Static and Media Files
-description: STATIC_URL, MEDIA_URL, collectstatic, serving files in dev and production
+description: Configure STATIC_URL, MEDIA_URL, FileField, collectstatic, WhiteNoise, S3 storages, cache-busting, and private uploads
 order: 10
-tags: [django, static, media]
+tags: [django, static, media, files, deployment]
 ---
 
-# Chapter 10: Static and Media Files
+# Chapter 10 — Static and Media Files
 
-> **Static files ship with your code; media files are uploaded by users — configure both correctly.**
-
----
-
-## Table of Contents
-
-1. [Static vs Media](#static-vs-media)
-2. [STATIC settings](#static-settings)
-3. [static tag](#static-tag)
-4. [collectstatic](#collectstatic)
-5. [MEDIA settings](#media-settings)
-6. [FileField](#filefield)
-7. [dev serving](#dev-serving)
-8. [production](#production)
-9. [Whitenoise](#whitenoise)
-10. [storages S3](#storages-s3)
-11. [findstatic](#findstatic)
-12. [cache busting](#cache-busting)
-13. [STATICFILES_FINDERS](#staticfiles_finders)
-14. [ImageField Pillow](#imagefield-pillow)
-15. [Private media](#private-media)
-16. [Best Practices](#best-practices)
-17. [Common Mistakes](#common-mistakes)
-18. [Interview Points](#interview-points)
-19. [Exercises](#exercises)
-20. [Chapter Summary](#chapter-summary)
-
----
-## Static vs Media
-
-Static from repo; media from users.
-
-### Why this matters
-
-Understanding **Static vs Media** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Static vs Media** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+> Static files ship with your code. Media files come from your users. Get both pipelines right.
+>
+> **Difficulty:** Intermediate &nbsp;·&nbsp; **Estimated time:** 45 – 60 min &nbsp;·&nbsp; **Prerequisites:** [Chapter 5 — Templates](./ch05-templates.md), [Chapter 6 — Forms](./ch06-forms.md)
 
 ---
 
-## STATIC settings
+## Learning Outcome
 
-STATIC_URL, STATICFILES_DIRS, STATIC_ROOT.
+By the end of this lesson, you will be able to:
 
-### Why this matters
-
-Understanding **STATIC settings** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **STATIC settings** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+- ✔ Articulate the difference between **static** and **media** files in one sentence
+- ✔ Configure **`STATIC_URL`**, **`STATICFILES_DIRS`**, **`STATIC_ROOT`** for dev and prod
+- ✔ Reference assets safely from templates with **`{% static %}`**
+- ✔ Run **`collectstatic`** as part of every deploy
+- ✔ Configure **`MEDIA_URL`** and **`MEDIA_ROOT`** and serve uploads in dev
+- ✔ Save user uploads with **`FileField`** and **`ImageField`** (and install **Pillow**)
+- ✔ Pick the right production strategy: **nginx**, **WhiteNoise**, or **S3 + django-storages**
+- ✔ Cache-bust assets with **`ManifestStaticFilesStorage`** and `findstatic` to debug missing files
+- ✔ Keep **private uploads** off the public internet using signed URLs or per-request views
 
 ---
 
-## static tag
+## Visual Preview
 
-{% load static %}{% static 'path' %}
+The two pipelines side by side:
 
-### Why this matters
+```text
+STATIC FILES (you ship them in the repo)
+┌──────────────────────────────────────────────────────────────────┐
+│  blog/static/blog/style.css  ──┐                                 │
+│  myproject/static/site.js    ──┼──▶ collectstatic ──▶ STATIC_ROOT│
+│  accounts/static/accounts/…  ──┘                                 │
+│                                                                  │
+│  Template:   {% load static %}                                   │
+│              <link href="{% static 'site.js' %}">                │
+│  Browser:    GET /static/site.js  ──▶ nginx / WhiteNoise / CDN   │
+└──────────────────────────────────────────────────────────────────┘
 
-Understanding **static tag** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+MEDIA FILES (users upload them at runtime)
+┌──────────────────────────────────────────────────────────────────┐
+│  <input type="file" name="avatar"> ──▶ Django form               │
+│         │                                                        │
+│         ▼                                                        │
+│  request.FILES["avatar"]  ──▶  user.avatar = file (FileField)    │
+│         │                                                        │
+│         ▼                                                        │
+│  saved to MEDIA_ROOT/avatars/2026/05/26/<uuid>.png               │
+│         │                                                        │
+│         ▼                                                        │
+│  Template:   <img src="{{ user.avatar.url }}">                   │
+│  Browser:    GET /media/avatars/…  ──▶ nginx / S3 / CDN          │
+└──────────────────────────────────────────────────────────────────┘
+```
 
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **static tag** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## collectstatic
-
-Gather files for production.
-
-### Why this matters
-
-Understanding **collectstatic** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **collectstatic** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+By the end of this lesson, both pipelines will be configured for dev, ready for production, and protected against the most common mistakes (cached stale CSS, leaked private uploads, missing Pillow).
 
 ---
 
-## MEDIA settings
+## Core Concept
 
-MEDIA_URL, MEDIA_ROOT.
+### Static vs. media — the line that fixes everything
 
-### Why this matters
+> **Definition — Static file:** A file that ships with your codebase and changes only when you deploy. CSS, JS, images, fonts, favicons, the homepage hero illustration.
+>
+> **Definition — Media file:** A file uploaded by users at runtime. Avatars, attachments, signed contracts, product photos.
 
-Understanding **MEDIA settings** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+Two different lifecycles → two different pipelines. Most static-vs-media bugs come from accidentally treating one as the other.
 
-### Try it yourself
+### `STATIC_URL`, `STATICFILES_DIRS`, `STATIC_ROOT`
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+| Setting | Purpose | Example |
+|---------|---------|---------|
+| `STATIC_URL` | URL prefix the browser hits | `"/static/"` |
+| `STATICFILES_DIRS` | Source folders Django **reads** in dev | `[BASE_DIR / "static"]` |
+| `STATIC_ROOT` | Output folder `collectstatic` **writes to** for production | `BASE_DIR / "staticfiles"` |
 
-### Check your understanding
+In dev, Django serves files **from `STATICFILES_DIRS` + every app's `static/` directory**. In production, you run `collectstatic` once and serve **`STATIC_ROOT`** with a real web server.
 
-- Can you explain **MEDIA settings** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+### `MEDIA_URL` and `MEDIA_ROOT`
 
+| Setting | Purpose | Example |
+|---------|---------|---------|
+| `MEDIA_URL` | URL prefix for user uploads | `"/media/"` |
+| `MEDIA_ROOT` | Disk location where uploads are saved | `BASE_DIR / "media"` |
 
----
+`MEDIA_ROOT` is **outside** version control. Add `media/` to `.gitignore`.
 
-## FileField
+### Two key tags / helpers
 
-upload_to path on model.
+```django
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
 
-### Why this matters
+<img src="{{ user.avatar.url }}" alt="">
+```
 
-Understanding **FileField** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+`{% static %}` is for files **in your repo**; `obj.field.url` is for files **uploaded by users**. Mixing them is a frequent beginner bug.
 
-### Try it yourself
+### Dev `runserver` is special
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **FileField** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+When `DEBUG=True`, Django automatically serves static files. To also serve **media** in dev, you wire it up explicitly with the `static()` helper in `urls.py`. In production, **nothing in Django serves these files** — that job belongs to nginx, WhiteNoise, or S3.
 
 ---
 
-## dev serving
+## Syntax
 
-static() in urls when DEBUG.
+The minimum **static** wiring (`settings.py`):
 
-### Why this matters
+```python
+STATIC_URL        = "/static/"
+STATICFILES_DIRS  = [BASE_DIR / "static"]      # source folders (dev)
+STATIC_ROOT       = BASE_DIR / "staticfiles"    # collectstatic target (prod)
+```
 
-Understanding **dev serving** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+The minimum **media** wiring (`settings.py`):
 
-### Try it yourself
+```python
+MEDIA_URL  = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+Serve **media** in dev only (`mysite/urls.py`):
 
-### Check your understanding
+```python
+from django.conf import settings
+from django.conf.urls.static import static
 
-- Can you explain **dev serving** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+urlpatterns = [
+    # ... your patterns ...
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
 
+Use **static** in templates:
 
----
+```django
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+<script src="{% static 'js/app.js' %}"></script>
+```
 
-## production
+Use **media** on a model + template:
 
-nginx or S3, not Django for scale.
+```python
+class User(AbstractUser):
+    avatar = models.ImageField(upload_to="avatars/", blank=True)
+```
 
-### Why this matters
-
-Understanding **production** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **production** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Whitenoise
-
-Middleware for static on PaaS.
-
-### Why this matters
-
-Understanding **Whitenoise** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Whitenoise** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+```django
+{% if user.avatar %}
+  <img src="{{ user.avatar.url }}" alt="{{ user.username }}">
+{% endif %}
+```
 
 ---
 
-## storages S3
+## Live Code Playground
 
-django-storages backend.
+A complete dev-ready setup with both pipelines and a working avatar upload.
 
-### Why this matters
+### `mysite/settings.py`
 
-Understanding **storages S3** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+```python
+from pathlib import Path
 
-### Try it yourself
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+# ── Static (your code) ───────────────────────────────────────
+STATIC_URL       = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT      = BASE_DIR / "staticfiles"
 
-### Check your understanding
+# Cache-busting: Django 5+ uses STORAGES for backend selection
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
 
-- Can you explain **storages S3** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+# ── Media (user uploads) ─────────────────────────────────────
+MEDIA_URL  = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
 
+### `mysite/urls.py`
+
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("",       include("blog.urls")),
+]
+
+# ⚠️ Dev only — production should serve /media/ via nginx or S3
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+### `accounts/models.py` — `ImageField` + Pillow
+
+```python
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+
+class User(AbstractUser):
+    bio    = models.TextField(blank=True)
+    avatar = models.ImageField(upload_to="avatars/%Y/%m/", blank=True)
+```
+
+```bash
+pip install Pillow                  # required for ImageField
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### `accounts/forms.py` — file upload form
+
+```python
+from django import forms
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["bio", "avatar"]
+```
+
+### `accounts/views.py`
+
+```python
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+from .forms import ProfileForm
+
+
+@login_required
+def profile_edit(request):
+    if request.method == "POST":
+        # Both POST data AND uploaded files are needed
+        form = ProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("accounts:profile")
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, "accounts/profile_edit.html", {"form": form})
+```
+
+### `accounts/templates/accounts/profile_edit.html`
+
+```django
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+  <h1>Edit profile</h1>
+
+  <!-- enctype is mandatory for file uploads -->
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    {% if user.avatar %}
+      <img src="{{ user.avatar.url }}" alt="Current avatar" width="120">
+    {% else %}
+      <img src="{% static 'images/avatar-default.png' %}" alt="" width="120">
+    {% endif %}
+
+    <button type="submit">Save</button>
+  </form>
+{% endblock %}
+```
+
+### Folder layout
+
+```text
+myproject/
+├── static/
+│   └── images/avatar-default.png      ← shipped with code
+├── media/                             ← gitignored
+│   └── avatars/2026/05/<uploaded>.png ← created at runtime
+├── staticfiles/                       ← collectstatic output (gitignored)
+└── ...
+```
+
+> 💡 **Tip:** `upload_to="avatars/%Y/%m/"` partitions uploads by year/month so a single folder never holds millions of files. `"avatars/"` works too but doesn't scale.
 
 ---
 
-## findstatic
+## Step-by-Step Example
 
-Debug path resolution.
+Configure both pipelines from zero in a fresh project.
 
-### Why this matters
+### Step 1 — Set the four settings
 
-Understanding **findstatic** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+```python
+# settings.py
+STATIC_URL       = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT      = BASE_DIR / "staticfiles"
+MEDIA_URL        = "/media/"
+MEDIA_ROOT       = BASE_DIR / "media"
+```
 
-### Try it yourself
+### Step 2 — Make sure `staticfiles` is installed
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+`INSTALLED_APPS` must include `django.contrib.staticfiles` (Django adds it by default — verify it's still there).
 
-### Check your understanding
+### Step 3 — Create a static file and reference it
 
-- Can you explain **findstatic** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+```text
+static/
+└── css/
+    └── site.css
+```
 
+```django
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+```
 
----
+Run `python manage.py runserver`, view-source the page, click the CSS link — you should see your stylesheet served at `/static/css/site.css`.
 
-## cache busting
+### Step 4 — Add a `FileField` and a form
 
-ManifestStaticFilesStorage hashed names.
+```python
+class Document(models.Model):
+    title = models.CharField(max_length=200)
+    file  = models.FileField(upload_to="documents/")
+```
 
-### Why this matters
+```python
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model  = Document
+        fields = ["title", "file"]
+```
 
-Understanding **cache busting** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+### Step 5 — Wire up the upload view (with `request.FILES`)
 
-### Try it yourself
+```python
+def upload(request):
+    if request.method == "POST":
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("upload-success")
+    else:
+        form = DocumentForm()
+    return render(request, "upload.html", {"form": form})
+```
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+### Step 6 — Set `enctype` on the form
 
-### Check your understanding
+```django
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Upload</button>
+</form>
+```
 
-- Can you explain **cache busting** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+Forgetting `enctype="multipart/form-data"` is the #1 reason `request.FILES` is empty.
 
+### Step 7 — Serve `/media/` in dev
 
----
+```python
+# mysite/urls.py
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
 
-## STATICFILES_FINDERS
+Visit `/media/documents/<uploaded>.pdf` to confirm the file is served.
 
-FileSystemFinder + AppDirectoriesFinder locate static files.
+### Step 8 — Debug missing files with `findstatic`
 
-### Why this matters
+```bash
+python manage.py findstatic css/site.css
+# /full/path/to/static/css/site.css
+```
 
-Understanding **STATICFILES_FINDERS** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+If `findstatic` returns nothing, the file isn't in any of `STATICFILES_DIRS` or any app's `static/` directory.
 
-### Try it yourself
+### Step 9 — Run `collectstatic` once
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+```bash
+python manage.py collectstatic
+```
 
-### Check your understanding
-
-- Can you explain **STATICFILES_FINDERS** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## ImageField Pillow
-
-pip install Pillow for ImageField support.
-
-### Why this matters
-
-Understanding **ImageField Pillow** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **ImageField Pillow** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Private media
-
-Do not expose private uploads under public MEDIA_URL; use signed URLs.
-
-### Why this matters
-
-Understanding **Private media** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Private media** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Every static file from every app and every entry in `STATICFILES_DIRS` is copied into `STATIC_ROOT`. **This is the only command you run in production for static files.**
 
 ---
 
-## Best Practices
+## Try It Yourself
 
-Apply conventions from this chapter consistently.
+> **Task:** Build an **upload-and-display gallery** at `/gallery/` where:
+>
+> 1. Users can upload an image (`title` + `image`) via a `ModelForm`.
+> 2. The image is saved under `gallery/%Y/%m/`.
+> 3. The gallery page shows every uploaded image as a thumbnail with the title.
+> 4. The form correctly handles `enctype` and `request.FILES`.
+> 5. In dev (`DEBUG=True`), uploaded images are served at `/media/gallery/...`.
 
-See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
+Hints:
 
-- Read official docs for your Django version
-- Keep views thin and models focused
-- Use named URLs everywhere
-- Run `python manage.py check` before commits
+- Install Pillow before defining `ImageField`.
+- The view's GET branch lists `Photo.objects.order_by("-created_at")`; the POST branch validates the form and redirects on success.
+- In the template, use `{{ photo.image.url }}` for the file URL — never `{% static photo.image.url %}`.
+- Use a single view that handles both GET (list + form) and POST (handle upload).
+
+Try it before peeking at the solution.
+
+---
+
+## Solution
+
+<details>
+<summary>Click to reveal the solution</summary>
+
+### `gallery/models.py`
+
+```python
+from django.db import models
+
+
+class Photo(models.Model):
+    title      = models.CharField(max_length=200)
+    image      = models.ImageField(upload_to="gallery/%Y/%m/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+```
+
+### `gallery/forms.py`
+
+```python
+from django import forms
+from .models import Photo
+
+
+class PhotoForm(forms.ModelForm):
+    class Meta:
+        model  = Photo
+        fields = ["title", "image"]
+```
+
+### `gallery/views.py`
+
+```python
+from django.shortcuts import redirect, render
+from .forms import PhotoForm
+from .models import Photo
+
+
+def gallery(request):
+    if request.method == "POST":
+        form = PhotoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("gallery:home")
+    else:
+        form = PhotoForm()
+
+    photos = Photo.objects.all()
+    return render(request, "gallery/home.html", {"form": form, "photos": photos})
+```
+
+### `gallery/urls.py`
+
+```python
+from django.urls import path
+from . import views
+
+app_name = "gallery"
+
+urlpatterns = [
+    path("", views.gallery, name="home"),
+]
+```
+
+### `gallery/templates/gallery/home.html`
+
+```django
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+  <h1>Gallery</h1>
+
+  <form method="post" enctype="multipart/form-data" class="upload">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+  </form>
+
+  <div class="grid">
+    {% for photo in photos %}
+      <figure>
+        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" width="240">
+        <figcaption>{{ photo.title }}</figcaption>
+      </figure>
+    {% empty %}
+      <p>No photos yet — upload the first one above.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
+```
+
+### What's happening
+
+1. **`enctype="multipart/form-data"`** is what tells the browser to send file bytes; without it, `request.FILES` is empty and nothing uploads.
+2. **`PhotoForm(request.POST, request.FILES)`** — both arguments are required for forms with file fields.
+3. **`upload_to="gallery/%Y/%m/"`** keeps any single directory from blowing past the OS file-count limit.
+4. **`{{ photo.image.url }}`** uses the storage backend to build the right URL — works the same whether files live on disk, on S3, or behind a CDN.
+5. **`{% load static %}`** is for static assets shipped with the project (e.g., the default avatar) — never for user uploads.
+
+</details>
+
+---
+
+## Key Notes & Tips
+
+> 💡 **Tip:** Every app can have its own `<app>/static/<app>/...` folder. Like templates, **namespace** the path with the app name to avoid collisions: `blog/static/blog/style.css`, not `blog/static/style.css`.
+
+> 💡 **Tip:** `python manage.py findstatic <path>` is your fastest debugging tool when a file isn't loading. It prints every absolute path Django would search.
+
+> 💡 **Tip:** Use **`ManifestStaticFilesStorage`** in production (configured under `STORAGES["staticfiles"]` in Django 5+). It hashes filenames at `collectstatic` time so users never see stale CSS after a deploy.
+
+> 💡 **Tip:** Every form that accepts files needs **two** things at the same time: `enctype="multipart/form-data"` on the `<form>` and `request.FILES` passed to the form constructor.
+
+> 💡 **Tip:** For images, install **Pillow** (`pip install Pillow`). Without it, `ImageField.save()` raises `ImportError`, and `makemigrations` won't know the dimensions auto-fields are even possible.
+
+> ⚠️ **Warning:** `collectstatic` only copies files **from** your project **to** `STATIC_ROOT`. Don't put hand-edited files in `STATIC_ROOT` — the next `collectstatic --clear` deletes them.
+
+> ⚠️ **Warning:** `runserver` only auto-serves static files when **`DEBUG=True`**. With `DEBUG=False` you need a real server (or WhiteNoise) — otherwise every CSS/JS request returns 404.
+
+> ⚠️ **Warning:** **Never** serve user-uploaded HTML as `text/html` from `MEDIA_URL`. Browsers will execute it. Force a content-type like `application/octet-stream` or always serve through a download-only view.
+
+> ⚠️ **Warning:** Add `media/` and `staticfiles/` to `.gitignore`. The first contains user data; the second is regenerated on every deploy.
+
+> ⚠️ **Warning:** Don't put **secrets** in `MEDIA_URL`. If a contract or invoice should be private, gate it behind a Django view that checks permissions and uses `FileResponse` — or use S3 + signed URLs.
 
 ---
 
 ## Common Mistakes
 
-Many beginners hit the same walls. Learn from these early.
-
-| Mistake | What goes wrong | Fix |
-|---------|-----------------|-----|
-| Skipping docs | Reinvent wrong patterns | Read django docs for this topic |
-| Copy-paste without understanding | Mystery bugs | Type code yourself |
-| No tests | Regressions ship | Write tests for critical paths |
-| Ignoring security defaults | Vulnerabilities | Keep CSRF and auth middleware enabled |
-| Hard-coded URLs | Breaks on URL change | Use reverse and {% url %} |
-
----
-
-## Interview Points
-
-**Q: Summarize chapter 10 in one sentence.** — See chapter summary.
-
-**Q: Where does this fit in MTV?** — Identify model, view, template roles.
-
-**Q: What breaks if misconfigured?** — Trace request/response and settings.
+- ❌ **Forgetting `enctype="multipart/form-data"`.** `request.FILES` is empty and the form silently has no file.
+- ❌ **Forgetting `request.FILES`** when constructing the form. The model saves with no file attached.
+- ❌ **Using `{% static photo.image.url %}`.** That builds `/static/media/...` — wrong. Use plain `{{ photo.image.url }}`.
+- ❌ **Skipping `pip install Pillow`** before adding an `ImageField`. Migrations won't even apply.
+- ❌ **Putting `media/` inside `static/`.** They have different lifecycles — keep them separate.
+- ❌ **Running `collectstatic` in development.** Don't. Run it as part of your deploy pipeline only.
+- ❌ **Hard-coding `/static/site.css` in templates.** Use `{% static 'site.css' %}` so cache-busting and CDN prefixes work.
+- ❌ **Leaving `DEBUG=True` in production to "make CSS load".** That leaks every secret in `settings.py` on the next traceback. Configure WhiteNoise or nginx properly instead.
+- ❌ **Serving private uploads via `MEDIA_URL`.** Anyone with the URL can download the file. Use signed URLs or a permission-checked view.
+- ❌ **Editing `STATIC_ROOT` directly.** It's a generated artifact — `--clear` will wipe your changes.
 
 ---
 
-## Exercises
+## Mini Quiz
 
-> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+**Q1.** Which setting tells `collectstatic` **where to write** the gathered files?
 
-### Exercise 10.1: Hands-on practice
+- A) `STATIC_URL`
+- B) `STATICFILES_DIRS`
+- C) `STATIC_ROOT` ✔
+- D) `MEDIA_ROOT`
 
-Implement one feature from Chapter 10 in a local project.
+**Q2.** What's the difference between **static** and **media** files?
 
-<details>
-<summary>Click to reveal solution for Exercise 10.1</summary>
+- A) Static is binary, media is text
+- B) Static ships with your code; media is uploaded by users at runtime ✔
+- C) Static lives in S3, media lives on disk
+- D) They're synonyms
 
-Follow step-by-step sections in this chapter.
+**Q3.** Which two things must a form include to handle file uploads correctly?
 
-</details>
+- A) `request.GET` and `enctype="application/json"`
+- B) `request.FILES` and `enctype="multipart/form-data"` ✔
+- C) Just `request.FILES`
+- D) Just `enctype="multipart/form-data"`
 
----
+**Q4.** What does **`ManifestStaticFilesStorage`** do?
 
-### Exercise 10.2: Read the docs
+- A) Encrypts every static asset
+- B) Hashes filenames at `collectstatic` time so old caches expire after deploys ✔
+- C) Uploads static files to S3
+- D) Compresses CSS and JS
 
-Find the official Django documentation page for this chapter's topic.
+**Q5.** Where is the safest place to store **private** user uploads?
 
-<details>
-<summary>Click to reveal solution for Exercise 10.2</summary>
-
-docs.djangoproject.com — use search for the topic name.
-
-</details>
-
----
-
-### Exercise 10.3: Debug exercise
-
-Intentionally cause one error (e.g. wrong template path) and fix using the traceback.
-
-<details>
-<summary>Click to reveal solution for Exercise 10.3</summary>
-
-Read TemplateDoesNotExist or NoReverseMatch paths in the error page.
-
-</details>
+- A) Under the public `MEDIA_URL`, in a folder named `private/`
+- B) In a hidden folder named with a random prefix
+- C) Behind a Django view that checks permissions, or in a private S3 bucket served via signed URLs ✔
+- D) Inside `STATIC_ROOT`
 
 ---
 
-### Exercise 10.4: Explain aloud
+## Real World Example
 
-Explain Chapter 10 concepts to a friend without looking at notes.
+A typical production stack uses **WhiteNoise** for static and **S3** for media — one server config, one cloud bucket, both ready for scale.
 
-<details>
-<summary>Click to reveal solution for Exercise 10.4</summary>
+### `requirements/prod.txt`
 
-If you stumble, re-read the section you could not explain.
-
-</details>
-
----
-## Chapter Summary
-
-Excellent work completing Chapter 10. Here is what you learned:
-
-- Completed Chapter 10: Static and Media Files
-- Reviewed core patterns and examples
-- Practiced with exercises
-
-### Key rules to remember
-
-```
-✅ Practice in a real project
-✅ Use official docs
-❌ Skip migrations
-❌ Disable security middleware in production
+```text
+django>=5.0,<6.0
+gunicorn
+psycopg[binary]
+whitenoise[brotli]
+django-storages[boto3]
+Pillow
 ```
 
+### `mysite/settings/prod.py`
+
+```python
+from .base import *
+import os
+
+DEBUG = False
+ALLOWED_HOSTS = [os.environ["DOMAIN"]]
+
+# ── Static (served by WhiteNoise from STATIC_ROOT) ───────────
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",        # ← right after security
+    *MIDDLEWARE[1:],
+]
+
+STATIC_URL  = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# ── Media (served by S3 via django-storages) ─────────────────
+AWS_STORAGE_BUCKET_NAME = os.environ["AWS_BUCKET"]
+AWS_S3_REGION_NAME      = os.environ["AWS_REGION"]
+AWS_S3_FILE_OVERWRITE   = False
+AWS_DEFAULT_ACL         = None      # private by default; objects are not world-readable
+
+# Django 5+: per-pipeline backends
+STORAGES = {
+    "default": {                                            # MEDIA / FileField uploads
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {"location": "media"},
+    },
+    "staticfiles": {                                        # collectstatic target
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+```
+
+### Deploy script
+
+```bash
+pip install -r requirements/prod.txt
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput              # writes hashed files to STATIC_ROOT
+gunicorn mysite.wsgi --bind 0.0.0.0:8000 --workers 4
+```
+
+### Private downloads via signed URL
+
+```python
+# documents/views.py
+import boto3
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from .models import Document
+
+
+@login_required
+def download(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+    if doc.owner != request.user and not request.user.is_superuser:
+        return HttpResponseRedirect("/403/")
+
+    s3 = boto3.client("s3", region_name=settings.AWS_S3_REGION_NAME)
+    url = s3.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+            "Key":    doc.file.name,
+        },
+        ExpiresIn=300,        # 5 minutes
+    )
+    return HttpResponseRedirect(url)
+```
+
+**What this demonstrates:**
+
+| Pattern | Where |
+|---------|-------|
+| Static via WhiteNoise | `WhiteNoiseMiddleware` + `CompressedManifestStaticFilesStorage` |
+| Cache-busting + brotli compression | Hashed filenames + on-the-fly compression for free |
+| Media via S3 | `S3Storage` with `AWS_DEFAULT_ACL=None` (private bucket) |
+| Per-environment storage backends | `STORAGES` dict — different backends for static vs. media |
+| Private downloads via signed URLs | `boto3.generate_presigned_url` with a 5-minute expiry |
+| Owner check before signing | The view authorizes; the URL is only usable for 5 minutes anyway |
+
+This is the static + media layer of a real Django product running on a single web node and an S3 bucket — no separate file server required.
+
 ---
 
-## Next Chapter
+## Summary
 
-Continue to the next chapter.
+Today you learned:
 
-**➡️ [Next Chapter →](./ch11-class-based-views.md)**
+- ✔ **Static** files live in your repo; **media** files are uploaded by users. Two pipelines, two settings groups.
+- ✔ Static settings: `STATIC_URL` (browser path), `STATICFILES_DIRS` (dev source), `STATIC_ROOT` (prod target).
+- ✔ Media settings: `MEDIA_URL` (browser path), `MEDIA_ROOT` (disk location).
+- ✔ Reference repo assets with **`{% load static %}`** + **`{% static 'path' %}`**; reference uploaded files with **`obj.field.url`**.
+- ✔ File upload forms always need **`enctype="multipart/form-data"`** **and** **`request.FILES`**.
+- ✔ Use **`ImageField`** (with **Pillow**) for images and **`upload_to="prefix/%Y/%m/"`** to partition uploads.
+- ✔ In production, **never** serve static or media from `runserver`. Use **WhiteNoise**, **nginx**, or a **CDN** for static; **S3** (or another object store) for media.
+- ✔ Cache-bust with **`ManifestStaticFilesStorage`** so deploys never serve stale CSS.
+- ✔ Debug missing assets with **`python manage.py findstatic <path>`**.
+- ✔ Keep **private uploads** off public URLs — use signed URLs or permission-checked views.
 
----
+### Key Takeaways
 
-*Chapter 10 of the Complete Django Guide | [Report an issue](https://github.com/zaid0091/CodeShelf/issues)*
+```text
+✅ Static = your code; Media = user uploads
+✅ {% static 'x' %} for code; obj.field.url for uploads
+✅ enctype="multipart/form-data" + request.FILES (always together)
+✅ pip install Pillow before defining ImageField
+✅ collectstatic runs ONCE per deploy, in CI/CD
+✅ Use ManifestStaticFilesStorage for cache-busting in prod
+✅ runserver does not serve files in production — use WhiteNoise / nginx / CDN
+✅ Private uploads → signed URLs or permission-checked download views
+✅ media/ and staticfiles/ belong in .gitignore
+```
 
----
+### Settings Cheat Sheet
 
-## Extended Study Guide: Static and Media Files
+```python
+# ── Dev settings.py ──────────────────────────────────────────
+STATIC_URL       = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT      = BASE_DIR / "staticfiles"
+MEDIA_URL        = "/media/"
+MEDIA_ROOT       = BASE_DIR / "media"
+
+# ── mysite/urls.py — serve /media/ in dev only ───────────────
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# ── Prod with WhiteNoise + S3 (Django 5+) ────────────────────
+MIDDLEWARE = ["django.middleware.security.SecurityMiddleware",
+              "whitenoise.middleware.WhiteNoiseMiddleware", ...]
+
+STORAGES = {
+    "default": {                                # FileField → S3
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {"location": "media"},
+    },
+    "staticfiles": {                            # collectstatic → hashed + compressed
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# ── Templates ────────────────────────────────────────────────
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+<img src="{{ user.avatar.url }}" alt="">
+
+# ── Forms ────────────────────────────────────────────────────
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+</form>
+form = MyForm(request.POST, request.FILES, instance=obj)
+
+# ── Commands ─────────────────────────────────────────────────
+python manage.py findstatic css/site.css       # locate a static file
+python manage.py collectstatic --noinput       # production deploy step
+```
 
 ### Glossary
 
 | Term | Definition |
 |------|------------|
-| Django | High-level Python web framework |
-| MTV | Model-Template-View architecture |
-| ORM | Object-Relational Mapper for database access |
-| QuerySet | Lazy database query representation |
-| Migration | Version-controlled schema change file |
+| Static file | File shipped with your code (CSS, JS, images, fonts) |
+| Media file | File uploaded by a user at runtime |
+| `STATIC_URL` | Browser-facing prefix for static files |
+| `STATICFILES_DIRS` | Source folders Django reads in dev |
+| `STATIC_ROOT` | Output folder where `collectstatic` writes |
+| `MEDIA_URL` | Browser-facing prefix for media files |
+| `MEDIA_ROOT` | Disk location where uploads are stored |
+| `{% static %}` | Template tag that resolves a static URL |
+| `FileField` | Model field that stores a file path |
+| `ImageField` | Subclass of `FileField` that requires Pillow |
+| `upload_to` | Prefix or callable that decides where the file lives |
+| `request.FILES` | Dict-like of uploaded files on the request |
+| `collectstatic` | Management command that gathers files into `STATIC_ROOT` |
+| `findstatic` | Management command that locates a static file path |
+| `ManifestStaticFilesStorage` | Cache-busting storage backend with hashed filenames |
+| WhiteNoise | Middleware that serves static files in production |
+| django-storages | Library providing storage backends (S3, GCS, Azure) |
+| Signed URL | Time-limited URL granting access to a private object |
 
-### Self-check questions
-
-1. Can you explain this chapter's main idea in two sentences?
-2. Can you write the key code patterns from memory?
-3. Can you debug one common error mentioned in Common Mistakes?
-
-### Command reference
-
-```bash
-python manage.py runserver
-python manage.py makemigrations
-python manage.py migrate
-python manage.py shell
-python manage.py test
-```
 ---
 
-## Extended Study Guide: Chapter 10
+## Next Lesson Navigation
 
-> Use this section for review, interviews, and spaced repetition after completing **Static and Media Files**.
-
-### Frequently Asked Questions
-
-**Q: What is the main goal of the static files chapter?**
-
-Master static files patterns used in every Django project.
-
-**Q: How does this fit MTV?**
-
-Identify which layer (model, view, template) each example touches.
-
-**Q: What is the most common beginner mistake here?**
-
-See Common Mistakes section in the main chapter body.
-
-**Q: What official docs page should I read?**
-
-Search docs.djangoproject.com for static files.
-
-**Q: How do I practice effectively?**
-
-Build a small blog feature using only this chapter's patterns.
-
-**Q: What breaks in production vs development?**
-
-Settings like DEBUG, static/media serving, and security flags.
-
-**Q: How is this tested?**
-
-Use Django TestCase and Client to assert responses.
-
-**Q: What interview questions appear?**
-
-See Interview Points in the main chapter.
-
-**Q: How does this connect to the next chapter?**
-
-Read the Next Chapter link at the bottom.
-
-**Q: What command validates my project?**
-
-python manage.py check
-
-
-### Step-by-Step Walkthrough
-
-1. Re-read the chapter Table of Contents.
-2. For each section, write a one-sentence summary in your notes.
-3. Complete all four exercises without peeking at solutions first.
-4. Break something on purpose and fix it using error messages.
-5. Cross-link concepts to prior chapters (models, views, templates).
-6. Optional: teach the chapter outline to someone else in 5 minutes.
-
-### Additional Code Patterns
-
-#### Pattern 10.1
-
-```python
-# Practice pattern
-# See main chapter for full examples
-```
-
-### Review checklist
-
-```text
-[ ] I can explain the main concepts without notes
-[ ] I typed the code examples myself
-[ ] I completed all exercises
-[ ] I fixed at least one error using the traceback
-[ ] I read the linked official Django documentation
-```
+| ← Previous Lesson | Next Lesson → |
+|-------------------|---------------|
+| [Migrations](./ch09-migrations.md) | [Class-Based Views](./ch11-class-based-views.md) |

@@ -1,40 +1,218 @@
 ---
 title: Views and URLs
-description: Function-based views, URLconf, HttpRequest, HttpResponse, and redirects
+description: Map URLs to function-based views, work with HttpRequest and HttpResponse, return JSON, handle POST, decorate views, and customize error pages
 order: 4
-tags: [django, views, urls]
+tags: [django, views, urls, urlconf, http]
 ---
 
-# Chapter 4: Views and URLs
+# Chapter 4 — Views and URLs
 
-> **URLs route requests to views — the bridge between the browser and your Python code.**
+> URLs route requests to views — the bridge between the browser and your Python code.
+>
+> **Difficulty:** Beginner → Intermediate &nbsp;·&nbsp; **Estimated time:** 40 – 55 min &nbsp;·&nbsp; **Prerequisites:** [Chapter 3 — Models and ORM](./ch03-models-orm.md)
+
+---
+
+## Learning Outcome
+
+By the end of this lesson, you will be able to:
+
+- ✔ Define **URL patterns** with `path()` and use built-in converters (`<int:>`, `<slug:>`, `<uuid:>`, `<path:>`)
+- ✔ Write **function-based views** that read models, render templates, and return responses
+- ✔ Read data off the **`HttpRequest`** object — `method`, `GET`, `POST`, `FILES`, `user`, `session`, `headers`
+- ✔ Return different **`HttpResponse`** types — HTML, JSON, redirect, 404, custom status codes
+- ✔ Use **named URLs** with `reverse()`, `{% url %}`, and the `redirect()` shortcut
+- ✔ Compose URL files across apps with **`include()`** and **namespaces**
+- ✔ Handle **POST** requests safely and restrict methods with `@require_http_methods`
+- ✔ Apply **decorators** for auth, caching, and method restrictions
+- ✔ Wire **custom 404 / 500** error pages
 
 ---
 
-## Table of Contents
+## Visual Preview
 
-1. [URL Routing and URLconf](#url-routing-and-urlconf)
-2. [Function-Based Views](#function-based-views)
-3. [The HttpRequest Object](#the-httprequest-object)
-4. [HttpResponse Types](#httpresponse-types)
-5. [Named URLs and reverse()](#named-urls-and-reverse)
-6. [include() and URL Namespaces](#include-and-url-namespaces)
-7. [Handling POST Requests](#handling-post-requests)
-8. [View Decorators](#view-decorators)
-9. [Custom Error Handlers](#custom-error-handlers)
-10. [HTTP Methods Summary](#http-methods-summary)
-11. [Redirects](#redirects)
-12. [Permanent vs Temporary Redirects](#permanent-vs-temporary-redirects)
-13. [Best Practices](#best-practices)
-14. [Common Mistakes](#common-mistakes)
-15. [Interview Points](#interview-points)
-16. [Exercises](#exercises)
-17. [Chapter Summary](#chapter-summary)
+Here is the request → URL → view → response flow you will build by the end of this lesson:
+
+```text
+Browser  ──GET /blog/42/────▶  Django
+
+                blog/urls.py
+                    │
+                    ▼
+   path("<int:pk>/", views.post_detail, name="post-detail")
+                    │
+                    ▼
+            views.post_detail(request, pk=42)
+                    │
+                    ▼
+      get_object_or_404(Post, pk=42, published=True)
+                    │
+                    ▼
+       render(request, "blog/post_detail.html", {...})
+                    │
+                    ▼
+                HTTP 200 + HTML  ──▶  Browser
+```
+
+And what you'll be able to do in templates and Python:
+
+```python
+return redirect("blog:post-detail", pk=post.pk)
+```
+
+```django
+<a href="{% url 'blog:post-detail' pk=post.pk %}">Read more</a>
+```
+
+One named URL — referenced from Python and templates without hard-coding a single `/blog/42/`.
 
 ---
-## URL Routing and URLconf
 
-> **Definition:** **URLconf** is a list of URL patterns Django matches against the request path.
+## Core Concept
+
+### What a URLconf is
+
+> **Definition — URLconf:** A Python module — usually `urls.py` — whose top-level `urlpatterns` list maps URL patterns to view callables. Django walks this list **top to bottom** and dispatches to the first match.
+
+### What a view is
+
+> **Definition — View:** A Python callable that takes an `HttpRequest` and returns an `HttpResponse`. That's it. Function or class, template or JSON — every Django view follows that contract.
+
+### Path converters keep URLs typed
+
+Path converters (`<int:pk>`, `<slug:slug>`, `<uuid:id>`, `<path:rest>`) **capture and convert** parts of the URL into Python arguments your view receives. No more manual string parsing.
+
+### Named URLs are non-negotiable
+
+Always pass `name=` to `path()`. Then reference URLs by name from Python (`reverse("post-detail", kwargs={"pk": 1})`) and templates (`{% url 'post-detail' pk=1 %}`). When you rename a URL, you change it in **one** place.
+
+### include() makes apps portable
+
+A project's root `urls.py` should mostly `include()` each app's `urls.py`. With `namespace=`/`app_name`, the same URL name (`post-list`) can live in multiple apps without collision (`blog:post-list` vs. `shop:post-list`).
+
+---
+
+## Syntax
+
+A URL pattern:
+
+```python
+path("<converter:variable>/", view_callable, name="url-name")
+```
+
+A function-based view:
+
+```python
+def view_name(request, <captured-args>):
+    # ... read models, build context, etc.
+    return HttpResponse(...)   # or render(...) or JsonResponse(...) or redirect(...)
+```
+
+Wiring an app's URLs into the project:
+
+```python
+# mysite/urls.py
+path("blog/", include("blog.urls"))
+```
+
+That triple — **`path()` + view + `include()`** — covers 95% of Django routing.
+
+---
+
+## Live Code Playground
+
+A complete blog with list, detail, search, and a JSON endpoint. Drop these files into the `blog` app you built in earlier chapters.
+
+### `blog/views.py`
+
+```python
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_http_methods
+from .models import Post
+
+
+def post_list(request):
+    q = request.GET.get("q", "").strip()
+    posts = Post.objects.filter(published=True)
+    if q:
+        posts = posts.filter(title__icontains=q)
+    return render(request, "blog/post_list.html", {"posts": posts, "q": q})
+
+
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk, published=True)
+    return render(request, "blog/post_detail.html", {"post": post})
+
+
+@require_http_methods(["GET", "POST"])
+def post_create(request):
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        if title:
+            post = Post.objects.create(title=title, body="", slug=title.lower().replace(" ", "-"))
+            return redirect("blog:post-detail", pk=post.pk)
+    return render(request, "blog/post_form.html")
+
+
+def post_list_json(request):
+    data = list(Post.objects.filter(published=True).values("id", "title"))
+    return JsonResponse(data, safe=False)
+```
+
+### `blog/urls.py`
+
+```python
+from django.urls import path
+from . import views
+
+app_name = "blog"
+
+urlpatterns = [
+    path("",                 views.post_list,      name="post-list"),
+    path("create/",          views.post_create,    name="post-create"),
+    path("api/posts/",       views.post_list_json, name="post-list-json"),
+    path("<int:pk>/",        views.post_detail,    name="post-detail"),
+]
+```
+
+### `mysite/urls.py`
+
+```python
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("blog/",  include("blog.urls")),
+]
+```
+
+### Try it
+
+```bash
+python manage.py runserver
+```
+
+| URL | What it does |
+|-----|--------------|
+| `/blog/` | List all published posts |
+| `/blog/?q=django` | Search posts by title |
+| `/blog/42/` | View post with `pk=42` (404 if missing) |
+| `/blog/create/` | Form to create a new post (GET + POST) |
+| `/blog/api/posts/` | JSON list of all published posts |
+
+> 💡 **Tip:** Notice how URL order matters — `create/` and `api/posts/` must come **before** `<int:pk>/` so they don't get swallowed by the integer converter.
+
+---
+
+## Step-by-Step Example
+
+Let's build the **list + detail** flow from zero so every part is testable.
+
+### Step 1 — Add the URL pattern
+
+In `blog/urls.py`:
 
 ```python
 from django.urls import path
@@ -42,675 +220,356 @@ from . import views
 
 urlpatterns = [
     path("", views.post_list, name="post-list"),
-    path("<int:pk>/", views.post_detail, name="post-detail"),
-    path("create/", views.post_create, name="post-create"),
 ]
 ```
 
-| Converter | Matches |
-|-----------|---------|
-| `str` | Non-empty string (no `/`) |
-| `int` | Positive integers |
-| `slug` | Slug characters |
-| `uuid` | UUID |
-| `path` | Any path including `/` |
+### Step 2 — Write the view
+
+In `blog/views.py`:
 
 ```python
-path("archive/<int:year>/", views.archive_year),
-re_path(r"^legacy/(?P<id>\d+)/$", views.legacy),
-```
-
-### Why this matters
-
-Understanding **URL Routing and URLconf** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **URL Routing and URLconf** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Function-Based Views
-
-```python
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render
 from .models import Post
 
 def post_list(request):
     posts = Post.objects.filter(published=True)
     return render(request, "blog/post_list.html", {"posts": posts})
+```
+
+### Step 3 — Create the template
+
+In `blog/templates/blog/post_list.html`:
+
+```django
+<h1>Posts</h1>
+<ul>
+  {% for post in posts %}
+    <li><a href="{% url 'post-detail' pk=post.pk %}">{{ post.title }}</a></li>
+  {% endfor %}
+</ul>
+```
+
+### Step 4 — Add the detail route and view
+
+```python
+# urls.py
+path("<int:pk>/", views.post_detail, name="post-detail"),
+```
+
+```python
+# views.py
+from django.shortcuts import get_object_or_404
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk, published=True)
     return render(request, "blog/post_detail.html", {"post": post})
 ```
 
-| Helper | Purpose |
-|--------|---------|
-| `render()` | Template + context -> HttpResponse |
-| `get_object_or_404()` | get() or HTTP 404 |
-| `redirect()` | Short redirect response |
-| `reverse()` | Build URL from name |
+### Step 5 — Test happy and sad paths
 
-### Why this matters
+| URL | Expected result |
+|-----|------------------|
+| `/blog/` | List of published posts |
+| `/blog/1/` | Detail of post 1 (if published) |
+| `/blog/99999/` | **404 page** (raised by `get_object_or_404`) |
+| `/blog/abc/` | **404 page** (path converter rejects non-int) |
 
-Understanding **Function-Based Views** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Function-Based Views** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## The HttpRequest Object
+### Step 6 — Add a query-string search
 
 ```python
-def debug_request(request):
-    print(request.method)      # GET, POST, ...
-    print(request.path)        # /blog/5/
-    print(request.GET)         # query string
-    print(request.POST)        # form body
-    print(request.user)        # auth user
-    print(request.session)     # session dict
-    print(request.headers)     # HTTP headers
-    print(request.FILES)       # uploads
-```
-
-```python
-q = request.GET.get("q", "")
-page = int(request.GET.get("page", 1))
-```
-
-Always validate and bound user input (max page size, sanitize search terms).
-
-### Why this matters
-
-Understanding **The HttpRequest Object** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **The HttpRequest Object** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## HttpResponse Types
-
-```python
-from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, Http404
-
-def plain(request):
-    return HttpResponse("Hello", content_type="text/plain")
-
-def json_posts(request):
-    data = list(Post.objects.values("id", "title"))
-    return JsonResponse(data, safe=False)
-
-def raise_404(request):
-    raise Http404("Post not found")
-```
-
-| Class | Use |
-|-------|-----|
-| `HttpResponse` | Arbitrary body |
-| `JsonResponse` | JSON API |
-| `HttpResponseRedirect` | 302 redirect |
-| `HttpResponseNotFound` | 404 without exception |
-
-### Why this matters
-
-Understanding **HttpResponse Types** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **HttpResponse Types** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Named URLs and reverse()
-
-```python
-from django.urls import reverse
-from django.shortcuts import redirect
-
-def after_create(request, post):
-    return redirect("post-detail", pk=post.pk)
-    # equivalent: redirect(reverse("post-detail", kwargs={"pk": post.pk}))
-```
-
-Template:
-
-```django
-<a href="{% url 'post-detail' pk=post.pk %}">Read more</a>
-```
-
-Never hard-code `/blog/5/` in multiple files — rename URLs once via `name=`.
-
-### Why this matters
-
-Understanding **Named URLs and reverse()** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Named URLs and reverse()** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## include() and URL Namespaces
-
-```python
-# project urls.py
-path("blog/", include("blog.urls", namespace="blog")),
-
-# blog/urls.py
-app_name = "blog"
-urlpatterns = [...]
-```
-
-```python
-reverse("blog:post-detail", kwargs={"pk": 1})
-```
-
-```django
-{% url 'blog:post-detail' pk=post.pk %}
-```
-
-Namespaces prevent name collisions between apps (`blog:post-list` vs `shop:post-list`).
-
-### Why this matters
-
-Understanding **include() and URL Namespaces** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **include() and URL Namespaces** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Handling POST Requests
-
-```python
-from django.views.decorators.http import require_http_methods
-
-@require_http_methods(["GET", "POST"])
-def post_create(request):
-    if request.method == "POST":
-        title = request.POST.get("title", "").strip()
-        if title:
-            post = Post.objects.create(title=title, body="", slug="temp")
-            return redirect("post-detail", pk=post.pk)
-    return render(request, "blog/post_form.html")
-```
-
-Prefer [Django Forms](./ch06-forms.md) over raw `request.POST` for validation.
-
-### Why this matters
-
-Understanding **Handling POST Requests** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Handling POST Requests** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## View Decorators
-
-```python
-from django.contrib.auth.decorators import login_required, permission_required
-from django.views.decorators.http import require_GET, require_POST
-from django.views.decorators.cache import cache_page
-
-@login_required
-@require_POST
-def publish(request, pk):
-    ...
-
-@cache_page(60 * 15)
 def post_list(request):
-    ...
+    q = request.GET.get("q", "").strip()
+    posts = Post.objects.filter(published=True)
+    if q:
+        posts = posts.filter(title__icontains=q)
+    return render(request, "blog/post_list.html", {"posts": posts, "q": q})
 ```
 
-Decorators wrap views — order matters (bottom decorator runs first on the way in).
-
-### Why this matters
-
-Understanding **View Decorators** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **View Decorators** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Test it: `/blog/?q=django` → only posts whose title contains "django".
 
 ---
 
-## Custom Error Handlers
+## Try It Yourself
+
+> **Task:** Add a **tag-filtered** post list at `/blog/tag/<slug:tag>/`.
+>
+> Requirements:
+>
+> 1. Use the `<slug:tag>` path converter to capture a tag name.
+> 2. Filter posts by tag (assume `Post` has a `tags` `ManyToManyField` from Chapter 3).
+> 3. Add a `name="post-by-tag"` and link to it from `post_list.html` with `{% url %}`.
+> 4. Return a friendly **404** if the tag doesn't exist.
+
+Hints:
+
+- Use `get_object_or_404(Tag, name=tag)` to validate the tag.
+- Query with `Post.objects.filter(tags=tag_obj, published=True)`.
+- For the template link: `{% url 'post-by-tag' tag=tag.name %}`.
+
+Try it before peeking at the solution.
+
+---
+
+## Solution
+
+<details>
+<summary>Click to reveal the solution</summary>
+
+### `blog/urls.py`
 
 ```python
-# urls.py (project level)
-handler404 = "mysite.views.page_not_found"
-handler500 = "mysite.views.server_error"
+from django.urls import path
+from . import views
+
+app_name = "blog"
+
+urlpatterns = [
+    path("",                  views.post_list,    name="post-list"),
+    path("tag/<slug:tag>/",   views.post_by_tag,  name="post-by-tag"),
+    path("<int:pk>/",         views.post_detail,  name="post-detail"),
+]
 ```
+
+### `blog/views.py`
 
 ```python
-# views.py
-def page_not_found(request, exception):
-    return render(request, "404.html", status=404)
+from django.shortcuts import render, get_object_or_404
+from .models import Post, Tag
+
+
+def post_by_tag(request, tag):
+    tag_obj = get_object_or_404(Tag, name=tag)
+    posts = Post.objects.filter(tags=tag_obj, published=True)
+    return render(request, "blog/post_list.html", {"posts": posts, "tag": tag_obj})
 ```
 
-With `DEBUG=True`, you see debug pages instead of custom handlers.
+### Template link
 
-### Why this matters
-
-Understanding **Custom Error Handlers** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Custom Error Handlers** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## HTTP Methods Summary
-
-| Method | Typical use in Django |
-|--------|----------------------|
-| GET | Display pages, safe reads |
-| POST | Create, update via forms |
-| PUT/PATCH | APIs (DRF) |
-| DELETE | APIs or DeleteView POST |
-
-Use `@require_http_methods` or `@require_GET` to restrict views.
-
-### Why this matters
-
-Understanding **HTTP Methods Summary** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **HTTP Methods Summary** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Redirects
-
-```python
-from django.shortcuts import redirect
-return redirect("post-list")
-return redirect("post-detail", pk=42)
-from django.http import HttpResponseRedirect
-return HttpResponseRedirect("/legacy/")
+```django
+{% for t in post.tags.all %}
+  <a href="{% url 'blog:post-by-tag' tag=t.name %}">#{{ t.name }}</a>
+{% endfor %}
 ```
 
-### Why this matters
+### What's happening
 
-Understanding **Redirects** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+1. `<slug:tag>` captures URL segments matching `[-a-zA-Z0-9_]+` and passes the value to the view as a string.
+2. `get_object_or_404(Tag, name=tag)` returns a `404` if no tag matches — better than a 500 error.
+3. `Post.objects.filter(tags=tag_obj)` uses the `ManyToManyField` defined on `Post` in Chapter 3.
+4. The named URL `blog:post-by-tag` is used in both `redirect()` (Python) and `{% url %}` (template) — no hard-coded paths.
 
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Redirects** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+</details>
 
 ---
 
-## Permanent vs Temporary Redirects
+## Key Notes & Tips
 
-`redirect()` defaults to 302. Use `redirect(..., permanent=True)` for 301 when URLs move permanently.
+> 💡 **Tip:** Always pass `name=` to every `path()`. It's free, and it future-proofs every link in your project.
 
-### Why this matters
+> 💡 **Tip:** Use `redirect("blog:post-detail", pk=post.pk)` instead of `redirect(f"/blog/{post.pk}/")`. The string form silently breaks the day you rename the URL.
 
-Understanding **Permanent vs Temporary Redirects** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+> 💡 **Tip:** `redirect()` accepts a URL name, a model instance with `get_absolute_url`, or a plain URL string — pick the named-URL form by default.
 
-### Try it yourself
+> ⚠️ **Warning:** URL patterns are matched **top to bottom**. Put **specific** routes (`create/`, `api/posts/`) **before** **catch-all** routes (`<int:pk>/`).
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+> ⚠️ **Warning:** `request.POST` does **not** parse JSON bodies. For JSON APIs read `request.body` and `json.loads(...)`, or use Django REST Framework.
 
-### Check your understanding
+> ⚠️ **Warning:** With `DEBUG=True`, Django shows debug pages — your custom `handler404` / `handler500` only run when `DEBUG=False`.
 
-- Can you explain **Permanent vs Temporary Redirects** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Best Practices
-
-Apply conventions from this chapter consistently.
-
-See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
-
-- Read official docs for your Django version
-- Keep views thin and models focused
-- Use named URLs everywhere
-- Run `python manage.py check` before commits
+> 💡 **Tip:** Decorator order matters. The **bottom** decorator runs first when the request comes in. `@login_required` above `@require_POST` means "check login first, then check method".
 
 ---
 
 ## Common Mistakes
 
-Many beginners hit the same walls. Learn from these early.
-
-| Mistake | What goes wrong | Fix |
-|---------|-----------------|-----|
-| Skipping docs | Reinvent wrong patterns | Read django docs for this topic |
-| Copy-paste without understanding | Mystery bugs | Type code yourself |
-| No tests | Regressions ship | Write tests for critical paths |
-| Ignoring security defaults | Vulnerabilities | Keep CSRF and auth middleware enabled |
-| Hard-coded URLs | Breaks on URL change | Use reverse and {% url %} |
+- ❌ **Hard-coding URLs in templates and Python.** `<a href="/blog/{{ post.pk }}/">` breaks the day you change the URL. Use `{% url 'blog:post-detail' pk=post.pk %}`.
+- ❌ **Putting `<int:pk>/` before `create/`** in `urlpatterns`. The integer converter rejects `create`, but generic catch-alls like `<path:rest>/` will swallow everything.
+- ❌ **Forgetting `app_name = "blog"`** in the app's `urls.py` when you use `namespace="blog"`. Django raises `NoReverseMatch` for `blog:post-list`.
+- ❌ **Using `.get()` instead of `get_object_or_404()`.** A missing row crashes the view with a 500 error; you want a friendly 404.
+- ❌ **Trusting `request.GET.get("page")` without casting.** Wrap with `int(..., default)` and bound the value so users can't pass `?page=999999999`.
+- ❌ **Returning raw HTML strings from views.** Use `render()` with a template — it gives you escaping, inheritance, and a real separation of concerns.
+- ❌ **Building APIs with `JsonResponse` everywhere.** For anything serious, use Django REST Framework — serializers, validation, permissions, pagination, throttling all come for free.
 
 ---
 
-## Interview Points
+## Mini Quiz
 
-**Q: Summarize chapter 4 in one sentence.** — See chapter summary.
+**Q1.** Which path converter would match `/blog/hello-django/`?
 
-**Q: Where does this fit in MTV?** — Identify model, view, template roles.
+- A) `<int:slug>`
+- B) `<str:slug>`
+- C) `<slug:slug>` ✔
+- D) `<path:slug>`
 
-**Q: What breaks if misconfigured?** — Trace request/response and settings.
+**Q2.** What does `get_object_or_404(Post, pk=pk)` do when the post is missing?
 
----
+- A) Returns `None`
+- B) Raises `Http404` which Django turns into a 404 response ✔
+- C) Raises a 500 server error
+- D) Returns an empty `Post()` instance
 
-## Exercises
+**Q3.** What's the **correct** way to redirect to a named URL with a parameter?
 
-> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+- A) `redirect(f"/blog/{post.pk}/")`
+- B) `redirect("post-detail", pk=post.pk)` ✔
+- C) `HttpResponseRedirect("blog:post-detail")`
+- D) `reverse("post-detail")`
 
-### Exercise 4.1: Hands-on practice
+**Q4.** What does `app_name = "blog"` in `blog/urls.py` enable?
 
-Implement one feature from Chapter 4 in a local project.
+- A) It registers the app in `INSTALLED_APPS`
+- B) It namespaces URLs so you can write `reverse("blog:post-list")` ✔
+- C) It sets the database table prefix
+- D) Nothing — it's only used by the admin
 
-<details>
-<summary>Click to reveal solution for Exercise 4.1</summary>
+**Q5.** In what order do decorators execute on the way **in** to a view?
 
-Follow step-by-step sections in this chapter.
-
-</details>
-
----
-
-### Exercise 4.2: Read the docs
-
-Find the official Django documentation page for this chapter's topic.
-
-<details>
-<summary>Click to reveal solution for Exercise 4.2</summary>
-
-docs.djangoproject.com — use search for the topic name.
-
-</details>
-
----
-
-### Exercise 4.3: Debug exercise
-
-Intentionally cause one error (e.g. wrong template path) and fix using the traceback.
-
-<details>
-<summary>Click to reveal solution for Exercise 4.3</summary>
-
-Read TemplateDoesNotExist or NoReverseMatch paths in the error page.
-
-</details>
+- A) Top to bottom
+- B) Bottom to top (the decorator closest to the function runs first) ✔
+- C) Alphabetical
+- D) Doesn't matter — order is irrelevant
 
 ---
 
-### Exercise 4.4: Explain aloud
+## Real World Example
 
-Explain Chapter 4 concepts to a friend without looking at notes.
+A typical SaaS dashboard uses every routing concept from this chapter.
 
-<details>
-<summary>Click to reveal solution for Exercise 4.4</summary>
+### Project URLs
 
-If you stumble, re-read the section you could not explain.
+```python
+# config/urls.py
+from django.contrib import admin
+from django.urls import path, include
 
-</details>
+urlpatterns = [
+    path("admin/",    admin.site.urls),
+    path("accounts/", include("accounts.urls")),
+    path("billing/",  include("billing.urls")),
+    path("api/",      include("api.urls")),
+    path("",          include("dashboard.urls")),
+]
 
----
-## Chapter Summary
-
-Excellent work completing Chapter 4. Here is what you learned:
-
-- Completed Chapter 4: Views and URLs
-- Reviewed core patterns and examples
-- Practiced with exercises
-
-### Key rules to remember
-
-```
-✅ Practice in a real project
-✅ Use official docs
-❌ Skip migrations
-❌ Disable security middleware in production
+handler404 = "config.views.page_not_found"
+handler500 = "config.views.server_error"
 ```
 
+### App URLs with namespace + mixed methods
+
+```python
+# dashboard/urls.py
+from django.urls import path
+from . import views
+
+app_name = "dashboard"
+
+urlpatterns = [
+    path("",                          views.home,          name="home"),
+    path("projects/",                 views.project_list,  name="project-list"),
+    path("projects/<uuid:id>/",       views.project_detail, name="project-detail"),
+    path("projects/<uuid:id>/edit/",  views.project_edit,   name="project-edit"),
+]
+```
+
+### A view that combines auth, method restriction, and a redirect
+
+```python
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
+from .models import Project
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def project_edit(request, id):
+    project = get_object_or_404(Project, id=id, owner=request.user)
+
+    if request.method == "POST":
+        project.name = request.POST.get("name", project.name).strip()
+        project.save(update_fields=["name"])
+        return redirect("dashboard:project-detail", id=project.id)
+
+    return render(request, "dashboard/project_edit.html", {"project": project})
+```
+
+**What this demonstrates:**
+
+| Pattern | Where |
+|---------|-------|
+| Per-feature `urls.py` | `accounts`, `billing`, `api`, `dashboard` each own their routes |
+| `<uuid:id>` converter | Type-safe URL parameter for opaque IDs |
+| Namespaced reverse | `dashboard:project-detail` keeps URLs unambiguous |
+| Auth + method decorators | `@login_required` + `@require_http_methods` compose cleanly |
+| Owner check inside the view | Returns 404 if the project doesn't belong to the user — no info leakage |
+| Custom `handler404` / `handler500` | Project-wide error pages with branded styling |
+
+This is the routing layer of a real Django product, condensed into one screen.
+
 ---
 
-## Next Chapter
+## Summary
 
-Continue to the next chapter.
+Today you learned:
 
-**➡️ [Next Chapter →](./ch05-templates.md)**
+- ✔ A **URLconf** is a `urlpatterns` list that maps paths to view callables.
+- ✔ **Path converters** (`<int:>`, `<slug:>`, `<uuid:>`, `<path:>`) capture and type-cast parts of the URL.
+- ✔ A **view** is just `def view(request, ...) -> HttpResponse:` — function-based or class-based, it always honors that contract.
+- ✔ `render()`, `get_object_or_404()`, `redirect()`, and `JsonResponse` cover almost every response you'll need.
+- ✔ **Named URLs** + `reverse()` + `{% url %}` eliminate hard-coded paths forever.
+- ✔ **`include()`** mounts each app's URLs under a path prefix; `app_name` + `namespace` keep names collision-free.
+- ✔ **Decorators** add auth (`@login_required`), method restrictions (`@require_http_methods`), and caching (`@cache_page`) — order matters.
+- ✔ **`handler404`** and **`handler500`** customize the error pages users actually see in production.
 
----
+### Key Takeaways
 
-*Chapter 4 of the Complete Django Guide | [Report an issue](https://github.com/zaid0091/CodeShelf/issues)*
+```text
+✅ Always pass name= to every path()
+✅ Use {% url %} and reverse() — never hard-code URLs
+✅ Place specific routes before generic ones in urlpatterns
+✅ Prefer get_object_or_404 over .get() in views
+✅ Use redirect("name", kwarg=value) — not f-string URLs
+✅ Namespace app URLs with app_name + namespace
+✅ Restrict methods with @require_http_methods
+✅ Custom 404/500 only render when DEBUG=False
+```
 
----
+### Command Reference
 
-## Extended Study Guide: Views and URLs
+```bash
+python manage.py runserver           # Start the dev server
+python manage.py shell               # Test reverse() and the ORM interactively
+python manage.py check               # Validate URL config and settings
+python manage.py show_urls           # (with django-extensions) list every URL
+python manage.py test                # Run the test suite
+```
 
 ### Glossary
 
 | Term | Definition |
 |------|------------|
-| Django | High-level Python web framework |
-| MTV | Model-Template-View architecture |
-| ORM | Object-Relational Mapper for database access |
-| QuerySet | Lazy database query representation |
-| Migration | Version-controlled schema change file |
+| URLconf | A module with a `urlpatterns` list mapping paths to views |
+| `path()` | URL pattern using simple converters (`<int:>`, `<slug:>`, …) |
+| `re_path()` | URL pattern using a regular expression |
+| Path converter | Captures a URL segment and converts it (`<int:pk>` → `int`) |
+| View | Callable that takes `HttpRequest` and returns `HttpResponse` |
+| `HttpRequest` | The incoming request — `method`, `GET`, `POST`, `user`, `FILES`, `session` |
+| `HttpResponse` | The outgoing response — body, status code, headers |
+| `JsonResponse` | `HttpResponse` subclass that serializes Python to JSON |
+| `render()` | Shortcut for `template + context → HttpResponse` |
+| `get_object_or_404()` | Returns a model instance or raises `Http404` |
+| `redirect()` | Shortcut that returns a 302 (or 301) response |
+| `reverse()` | Builds a URL from a name and kwargs |
+| Named URL | URL with `name="..."` that can be referenced by name |
+| `include()` | Mounts another `urlpatterns` list under a prefix |
+| Namespace | Prefix for URL names (`blog:post-list`) to avoid collisions |
+| Decorator | Wrapper that adds behavior to a view (auth, method, cache) |
+| `handler404` / `handler500` | Project-level callables for custom error pages |
 
-### Self-check questions
-
-1. Can you explain this chapter's main idea in two sentences?
-2. Can you write the key code patterns from memory?
-3. Can you debug one common error mentioned in Common Mistakes?
-
-### Command reference
-
-```bash
-python manage.py runserver
-python manage.py makemigrations
-python manage.py migrate
-python manage.py shell
-python manage.py test
-```
 ---
 
-## Extended Study Guide: Chapter 4
+## Next Lesson Navigation
 
-> Use this section for review, interviews, and spaced repetition after completing **Views and URLs**.
-
-### Frequently Asked Questions
-
-**Q: What is URLconf?**
-
-Python module urlpatterns list mapping paths to views callables.
-
-**Q: path vs re_path?**
-
-path uses simple converters; re_path uses regular expressions.
-
-**Q: What is name= in path()?**
-
-URL pattern name for reverse() and {% url %}.
-
-**Q: What does include() do?**
-
-Mounts another urlpatterns under a prefix.
-
-**Q: What is request.GET?**
-
-QueryDict of GET parameters.
-
-**Q: What is request.POST?**
-
-QueryDict of form POST body (not JSON body).
-
-**Q: How to return JSON?**
-
-JsonResponse(data, safe=False) for lists.
-
-**Q: What does get_object_or_404 do?**
-
-Calls get() and raises Http404 on failure.
-
-**Q: What is reverse_lazy?**
-
-Lazy reverse for class attributes evaluated at import time.
-
-**Q: Order of decorators?**
-
-Bottom decorator is closest to the view function.
-
-
-### Step-by-Step Walkthrough
-
-1. Create post_list and post_detail views.
-2. Wire URLs with int:pk converter.
-3. Use render() with template names (create stubs if needed).
-4. Add named URLs and test reverse() in shell.
-5. Add ?q= search via request.GET.get('q','').
-6. Add JsonResponse endpoint for API practice.
-
-### Additional Code Patterns
-
-#### Pattern 4.1
-
-```python
-return render(request, 'blog/post_list.html', {'posts': posts})
-```
-
-#### Pattern 4.2
-
-```python
-return redirect('post-detail', pk=post.pk)
-```
-
-### Review checklist
-
-```text
-[ ] I can explain the main concepts without notes
-[ ] I typed the code examples myself
-[ ] I completed all exercises
-[ ] I fixed at least one error using the traceback
-[ ] I read the linked official Django documentation
-```
+| ← Previous Lesson | Next Lesson → |
+|-------------------|---------------|
+| [Models and ORM](./ch03-models-orm.md) | [Templates](./ch05-templates.md) |

@@ -1,237 +1,133 @@
 ---
 title: Setup and Project Structure
-description: Installing Django, creating projects and apps, settings.py, and manage.py
+description: Install Django, create a project and app, understand every file the scaffold generates, configure settings, run migrations, and serve your first page
 order: 2
-tags: [django, setup, project]
+tags: [django, setup, project, structure, settings]
 ---
 
-# Chapter 2: Setup and Project Structure
+# Chapter 2 — Setup and Project Structure
 
-> **In this chapter you will install Django, create a project and app, and run your first server.**
+> Install Django the right way, scaffold a project and app, and understand every file Django creates for you.
+>
+> **Difficulty:** Beginner &nbsp;·&nbsp; **Estimated time:** 35 – 45 min &nbsp;·&nbsp; **Prerequisites:** [Chapter 1 — Django Introduction](./ch01-django-introduction.md), Python 3.10+, basic command line
+
+---
+
+## Learning Outcome
+
+By the end of this lesson, you will be able to:
+
+- ✔ Create and activate a Python **virtual environment** on Windows, macOS, or Linux
+- ✔ Install Django and verify the installed version
+- ✔ Scaffold a project with `django-admin startproject` and an app with `manage.py startapp`
+- ✔ Explain the purpose of `manage.py`, `settings.py`, `urls.py`, `wsgi.py`, and `asgi.py`
+- ✔ Register an app in `INSTALLED_APPS` and serve a route from it
+- ✔ Run the dev server, apply migrations, and create a superuser
+- ✔ Recognize the **professional project layout** with `config/` and `apps/` folders
+- ✔ Keep secrets out of source control using environment variables
 
 ---
 
-## Table of Contents
+## Visual Preview
 
-1. [Installation and Virtual Environments](#installation-and-virtual-environments)
-2. [Creating Your First Project](#creating-your-first-project)
-3. [Understanding manage.py](#understanding-manage.py)
-4. [Creating and Registering Apps](#creating-and-registering-apps)
-5. [settings.py Deep Dive](#settings.py-deep-dive)
-6. [Wiring URLs: Project and App](#wiring-urls:-project-and-app)
-7. [First Migration and Database](#first-migration-and-database)
-8. [Superuser and Admin Preview](#superuser-and-admin-preview)
-9. [Recommended Project Layout](#recommended-project-layout)
-10. [Environment Variables and Secrets](#environment-variables-and-secrets)
-11. [Reading Django Error Pages](#reading-django-error-pages)
-12. [Chapter 2 Setup Checklist](#chapter-2-setup-checklist)
-13. [Best Practices](#best-practices)
-14. [Common Mistakes](#common-mistakes)
-15. [Interview Points](#interview-points)
-16. [Exercises](#exercises)
-17. [Chapter Summary](#chapter-summary)
-
----
-## Installation and Virtual Environments
-
-> **Definition:** A **virtual environment** is an isolated Python environment for one project. Django and its dependencies install there without conflicting with other projects.
-
-You learned virtual environments in the CodeShelf Python course. Django projects **always** use one.
-
-### Windows (PowerShell)
-
-```bash
-cd D:\projects\myblog
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install "django>=5.0,<6.0"
-python -m django --version
-```
-
-### macOS / Linux
-
-```bash
-cd ~/projects/myblog
-python3 -m venv .venv
-source .venv/bin/activate
-pip install "django>=5.0,<6.0"
-django-admin --version
-```
-
-### requirements.txt
+In the next 30 minutes you will create this exact file tree:
 
 ```text
-django>=5.0,<6.0
-```
-
-Commit `requirements.txt` to git. Teammates run `pip install -r requirements.txt` for identical versions.
-
-| Check | Command |
-|-------|---------|
-| Python version | `python --version` (3.10+ recommended) |
-| Django installed | `python -m django --version` |
-| Pip list | `pip list` |
-
-### Why this matters
-
-Understanding **Installation and Virtual Environments** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Installation and Virtual Environments** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Creating Your First Project
-
-`django-admin` is Django's command-line utility for administrative tasks.
-
-```bash
-django-admin startproject mysite
-cd mysite
-```
-
-### What `startproject` creates
-
-```text
-mysite/
-├── manage.py
-└── mysite/
+myblog/
+├── .venv/                      ← virtual environment (not committed)
+├── .env                        ← secrets (not committed)
+├── .gitignore
+├── requirements.txt
+├── db.sqlite3                  ← created by `migrate`
+├── manage.py                   ← Django CLI entry point
+├── mysite/                     ← project package
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+└── blog/                       ← your first app
     ├── __init__.py
-    ├── settings.py
-    ├── urls.py
-    ├── asgi.py
-    └── wsgi.py
+    ├── admin.py
+    ├── apps.py
+    ├── migrations/
+    ├── models.py
+    ├── tests.py
+    ├── urls.py                 ← you'll create this manually
+    └── views.py
 ```
 
-| File | Purpose |
-|------|---------|
-| `manage.py` | CLI entry: runserver, migrate, shell, test |
-| `settings.py` | Database, installed apps, middleware, templates |
-| `urls.py` | Root URL routing |
-| `wsgi.py` | Production server entry point |
-| `asgi.py` | Async / Channels entry point |
-
-### First run
-
-```bash
-python manage.py runserver
-```
-
-Open `http://127.0.0.1:8000/` — you should see the Django welcome rocket page.
-
-```bash
-python manage.py runserver 8080
-```
-
-Runs on port 8080 instead of 8000.
-
-### Why this matters
-
-Understanding **Creating Your First Project** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Creating Your First Project** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Understanding manage.py
-
-`manage.py` sets `DJANGO_SETTINGS_MODULE` and delegates to Django's command runner.
-
-```python
-# manage.py (simplified idea)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
-execute_from_command_line(sys.argv)
-```
-
-### Essential commands (learn these first)
-
-| Command | What it does |
-|---------|----------------|
-| `runserver` | Development HTTP server (never for production) |
-| `migrate` | Apply database migrations |
-| `makemigrations` | Create migration files from model changes |
-| `createsuperuser` | Create admin login |
-| `shell` | Python REPL with Django loaded |
-| `test` | Run test suite |
-| `startapp NAME` | Create a new app |
-| `collectstatic` | Gather static files for production |
-
-### Example workflow
-
-```bash
-python manage.py startapp blog
-# edit models.py
-python manage.py makemigrations blog
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-
-### Why this matters
-
-Understanding **Understanding manage.py** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Understanding manage.py** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Creating and Registering Apps
-
-```bash
-python manage.py startapp blog
-```
+And here is what you'll see in the browser at the end:
 
 ```text
-blog/
-├── __init__.py
-├── admin.py
-├── apps.py
-├── migrations/
-│   └── __init__.py
-├── models.py
-├── tests.py
-└── views.py
+http://127.0.0.1:8000/blog/
+  Hello from the blog app!
+
+http://127.0.0.1:8000/admin/
+  Django administration login page
 ```
 
-Create `blog/urls.py` yourself (not generated by default):
+---
+
+## Core Concept
+
+### Virtual environments — non-negotiable
+
+> **Definition — Virtual environment:** An isolated Python installation tied to a single project, so its dependencies do not collide with other projects or your system Python.
+
+Without one, installing Django for project A can break project B. Every professional Django project starts with a `.venv` folder.
+
+### Project vs. app — the unit of organization
+
+> **Definition — Project:** The whole deployable website. Holds `settings.py`, the root `urls.py`, and the WSGI/ASGI entry points.
+>
+> **Definition — App:** A self-contained, reusable feature module (e.g., `blog`, `accounts`, `payments`). A project can have many apps; one app can live in many projects.
+
+You create projects with `django-admin startproject` and apps with `python manage.py startapp`.
+
+### `settings.py` is the control center
+
+`settings.py` defines **everything Django needs to know** about your project — installed apps, middleware, database, templates, static files, allowed hosts, secret key, and timezone. Read it once carefully; you will keep coming back to it.
+
+### URL routing happens in two layers
+
+1. The **project's** `urls.py` (`mysite/urls.py`) is the root — it should mostly `include()` app-level URL files.
+2. Each **app** has its own `urls.py` that owns the routes for that app's features.
+
+This two-layer split is what makes Django apps **portable**.
+
+### Migrations keep your schema in sync
+
+> **Definition — Migration:** A versioned, code-generated description of a schema change. `makemigrations` writes the file; `migrate` applies it to the database.
+
+You will run `python manage.py migrate` at least once before the first time you start the server — to create Django's built-in tables (`auth_user`, `django_session`, …).
+
+---
+
+## Syntax
+
+The four commands you will run for **every new Django project**:
+
+```bash
+python -m venv .venv               # 1. Create a virtual environment
+django-admin startproject <name>   # 2. Scaffold the project
+python manage.py startapp <name>   # 3. Create an app
+python manage.py runserver         # 4. Start the dev server
+```
+
+The minimal `settings.py` snippet that activates a new app:
 
 ```python
+INSTALLED_APPS = [
+    # ... built-ins
+    "blog",
+]
+```
+
+The minimal pair of URL files that wires a view to a path:
+
+```python
+# blog/urls.py
 from django.urls import path
 from . import views
 
@@ -240,7 +136,62 @@ urlpatterns = [
 ]
 ```
 
-Register in `settings.py`:
+```python
+# mysite/urls.py
+from django.urls import path, include
+
+urlpatterns = [
+    path("blog/", include("blog.urls")),
+]
+```
+
+---
+
+## Live Code Playground
+
+Below is the complete setup, top to bottom. Copy it into your terminal and follow along.
+
+### 1. Create and enter the project folder
+
+```bash
+mkdir myblog && cd myblog
+```
+
+### 2. Create and activate a virtual environment
+
+```bash
+# Windows (PowerShell)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install Django
+
+```bash
+python -m pip install --upgrade pip
+pip install "django>=5.0,<6.0"
+python -m django --version
+```
+
+### 4. Scaffold the project (in the current folder)
+
+```bash
+django-admin startproject mysite .
+```
+
+> 💡 **Tip:** The trailing `.` keeps `manage.py` in your current folder instead of creating a nested `mysite/mysite/` layout.
+
+### 5. Create your first app
+
+```bash
+python manage.py startapp blog
+```
+
+### 6. Register the app — `mysite/settings.py`
 
 ```python
 INSTALLED_APPS = [
@@ -254,103 +205,29 @@ INSTALLED_APPS = [
 ]
 ```
 
-> **Rule:** If the app is not in `INSTALLED_APPS`, Django ignores its models, templates, and static files.
-
-### Why this matters
-
-Understanding **Creating and Registering Apps** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Creating and Registering Apps** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## settings.py Deep Dive
-
-`settings.py` is the control center of your project.
-
-### Critical settings
+### 7. Write the view — `blog/views.py`
 
 ```python
-from pathlib import Path
+from django.http import HttpResponse
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = "django-insecure-change-me"  # use env var in production
-DEBUG = True
-ALLOWED_HOSTS = []
-
-INSTALLED_APPS = [...]
-MIDDLEWARE = [...]
-ROOT_URLCONF = "mysite.urls"
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+def index(request):
+    return HttpResponse("<h1>Hello from the blog app!</h1>")
 ```
 
-| Setting | Development | Production |
-|---------|-------------|------------|
-| `DEBUG` | `True` | **`False`** |
-| `ALLOWED_HOSTS` | `[]` ok locally | `["yourdomain.com"]` |
-| `SECRET_KEY` | dev key | long random env var |
-| `DATABASES` | SQLite fine | PostgreSQL typical |
-
-### TEMPLATES and static (preview)
+### 8. Wire the URLs — `blog/urls.py` (create this file)
 
 ```python
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
-        "OPTIONS": {"context_processors": [...]},
-    },
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.index, name="blog-index"),
 ]
-
-STATIC_URL = "static/"
 ```
 
-Full template/static chapters: [ch05](./ch05-templates.md), [ch10](./ch10-static-media-files.md).
-
-### Why this matters
-
-Understanding **settings.py Deep Dive** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **settings.py Deep Dive** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Wiring URLs: Project and App
+### 9. Include the app URLs — `mysite/urls.py`
 
 ```python
-# mysite/urls.py
 from django.contrib import admin
 from django.urls import path, include
 
@@ -360,528 +237,425 @@ urlpatterns = [
 ]
 ```
 
-```python
-# blog/views.py
-from django.http import HttpResponse
+### 10. Run migrations and start the server
 
-def index(request):
-    return HttpResponse("<h1>Blog home</h1>")
+```bash
+python manage.py migrate
+python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000/blog/` — not `/` unless you add a root route.
-
-### Named URLs
-
-```python
-path("", views.index, name="blog-index"),
-```
-
-Use `reverse("blog-index")` in Python and `{% url 'blog-index' %}` in templates later.
-
-### Why this matters
-
-Understanding **Wiring URLs: Project and App** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Wiring URLs: Project and App** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Open [http://127.0.0.1:8000/blog/](http://127.0.0.1:8000/blog/) — you should see **Hello from the blog app!**
 
 ---
 
-## First Migration and Database
+## Step-by-Step Example
+
+Let's break the setup into clear, testable steps so you can fix anything that goes wrong.
+
+### Step 1 — Verify Python
+
+```bash
+python --version       # or: python3 --version
+```
+
+You need **Python 3.10 or newer**. If the command is missing, install Python from [python.org](https://www.python.org/) first.
+
+### Step 2 — Make a project folder
+
+```bash
+mkdir myblog
+cd myblog
+```
+
+### Step 3 — Create the virtual environment
+
+```bash
+python -m venv .venv
+```
+
+Your folder now contains a `.venv/` directory. **Never** commit it to git.
+
+### Step 4 — Activate it
+
+| OS | Command |
+|---|---|
+| Windows (PowerShell) | `.venv\Scripts\Activate.ps1` |
+| Windows (cmd) | `.venv\Scripts\activate.bat` |
+| macOS / Linux | `source .venv/bin/activate` |
+
+Your shell prompt should now show `(.venv)` at the front.
+
+### Step 5 — Install Django
+
+```bash
+pip install "django>=5.0,<6.0"
+```
+
+Verify:
+
+```bash
+python -m django --version
+# 5.x.x
+```
+
+### Step 6 — Scaffold the project
+
+```bash
+django-admin startproject mysite .
+```
+
+Django creates `manage.py` and `mysite/` with `settings.py`, `urls.py`, `asgi.py`, `wsgi.py`.
+
+### Step 7 — Run the initial migrations
 
 ```bash
 python manage.py migrate
 ```
 
-Creates tables for built-in apps: auth, admin, sessions, contenttypes.
+This creates `db.sqlite3` and Django's built-in tables (users, sessions, etc.).
+
+### Step 8 — Start the server
 
 ```bash
-python manage.py showmigrations
+python manage.py runserver
 ```
 
-`[X]` means applied; `[ ]` means pending.
+Visit [http://127.0.0.1:8000/](http://127.0.0.1:8000/) — you should see Django's rocket.
 
-### SQLite file
+### Step 9 — Create an app
 
-After migrate, `db.sqlite3` appears in the project root. It is your database file in development.
+```bash
+python manage.py startapp blog
+```
 
-> **Production:** Use PostgreSQL or MySQL — not SQLite for concurrent write-heavy sites.
+A new `blog/` folder appears with `views.py`, `models.py`, `admin.py`, and friends.
 
-### Why this matters
+### Step 10 — Register the app
 
-Understanding **First Migration and Database** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+Add `"blog"` to `INSTALLED_APPS` in `mysite/settings.py`. **Without this, Django ignores the app entirely.**
 
-### Try it yourself
+### Step 11 — Write the first view and URL
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+Edit `blog/views.py`, create `blog/urls.py`, and include it from `mysite/urls.py` (see the Playground above).
 
-### Check your understanding
-
-- Can you explain **First Migration and Database** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Superuser and Admin Preview
+### Step 12 — Create a superuser
 
 ```bash
 python manage.py createsuperuser
 ```
 
-Follow prompts for username, email, password.
+Enter a username, email, and password. Then visit [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) and log in.
+
+### Step 13 — Lock down secrets
+
+Create a `.gitignore`:
+
+```gitignore
+.venv/
+.env
+db.sqlite3
+__pycache__/
+*.pyc
+```
+
+Move `SECRET_KEY` and `DEBUG` to a `.env` file. You'll use a library like `python-decouple` or `django-environ` to read them in Chapter 12.
+
+---
+
+## Try It Yourself
+
+> **Task:** Extend the project so it has **two apps** — `blog` and `accounts` — each serving its own page.
+>
+> - `/blog/` should render **"Welcome to the blog!"**
+> - `/accounts/login/` should render **"Login page coming soon."**
+>
+> Both apps must be properly registered in `INSTALLED_APPS`, and each must own its own `urls.py`.
+
+Hints:
+
+1. Run `python manage.py startapp accounts` after the `blog` app.
+2. Don't forget to add `"accounts"` to `INSTALLED_APPS`.
+3. The project's root `urls.py` should `include()` both app URL files.
+4. Use a named URL for each route (e.g., `name="accounts-login"`).
+
+Test both URLs in the browser before checking the solution.
+
+---
+
+## Solution
+
+<details>
+<summary>Click to reveal the solution</summary>
+
+### `mysite/settings.py`
+
+```python
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "blog",
+    "accounts",
+]
+```
+
+### `blog/views.py`
+
+```python
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("<h1>Welcome to the blog!</h1>")
+```
+
+### `blog/urls.py`
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.index, name="blog-index"),
+]
+```
+
+### `accounts/views.py`
+
+```python
+from django.http import HttpResponse
+
+def login_page(request):
+    return HttpResponse("<h1>Login page coming soon.</h1>")
+```
+
+### `accounts/urls.py`
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("login/", views.login_page, name="accounts-login"),
+]
+```
+
+### `mysite/urls.py`
+
+```python
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("blog/", include("blog.urls")),
+    path("accounts/", include("accounts.urls")),
+]
+```
+
+### Run it
 
 ```bash
 python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000/admin/` and log in.
+Visit:
 
-Full admin customization: [Chapter 7](./ch07-admin-panel.md).
+- [http://127.0.0.1:8000/blog/](http://127.0.0.1:8000/blog/) → **Welcome to the blog!**
+- [http://127.0.0.1:8000/accounts/login/](http://127.0.0.1:8000/accounts/login/) → **Login page coming soon.**
 
-### Why this matters
+**Why this works:** Each app owns its own `urls.py`. The project's root `urls.py` only routes path prefixes (`blog/` and `accounts/`) to the right app, keeping the apps independent and reusable.
 
-Understanding **Superuser and Admin Preview** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Superuser and Admin Preview** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+</details>
 
 ---
 
-## Recommended Project Layout
+## Key Notes & Tips
 
-Small tutorials use flat layout. Real projects often grow:
+> 💡 **Tip:** Use the trailing `.` in `django-admin startproject mysite .` to avoid the dreaded `mysite/mysite/` double-nesting. It is the layout used by almost every professional Django project.
 
-```text
-myproject/
-├── config/
-│   ├── settings/
-│   │   ├── base.py
-│   │   ├── dev.py
-│   │   └── prod.py
-│   ├── urls.py
-│   └── wsgi.py
-├── apps/
-│   ├── blog/
-│   └── accounts/
-├── templates/
-├── static/
-├── media/
-├── manage.py
-└── requirements.txt
-```
+> 💡 **Tip:** Run `python manage.py migrate` **before** the first `runserver`. Otherwise the auth, session, and admin tables won't exist and login will fail.
 
-| Pattern | Benefit |
-|---------|---------|
-| `config/` instead of duplicate name | Clear separation |
-| Split settings | Safe production defaults |
-| `apps/` folder | Many apps stay organized |
+> 💡 **Tip:** Pin your Django version in `requirements.txt` (e.g., `django>=5.0,<6.0`) so a future major release doesn't break your project on a fresh install.
 
-Deployment split settings: [Chapter 12](./ch12-deployment-basics.md).
+> ⚠️ **Warning:** **Never** commit `.env`, `.venv/`, or `db.sqlite3` to git. Add them to `.gitignore` from day one.
 
-### Why this matters
+> ⚠️ **Warning:** `python manage.py runserver` is a **development** server only. In production, use Gunicorn or Daphne behind Nginx with `DEBUG=False`.
 
-Understanding **Recommended Project Layout** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Recommended Project Layout** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Environment Variables and Secrets
-
-Never commit production secrets.
-
-```python
-import os
-
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-key")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
-```
-
-Use `python-dotenv` or `django-environ` locally:
-
-```text
-# .env (gitignored)
-SECRET_KEY=your-long-random-key
-DEBUG=True
-```
-
-```python
-# .gitignore
-.env
-db.sqlite3
-__pycache__/
-*.pyc
-.venv/
-```
-
-### Why this matters
-
-Understanding **Environment Variables and Secrets** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Environment Variables and Secrets** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Reading Django Error Pages
-
-With `DEBUG=True`, Django shows a detailed yellow error page:
-
-| Section | Use it to |
-|---------|-----------|
-| Exception type | Know error class (DoesNotExist, etc.) |
-| Traceback | Find exact line in your code |
-| Request info | See URL, method, POST data |
-| Settings | Confirm which settings module loaded |
-
-**In production** (`DEBUG=False`), users see a generic 500 page — you log errors server-side.
-
-Common first errors:
-- `TemplateDoesNotExist` — wrong template path
-- `NoReverseMatch` — URL name typo
-- `AppRegistryNotReady` — model import order issue
-
-### Why this matters
-
-Understanding **Reading Django Error Pages** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Reading Django Error Pages** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Chapter 2 Setup Checklist
-
-Before moving to models, confirm:
-
-```text
-[ ] Virtual environment active
-[ ] Django installed and version printed
-[ ] startproject completed
-[ ] startapp blog completed
-[ ] blog in INSTALLED_APPS
-[ ] blog/urls.py created and included
-[ ] View returns HttpResponse
-[ ] migrate run successfully
-[ ] createsuperuser works
-[ ] /admin/ login works
-```
-
-### Why this matters
-
-Understanding **Chapter 2 Setup Checklist** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Chapter 2 Setup Checklist** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Best Practices
-
-Apply conventions from this chapter consistently.
-
-See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
-
-- Read official docs for your Django version
-- Keep views thin and models focused
-- Use named URLs everywhere
-- Run `python manage.py check` before commits
+> ⚠️ **Warning:** Always check that your prompt shows `(.venv)` before running `pip install` — otherwise you'll install Django globally and pollute your system Python.
 
 ---
 
 ## Common Mistakes
 
-Many beginners hit the same walls. Learn from these early.
-
-| Mistake | What goes wrong | Fix |
-|---------|-----------------|-----|
-| Forgetting INSTALLED_APPS | Models/templates ignored | Add app to INSTALLED_APPS |
-| Wrong urls include path | 404 on app URLs | Match path prefix and include() |
-| Committing SECRET_KEY | Security breach if repo public | Use environment variables |
-| Using runserver in production | Insecure, not scalable | Use Gunicorn + nginx |
-| No virtual environment | Package conflicts | venv per project |
+- ❌ **Forgetting to add the app to `INSTALLED_APPS`.** Django silently ignores it — models won't be detected, migrations won't be generated, templates may not load.
+- ❌ **Skipping the virtual environment.** Sooner or later two projects need different Django versions and `pip` can no longer satisfy both.
+- ❌ **Editing `settings.py` while the server is running and forgetting to restart.** Most files hot-reload; `settings.py` and `INSTALLED_APPS` changes sometimes don't.
+- ❌ **Hardcoding `SECRET_KEY` in `settings.py` and pushing to GitHub.** GitHub scrapers detect it within minutes.
+- ❌ **Running `runserver` without `migrate` first.** You'll see "no such table: auth_user" errors when accessing `/admin/`.
+- ❌ **Naming the project and the app the same thing.** Python's import system will get confused and you'll waste an hour debugging.
+- ❌ **Storing `db.sqlite3` in git.** Migrations are the source of truth — the database file is generated.
 
 ---
 
-## Interview Points
+## Mini Quiz
 
-**Q: What does manage.py do?** — Sets DJANGO_SETTINGS_MODULE and runs management commands.
+**Q1.** Which command creates a Django **project** (not an app)?
 
-**Q: Project vs app?** — Project configures site; app is reusable feature module.
+- A) `python manage.py startapp mysite`
+- B) `django-admin startproject mysite` ✔
+- C) `pip install django mysite`
+- D) `python -m django newproject mysite`
 
-**Q: Purpose of migrate?** — Applies migration files to sync database schema.
+**Q2.** What does the trailing `.` do in `django-admin startproject mysite .`?
+
+- A) It hides the project folder
+- B) It creates the project in the **current** directory instead of a nested one ✔
+- C) It runs the project immediately
+- D) It activates the virtual environment
+
+**Q3.** What happens if you forget to add an app to `INSTALLED_APPS`?
+
+- A) Django raises an error at startup
+- B) Templates load but models do not
+- C) Django ignores the app entirely — models, migrations, and admin all stop working ✔
+- D) Only the admin panel is affected
+
+**Q4.** Which command applies pending migrations to the database?
+
+- A) `python manage.py makemigrations`
+- B) `python manage.py migrate` ✔
+- C) `python manage.py syncdb`
+- D) `python manage.py applymigrations`
+
+**Q5.** Where should you store production secrets like `SECRET_KEY` and database passwords?
+
+- A) Directly inside `settings.py`
+- B) In a comment at the top of `manage.py`
+- C) In environment variables (e.g., a `.env` file outside git) ✔
+- D) Hardcoded inside views
 
 ---
 
-## Exercises
+## Real World Example
 
-> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+Professional Django projects rarely live in the default layout. They use a **split-settings** structure that separates dev, staging, and production:
 
-### Exercise 2.1: Create project and app
-
-Create `mysite` and `blog` app; register app; add view at `/blog/`.
-
-<details>
-<summary>Click to reveal solution for Exercise 2.1</summary>
-
-Follow chapter commands: startproject, startapp, INSTALLED_APPS, urls include, HttpResponse view.
-
-</details>
-
----
-
-### Exercise 2.2: Run migrations
-
-Run migrate and createsuperuser; log into admin.
-
-<details>
-<summary>Click to reveal solution for Exercise 2.2</summary>
-
-`python manage.py migrate` then `createsuperuser`, visit /admin/.
-
-</details>
-
----
-
-### Exercise 2.3: Explore shell
-
-Open `manage.py shell` and import django; print version.
-
-<details>
-<summary>Click to reveal solution for Exercise 2.3</summary>
-
-```python
-import django
-django.get_version()
+```text
+myproject/
+├── config/
+│   ├── __init__.py
+│   ├── settings/
+│   │   ├── __init__.py
+│   │   ├── base.py          ← shared settings
+│   │   ├── dev.py           ← imports base + dev overrides
+│   │   └── prod.py          ← imports base + prod overrides
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+│
+├── apps/
+│   ├── blog/
+│   ├── accounts/
+│   └── billing/
+│
+├── templates/                ← shared templates
+├── static/                   ← shared static assets
+├── media/                    ← user-uploaded files
+├── requirements/
+│   ├── base.txt
+│   ├── dev.txt
+│   └── prod.txt
+├── .env.example
+├── .gitignore
+├── manage.py
+└── README.md
 ```
 
-</details>
+**Why teams use this layout:**
+
+| Pattern | Benefit |
+|---------|---------|
+| `config/` package | Clearly separates project-level wiring from feature apps |
+| `apps/` folder | Keeps domain features in one place; easier to scan |
+| Split settings | One `DEBUG=True` per environment — no more accidents |
+| Split requirements | `pip install -r requirements/prod.txt` skips dev tools |
+| `.env.example` | Documents required env vars without leaking real values |
+
+You will work with this layout in Chapter 12 (Deployment) and Chapter 13 (Best Practices). For now, the default layout is enough — but knowing where you're heading helps every decision along the way.
 
 ---
 
-### Exercise 2.4: Document settings
+## Summary
 
-List five settings from settings.py and explain each.
+Today you learned:
 
-<details>
-<summary>Click to reveal solution for Exercise 2.4</summary>
+- ✔ Every Django project starts inside a **virtual environment** — no exceptions.
+- ✔ `django-admin startproject` scaffolds the project; `python manage.py startapp` scaffolds an app.
+- ✔ Apps are **invisible** to Django until they appear in `INSTALLED_APPS`.
+- ✔ `manage.py` is Django's command-line entry point — `runserver`, `migrate`, `createsuperuser`, `shell`, `startapp`, and more.
+- ✔ Routing happens in two layers: the project's root `urls.py` `include()`s each app's `urls.py`.
+- ✔ Migrations are the source of truth for your schema; run `migrate` before the first server start.
+- ✔ Secrets belong in environment variables, **never** in `settings.py` or git.
 
-DEBUG, SECRET_KEY, DATABASES, INSTALLED_APPS, ROOT_URLCONF, etc.
+### Key Takeaways
 
-</details>
-
----
-## Chapter Summary
-
-Excellent work completing Chapter 2. Here is what you learned:
-
-- Completed Chapter 2: Setup and Project Structure
-- Reviewed core patterns and examples
-- Practiced with exercises
-
-### Key rules to remember
-
+```text
+✅ Use a virtual environment for every project
+✅ Pin Django and key dependencies in requirements.txt
+✅ Register every app in INSTALLED_APPS
+✅ Keep each app's URLs in its own urls.py and include() them from the project
+✅ Always run migrate before the first runserver
+✅ Move secrets out of settings.py and add them to .gitignore
 ```
-✅ Practice in a real project
-✅ Use official docs
-❌ Skip migrations
-❌ Disable security middleware in production
+
+### Command Reference
+
+```bash
+python -m venv .venv                          # Create a virtual environment
+source .venv/bin/activate                     # Activate (macOS / Linux)
+.venv\Scripts\Activate.ps1                    # Activate (Windows PowerShell)
+
+pip install "django>=5.0,<6.0"                # Install Django
+python -m django --version                    # Verify Django version
+
+django-admin startproject mysite .            # Scaffold a project
+python manage.py startapp blog                # Create an app
+
+python manage.py runserver                    # Start the dev server
+python manage.py runserver 8080               # Use a custom port
+
+python manage.py makemigrations               # Generate migration files
+python manage.py migrate                      # Apply migrations
+python manage.py showmigrations               # List migrations and their state
+
+python manage.py createsuperuser              # Create an admin user
+python manage.py shell                        # Open the Django shell
+python manage.py collectstatic                # Gather static files for prod
+python manage.py test                         # Run the test suite
 ```
-
----
-
-## Next Chapter
-
-Continue to the next chapter.
-
-**➡️ [Next Chapter →](./ch03-models-orm.md)**
-
----
-
-*Chapter 2 of the Complete Django Guide | [Report an issue](https://github.com/zaid0091/CodeShelf/issues)*
-
----
-
-## Extended Study Guide: Setup and Project Structure
 
 ### Glossary
 
 | Term | Definition |
 |------|------------|
-| Django | High-level Python web framework |
-| MTV | Model-Template-View architecture |
-| ORM | Object-Relational Mapper for database access |
-| QuerySet | Lazy database query representation |
-| Migration | Version-controlled schema change file |
+| Virtual environment | Isolated Python install per project |
+| Project | Whole Django site — settings + root URLs |
+| App | Reusable feature module inside a project |
+| `manage.py` | Django's command-line entry point |
+| `settings.py` | Central configuration file |
+| `INSTALLED_APPS` | List of apps Django actively loads |
+| `urlpatterns` | List of URL → view mappings |
+| Migration | Versioned description of a schema change |
+| Superuser | Admin user with full permissions |
+| `.env` | File holding environment-specific secrets |
 
-### Self-check questions
-
-1. Can you explain this chapter's main idea in two sentences?
-2. Can you write the key code patterns from memory?
-3. Can you debug one common error mentioned in Common Mistakes?
-
-### Command reference
-
-```bash
-python manage.py runserver
-python manage.py makemigrations
-python manage.py migrate
-python manage.py shell
-python manage.py test
-```
 ---
 
-## Extended Study Guide: Chapter 2
+## Next Lesson Navigation
 
-> Use this section for review, interviews, and spaced repetition after completing **Setup and Project Structure**.
-
-### Frequently Asked Questions
-
-**Q: Why django-admin vs manage.py?**
-
-django-admin works globally before a project exists. manage.py is project-specific and sets DJANGO_SETTINGS_MODULE.
-
-**Q: What if I forget to activate the virtual environment?**
-
-You may install packages globally or use the wrong Python. Always check `which python` or `Get-Command python`.
-
-**Q: Can I rename the project folder?**
-
-Yes, but update references in settings, wsgi.py, manage.py, and ROOT_URLCONF if the inner package name changes.
-
-**Q: Why create blog/urls.py manually?**
-
-startapp does not create urls.py by default. You add routing per app.
-
-**Q: What is BASE_DIR?**
-
-Path to project root (parent of settings package). Used for templates, static, database file paths.
-
-**Q: When does db.sqlite3 appear?**
-
-After running migrate the first time.
-
-**Q: Can two apps have the same model name?**
-
-Yes, in different apps. Tables are namespaced: blog_post vs shop_product.
-
-**Q: What does python manage.py check do?**
-
-Validates settings and model configuration without running the server.
-
-**Q: Why is SECRET_KEY important?**
-
-Signs sessions, CSRF tokens, and password reset tokens. Compromise means forge sessions.
-
-**Q: What port does runserver use?**
-
-8000 by default. Pass port as argument to change.
-
-
-### Step-by-Step Walkthrough
-
-1. Create folder myblog and `python -m venv .venv`.
-2. Activate venv and `pip install django`.
-3. `django-admin startproject config .` (dot = current directory layout) OR classic startproject.
-4. `python manage.py startapp blog`.
-5. Add blog to INSTALLED_APPS.
-6. Create blog/views.py index view and blog/urls.py.
-7. Include blog.urls in project urls.py at path blog/.
-8. runserver and visit /blog/.
-9. migrate and createsuperuser; visit /admin/.
-
-### Additional Code Patterns
-
-#### Pattern 2.1
-
-```python
-INSTALLED_APPS = [..., 'blog']
-```
-
-#### Pattern 2.2
-
-```python
-path('blog/', include('blog.urls'))
-```
-
-### Review checklist
-
-```text
-[ ] I can explain the main concepts without notes
-[ ] I typed the code examples myself
-[ ] I completed all exercises
-[ ] I fixed at least one error using the traceback
-[ ] I read the linked official Django documentation
-```
+| ← Previous Lesson | Next Lesson → |
+|-------------------|---------------|
+| [Django Introduction](./ch01-django-introduction.md) | [Models and ORM](./ch03-models-orm.md) |

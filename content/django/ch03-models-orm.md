@@ -1,844 +1,572 @@
 ---
 title: Models and ORM
-description: Model fields, relationships, QuerySets, lookups, and managers
+description: Design models, use field types and relationships, run CRUD with QuerySets, write powerful lookups, and avoid N+1 queries with select_related and prefetch_related
 order: 3
-tags: [django, orm, models]
+tags: [django, orm, models, querysets, database]
 ---
 
-# Chapter 3: Models and ORM
+# Chapter 3 — Models and ORM
 
-> **Models are the heart of Django — they define your data and how you query it.**
+> Define your database with Python classes, then read, write, and query data without writing SQL.
+>
+> **Difficulty:** Beginner → Intermediate &nbsp;·&nbsp; **Estimated time:** 45 – 60 min &nbsp;·&nbsp; **Prerequisites:** [Chapter 2 — Setup and Project Structure](./ch02-setup-project-structure.md), basic SQL helps but is not required
+
+---
+
+## Learning Outcome
+
+By the end of this lesson, you will be able to:
+
+- ✔ Explain what an **ORM** is and why Django uses one
+- ✔ Define models with the right **field types** and **field options** (`null`, `blank`, `default`, `unique`)
+- ✔ Connect models with **ForeignKey**, **ManyToManyField**, and **OneToOneField**
+- ✔ Run full **CRUD** (Create, Read, Update, Delete) operations using the ORM
+- ✔ Use **field lookups** (`__icontains`, `__gte`, `__year`, …) for expressive queries
+- ✔ Combine conditions with **Q objects** and atomic updates with **F expressions**
+- ✔ Optimize queries with **`select_related`** and **`prefetch_related`** to avoid N+1 issues
+- ✔ Generate and apply **migrations** safely
 
 ---
 
-## Table of Contents
+## Visual Preview
 
-1. [What is the ORM?](#what-is-the-orm?)
-2. [Defining Your First Model](#defining-your-first-model)
-3. [Common Field Types](#common-field-types)
-4. [Field Options: null, blank, default](#field-options:-null,-blank,-default)
-5. [Relationships: ForeignKey, M2M, OneToOne](#relationships:-foreignkey,-m2m,-onetoone)
-6. [CRUD with the ORM](#crud-with-the-orm)
-7. [QuerySets and Laziness](#querysets-and-laziness)
-8. [Field Lookups](#field-lookups)
-9. [Q Objects and F Expressions](#q-objects-and-f-expressions)
-10. [Aggregation and Annotation](#aggregation-and-annotation)
-11. [Custom Managers](#custom-managers)
-12. [select_related and prefetch_related](#select_related-and-prefetch_related)
-13. [Model Meta Options](#model-meta-options)
-14. [Best Practices](#best-practices)
-15. [Common Mistakes](#common-mistakes)
-16. [Interview Points](#interview-points)
-17. [Exercises](#exercises)
-18. [Chapter Summary](#chapter-summary)
-
----
-## What is the ORM?
-
-> **Definition:** The **Object-Relational Mapper (ORM)** maps Python classes to database tables and instances to rows. You query with Python instead of writing SQL for most operations.
+Here is the model you will build in this lesson, the database table it produces, and the kind of query that will read from it:
 
 ```python
-Post.objects.filter(published=True)
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 ```
 
-Translates roughly to:
+Generated SQL (PostgreSQL syntax, simplified):
 
 ```sql
-SELECT * FROM blog_post WHERE published = true;
+CREATE TABLE blog_post (
+    id           BIGSERIAL PRIMARY KEY,
+    title        VARCHAR(200) NOT NULL,
+    body         TEXT NOT NULL,
+    published    BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at   TIMESTAMPTZ NOT NULL
+);
 ```
 
-Benefits:
-- Database-agnostic code (switch SQLite to PostgreSQL with settings change)
-- Protection against SQL injection when using ORM APIs
-- Migrations keep schema in sync with models
+Querying it from Python:
 
-Raw SQL is still available when needed: `Post.objects.raw("SELECT ...")`.
+```python
+>>> Post.objects.filter(published=True, title__icontains="django").count()
+3
+```
 
-### Why this matters
-
-Understanding **What is the ORM?** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **What is the ORM?** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+That's the magic of the ORM — one Python class becomes a SQL table, and one Python call becomes a parameterized SQL query.
 
 ---
 
-## Defining Your First Model
+## Core Concept
+
+### What the ORM does
+
+> **Definition — ORM (Object-Relational Mapper):** A layer that maps Python classes to database tables and Python objects to table rows, so you can query and update the database with method calls (`Post.objects.filter(...)`) instead of raw SQL.
+
+Django's ORM gives you four benefits at once: **safety** (parameterized queries kill SQL injection), **portability** (the same code targets SQLite, PostgreSQL, MySQL), **schema versioning** (via migrations), and **expressiveness** (Python is more readable than SQL for most app logic).
+
+### Models = tables, instances = rows
+
+Every subclass of `models.Model` becomes a database table. Every instance of that class becomes a row. Class **attributes** become **columns**.
+
+### QuerySets are lazy
+
+> **Definition — QuerySet:** A lazy, chainable representation of a database query. Nothing hits the database until the QuerySet is iterated, sliced, or otherwise evaluated.
+
+This is the single most important thing to remember about the ORM. You can stack `.filter().exclude().order_by()` indefinitely with zero database cost — and then trigger exactly one SQL query when you finally iterate or call `list()`.
+
+### Relationships are first-class
+
+Django provides three relationship fields — `ForeignKey` (many-to-one), `ManyToManyField` (many-to-many), and `OneToOneField` (one-to-one). Each one creates the right SQL constraint **and** gives you forward and reverse accessors in Python.
+
+### Migrations keep schema in sync
+
+> **Definition — Migration:** A versioned, code-generated description of a schema change. `makemigrations` writes the file; `migrate` applies it.
+
+Never edit your database manually — let migrations be the single source of truth.
+
+---
+
+## Syntax
+
+The minimum a model needs:
 
 ```python
-# blog/models.py
 from django.db import models
+
+class ModelName(models.Model):
+    field_name = models.FieldType(<options>)
+
+    def __str__(self):
+        return self.field_name
+```
+
+The minimum query pattern:
+
+```python
+ModelName.objects.<manager-method>(<lookups>)
+```
+
+Where `<manager-method>` is one of `all`, `get`, `filter`, `exclude`, `create`, `update`, `delete`, `aggregate`, `annotate`, and so on.
+
+---
+
+## Live Code Playground
+
+A complete, runnable example you can paste into your project. We'll define two related models, register them with the admin, and run a few queries in the Django shell.
+
+### `blog/models.py`
+
+```python
+from django.db import models
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return self.name
+
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     body = models.TextField()
     published = models.BooleanField(default=False)
+    views = models.PositiveIntegerField(default=0)
+    author = models.ForeignKey(
+        Author,
+        on_delete=models.CASCADE,
+        related_name="posts",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name_plural = "posts"
+        indexes = [models.Index(fields=["slug"])]
 
     def __str__(self):
         return self.title
 ```
 
-| Piece | Purpose |
-|-------|---------|
-| `class Post(models.Model)` | Defines table `blog_post` |
-| `__str__` | Human-readable in admin/shell |
-| `Meta.ordering` | Default sort for QuerySets |
-| `auto_now_add` | Set once on create |
-| `auto_now` | Updated every save |
-
-### Why this matters
-
-Understanding **Defining Your First Model** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Defining Your First Model** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Common Field Types
-
-| Field | Database | Use case |
-|-------|----------|----------|
-| `CharField` | VARCHAR | Titles, names (requires `max_length`) |
-| `TextField` | TEXT | Long content |
-| `IntegerField` | INTEGER | Counts |
-| `PositiveIntegerField` | INTEGER | Views, ratings (>=0) |
-| `BooleanField` | BOOLEAN | Flags |
-| `DateField` | DATE | Birth dates |
-| `DateTimeField` | TIMESTAMP | Created/updated |
-| `EmailField` | VARCHAR | Emails (validation) |
-| `URLField` | VARCHAR | URLs |
-| `SlugField` | VARCHAR | URL segments |
-| `DecimalField` | DECIMAL | Money (`max_digits`, `decimal_places`) |
-| `JSONField` | JSON | Flexible metadata |
-| `FileField` / `ImageField` | path | Uploads (needs Pillow for images) |
+### `blog/admin.py`
 
 ```python
-price = models.DecimalField(max_digits=10, decimal_places=2)
-metadata = models.JSONField(default=dict, blank=True)
+from django.contrib import admin
+from .models import Author, Post
+
+admin.site.register(Author)
+admin.site.register(Post)
 ```
 
-### Why this matters
+### Apply the schema
 
-Understanding **Common Field Types** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Common Field Types** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Field Options: null, blank, default
-
-| Option | Layer | Meaning |
-|--------|-------|---------|
-| `null=True` | Database | Column allows NULL |
-| `blank=True` | Validation | Forms may leave empty |
-| `default` | Both | Value when not provided |
-| `unique=True` | Database | Unique constraint |
-| `db_index=True` | Database | Index for faster lookups |
-| `choices` | Validation | Limited allowed values |
-
-```python
-STATUS = [("draft", "Draft"), ("published", "Published")]
-
-status = models.CharField(max_length=20, choices=STATUS, default="draft")
+```bash
+python manage.py makemigrations
+python manage.py migrate
 ```
 
-**String fields:** prefer `blank=True` without `null=True` (Django convention: empty string, not NULL).
+### Try the ORM in the Django shell
 
-**Non-string optional fields:** use both `null=True, blank=True`.
-
-### Why this matters
-
-Understanding **Field Options: null, blank, default** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Field Options: null, blank, default** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Relationships: ForeignKey, M2M, OneToOne
-
-```python
-from django.conf import settings
-
-class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-
-class Post(models.Model):
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="posts",
-    )
-    tags = models.ManyToManyField(Tag, blank=True)
+```bash
+python manage.py shell
 ```
 
-| Type | Cardinality | Reverse accessor |
-|------|-------------|------------------|
-| `ForeignKey` | many-to-one | `author.posts.all()` |
-| `ManyToManyField` | many-to-many | `tag.post_set.all()` |
-| `OneToOneField` | one-to-one | `user.profile` |
-
-### on_delete (required on ForeignKey)
-
-| Value | Behavior |
-|-------|----------|
-| `CASCADE` | Delete children when parent deleted |
-| `PROTECT` | Raise error if children exist |
-| `SET_NULL` | Set FK null (needs `null=True`) |
-| `SET_DEFAULT` | Set to default value |
-
-### Why this matters
-
-Understanding **Relationships: ForeignKey, M2M, OneToOne** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Relationships: ForeignKey, M2M, OneToOne** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## CRUD with the ORM
-
-### Create
-
 ```python
-post = Post.objects.create(title="Hello", body="World", slug="hello")
-# or
-post = Post(title="Hi", body="...")
-post.save()
-```
+from blog.models import Author, Post
 
-### Read
+# CREATE
+ada = Author.objects.create(name="Ada Lovelace", email="ada@example.com")
+Post.objects.create(
+    title="Hello Django",
+    slug="hello-django",
+    body="My first post.",
+    published=True,
+    author=ada,
+)
 
-```python
+# READ
 Post.objects.all()
-Post.objects.get(pk=1)
 Post.objects.filter(published=True)
-Post.objects.filter(title__icontains="django")
-Post.objects.exclude(published=False)
-Post.objects.order_by("-created_at")[:10]
-```
+Post.objects.get(slug="hello-django")
+Post.objects.filter(title__icontains="django").count()
 
-### Update
+# UPDATE (a single field on a single row)
+post = Post.objects.get(slug="hello-django")
+post.views += 1
+post.save(update_fields=["views"])
 
-```python
-post.title = "Updated"
-post.save()
-Post.objects.filter(pk=1).update(published=True)
-```
-
-### Delete
-
-```python
-post.delete()
+# DELETE
 Post.objects.filter(published=False).delete()
 ```
 
-> `get()` raises `DoesNotExist` if 0 rows and `MultipleObjectsReturned` if >1. Use `filter().first()` when unsure.
-
-### Why this matters
-
-Understanding **CRUD with the ORM** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **CRUD with the ORM** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+> 💡 **Tip:** Re-run `python manage.py makemigrations` every time you change a model — Django won't notice the change otherwise.
 
 ---
 
-## QuerySets and Laziness
+## Step-by-Step Example
 
-> **Definition:** A **QuerySet** is a lazy collection of model instances. The database query runs when you **evaluate** the QuerySet.
+Let's walk through building the `Post` model end-to-end so every step is testable.
 
-Evaluation triggers:
-- Iteration: `for post in posts`
-- `list(posts)`, `len(posts)`
-- `bool(posts)` in `if posts`
-- slicing with step (sometimes)
-- `print(posts.query)` after evaluation
+### Step 1 — Define the model
+
+In `blog/models.py`:
 
 ```python
-qs = Post.objects.filter(published=True)  # no SQL yet
-for p in qs:  # SQL runs here
-    print(p.title)
-```
-
-Chaining returns new QuerySets:
-
-```python
-Post.objects.filter(published=True).order_by("-created_at").select_related("author")
-```
-
-### Why this matters
-
-Understanding **QuerySets and Laziness** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **QuerySets and Laziness** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Field Lookups
-
-Double underscore: `field__lookup=value`
-
-```python
-Post.objects.filter(views__gte=100)
-Post.objects.filter(title__startswith="Django")
-Post.objects.filter(created_at__year=2024)
-Post.objects.filter(email__isnull=True)
-Post.objects.filter(status__in=["draft", "review"])
-```
-
-| Lookup | Meaning |
-|--------|---------|
-| `exact`, `iexact` | Equal (case sensitive / insensitive) |
-| `contains`, `icontains` | Substring |
-| `startswith`, `endswith` | Prefix/suffix |
-| `gt`, `gte`, `lt`, `lte` | Comparisons |
-| `in` | In list |
-| `range` | Between |
-| `isnull` | NULL check |
-| `date`, `year`, `month` | Date parts |
-
-### Why this matters
-
-Understanding **Field Lookups** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Field Lookups** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Q Objects and F Expressions
-
-```python
-from django.db.models import Q, F
-
-Post.objects.filter(Q(published=True) | Q(author__username="admin"))
-Post.objects.filter(Q(title__icontains="django") & Q(published=True))
-
-Post.objects.update(views=F("views") + 1)
-```
-
-| Tool | Use |
-|------|-----|
-| `Q` | Complex OR/AND/NOT in filters |
-| `F` | Reference column values in queries (atomic updates) |
-
-`F` avoids race conditions:
-
-```python
-# BAD: read-modify-write race
-post.views += 1
-post.save()
-
-# GOOD: database-level increment
-Post.objects.filter(pk=post.pk).update(views=F("views") + 1)
-```
-
-### Why this matters
-
-Understanding **Q Objects and F Expressions** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Q Objects and F Expressions** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Aggregation and Annotation
-
-```python
-from django.db.models import Count, Avg, Max, Min, Sum
-
-Post.objects.aggregate(avg_views=Avg("views"), total=Count("id"))
-# {'avg_views': 42.5, 'total': 100}
-
-from django.contrib.auth import get_user_model
-User = get_user_model()
-User.objects.annotate(post_count=Count("posts")).filter(post_count__gt=5)
-```
-
-| Method | Returns |
-|--------|---------|
-| `aggregate()` | Dict of aggregates over entire queryset |
-| `annotate()` | Adds aggregate per row to each instance |
-
-### Why this matters
-
-Understanding **Aggregation and Annotation** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Aggregation and Annotation** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Custom Managers
-
-```python
-class PublishedManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(published=True)
+from django.db import models
 
 class Post(models.Model):
-    # fields...
-    objects = models.Manager()
-    published = PublishedManager()
-
-Post.published.all()
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 ```
 
-Use managers for default filtering (published only, soft-delete exclusion).
+### Step 2 — Generate the migration
 
-### Why this matters
+```bash
+python manage.py makemigrations
+```
 
-Understanding **Custom Managers** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+Django prints something like:
 
-### Try it yourself
+```text
+Migrations for 'blog':
+  blog/migrations/0001_initial.py
+    - Create model Post
+```
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
+### Step 3 — Inspect the SQL (optional but eye-opening)
 
-### Check your understanding
+```bash
+python manage.py sqlmigrate blog 0001
+```
 
-- Can you explain **Custom Managers** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
+Django shows the exact `CREATE TABLE` statement it will run.
 
+### Step 4 — Apply the migration
 
----
+```bash
+python manage.py migrate
+```
 
-## select_related and prefetch_related
+The `blog_post` table now exists in `db.sqlite3`.
+
+### Step 5 — Create and query in the shell
 
 ```python
-# N+1 problem
-for post in Post.objects.all():
-    print(post.author.username)  # extra query per post!
-
-# Fix FK with select_related
-for post in Post.objects.select_related("author"):
-    print(post.author.username)
-
-# Fix M2M with prefetch_related
-for post in Post.objects.prefetch_related("tags"):
-    for tag in post.tags.all():
-        print(tag.name)
+>>> from blog.models import Post
+>>> Post.objects.create(title="First post", body="Hi!", published=True)
+<Post: First post>
+>>> Post.objects.count()
+1
+>>> Post.objects.filter(published=True)
+<QuerySet [<Post: First post>]>
 ```
 
-| Method | SQL strategy | For |
-|--------|--------------|-----|
-| `select_related` | SQL JOIN | ForeignKey, OneToOne |
-| `prefetch_related` | Separate query + join in Python | ManyToMany, reverse FK |
+### Step 6 — Add a `__str__`
 
-### Why this matters
-
-Understanding **select_related and prefetch_related** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
-
-### Try it yourself
-
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **select_related and prefetch_related** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
-
----
-
-## Model Meta Options
+Without it, the admin and the shell will show `<Post: Post object (1)>`. With it:
 
 ```python
-class Meta:
-    ordering = ["-created_at"]
-    verbose_name = "blog post"
-    verbose_name_plural = "blog posts"
-    indexes = [models.Index(fields=["slug"])]
-    constraints = [
-        models.UniqueConstraint(fields=["author", "slug"], name="unique_author_slug")
-    ]
+def __str__(self):
+    return self.title
 ```
 
-| Option | Effect |
-|--------|--------|
-| `ordering` | Default ORDER BY |
-| `indexes` | Database indexes |
-| `constraints` | DB-level rules |
-| `db_table` | Custom table name |
+Now the admin and shell display **First post** instead.
 
-### Why this matters
+### Step 7 — Register the model with the admin
 
-Understanding **Model Meta Options** helps you build maintainable Django projects and answer common interview questions. Connect this section to the MTV flow: identify which models, views, and templates are involved.
+```python
+# blog/admin.py
+from django.contrib import admin
+from .models import Post
 
-### Try it yourself
+admin.site.register(Post)
+```
 
-1. Open your practice project and locate the files mentioned above.
-2. Type the code examples manually — do not copy-paste without reading.
-3. Change one line intentionally to cause an error, then read the traceback.
-4. Run `python manage.py check` and `python manage.py test` after changes.
-
-### Check your understanding
-
-- Can you explain **Model Meta Options** in one sentence?
-- What breaks if you skip or misconfigure this?
-- Which official Django documentation page covers this topic?
-
+Visit `/admin/` and you can now create, edit, and delete `Post` rows visually.
 
 ---
 
-## Best Practices
+## Try It Yourself
 
-Apply conventions from this chapter consistently.
+> **Task:** Extend the blog so each post can have **multiple tags**, and tags can belong to **multiple posts** (many-to-many).
+>
+> 1. Create a `Tag` model with a `name` field (max length 30, unique).
+> 2. Add a `tags = models.ManyToManyField(Tag, related_name="posts", blank=True)` to `Post`.
+> 3. Run `makemigrations` and `migrate`.
+> 4. In the Django shell, create a few tags, attach two of them to an existing post, and query for "all posts that have the `django` tag".
 
-See also [Best Practices](./ch13-best-practices.md) for project-wide standards.
+Hints:
 
-- Read official docs for your Django version
-- Keep views thin and models focused
-- Use named URLs everywhere
-- Run `python manage.py check` before commits
+- Use `tag.posts.all()` for the reverse accessor (because of `related_name="posts"`).
+- Attach tags with `post.tags.add(tag1, tag2)`.
+- Filter by related field: `Post.objects.filter(tags__name="django")`.
+
+Try it before peeking at the solution.
+
+---
+
+## Solution
+
+<details>
+<summary>Click to reveal the solution</summary>
+
+### `blog/models.py`
+
+```python
+from django.db import models
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
+
+    def __str__(self):
+        return self.title
+```
+
+### Generate and apply the migration
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### Use it in the shell
+
+```python
+>>> from blog.models import Post, Tag
+>>> django_tag = Tag.objects.create(name="django")
+>>> python_tag = Tag.objects.create(name="python")
+>>> post = Post.objects.first()
+>>> post.tags.add(django_tag, python_tag)
+
+# Forward: tags on a post
+>>> post.tags.all()
+<QuerySet [<Tag: django>, <Tag: python>]>
+
+# Reverse: posts with a given tag
+>>> django_tag.posts.all()
+<QuerySet [<Post: First post>]>
+
+# Query by related field
+>>> Post.objects.filter(tags__name="django")
+<QuerySet [<Post: First post>]>
+```
+
+**Why this works:** A `ManyToManyField` creates a **hidden join table** (`blog_post_tags`) that links `post_id` to `tag_id`. Django gives you forward accessors (`post.tags`) and reverse accessors (`tag.posts`) for free, and the join table is fully managed by migrations.
+
+</details>
+
+---
+
+## Key Notes & Tips
+
+> 💡 **Tip:** `Post.objects.filter(...)` always returns a **QuerySet** — possibly empty. `Post.objects.get(...)` returns a single object or raises `DoesNotExist`. Use `filter().first()` when you're not sure the row exists.
+
+> 💡 **Tip:** `select_related("author")` does a SQL `JOIN` — perfect for `ForeignKey` and `OneToOneField`. `prefetch_related("tags")` does a separate query and joins in Python — required for `ManyToManyField` and reverse foreign keys.
+
+> 💡 **Tip:** Use `update_fields=["title"]` on `save()` to write only the columns you changed. It's faster and avoids race conditions on other fields.
+
+> ⚠️ **Warning:** `null=True` on a `CharField` or `TextField` creates **two** "empty" states — `NULL` and `""`. Always prefer `blank=True` for strings and leave `null` unset.
+
+> ⚠️ **Warning:** A model change **without** `makemigrations` won't break runtime — until you try to query the new field and Django blows up because the column doesn't exist in the database.
+
+> ⚠️ **Warning:** Avoid `Model.objects.update(...)` when you need `save()` signals (like `auto_now`, `pre_save`, `post_save`). `update()` bypasses `save()` entirely.
 
 ---
 
 ## Common Mistakes
 
-Many beginners hit the same walls. Learn from these early.
-
-| Mistake | What goes wrong | Fix |
-|---------|-----------------|-----|
-| null=True on CharField | Two empties: NULL and '' | Use blank=True, empty string |
-| Forgetting migrations | DB out of sync | makemigrations + migrate |
-| Using get() carelessly | Unhandled exceptions | filter().first() or try/except |
-| N+1 queries | Slow pages | select_related / prefetch_related |
-| Missing __str__ | Unreadable admin | Define __str__ on every model |
+- ❌ **N+1 queries.** Looping over `Post.objects.all()` and accessing `post.author.name` runs one query for the list and one for **every** post. Fix it with `select_related("author")`.
+- ❌ **Using `.get()` when you should use `.filter().first()`.** `.get()` raises `DoesNotExist` if the row is missing — fine for must-exist lookups, dangerous for optional ones.
+- ❌ **Forgetting `__str__`.** The admin, the shell, and most debugging output become unreadable (`<Post: Post object (3)>`).
+- ❌ **Setting `null=True` on a `CharField`.** Now you have to check for both `""` and `None` everywhere.
+- ❌ **Editing migrations by hand.** Always regenerate them with `makemigrations` and review them with `sqlmigrate`.
+- ❌ **Forgetting `on_delete` on a `ForeignKey`.** Django 2.0+ refuses to migrate without it — pick `CASCADE`, `PROTECT`, `SET_NULL`, or `SET_DEFAULT` deliberately.
+- ❌ **Calling `.count()` on a list.** `len(qs)` evaluates the QuerySet. `qs.count()` issues a `SELECT COUNT(*)` — much cheaper for large tables.
 
 ---
 
-## Interview Points
+## Mini Quiz
 
-**Q: What is a QuerySet?** — Lazy collection of model rows; SQL on evaluation.
+**Q1.** What does `Post.objects.filter(published=True)` return?
 
-**Q: null vs blank?** — null=DB; blank=validation. Strings: blank only usually.
+- A) A list of posts
+- B) A lazy **QuerySet** that hasn't queried the database yet ✔
+- C) A single post object
+- D) A SQL string
 
-**Q: select_related vs prefetch_related?** — JOIN for FK; separate query for M2M/reverse FK.
+**Q2.** Which method should you use to follow a **`ForeignKey`** efficiently and avoid N+1 queries?
 
----
+- A) `prefetch_related("author")`
+- B) `select_related("author")` ✔
+- C) `only("author")`
+- D) `defer("author")`
 
-## Exercises
+**Q3.** What's the difference between `null=True` and `blank=True`?
 
-> Practice is how Django becomes muscle memory. Complete these after reading the chapter.
+- A) They are synonyms
+- B) `null=True` is database-level (allows `NULL`); `blank=True` is form/validation-level (allows empty input) ✔
+- C) `null=True` only works on integers; `blank=True` only works on strings
+- D) `blank=True` is deprecated in Django 5
 
-### Exercise 3.1: Build Post model
+**Q4.** Which expression atomically increments a counter to avoid race conditions?
 
-Create Post with title, slug, body, published, timestamps.
+- A) `post.views = post.views + 1; post.save()`
+- B) `Post.objects.update(views=views + 1)`
+- C) `Post.objects.update(views=F("views") + 1)` ✔
+- D) `Post.objects.increment("views")`
 
-<details>
-<summary>Click to reveal solution for Exercise 3.1</summary>
+**Q5.** What does `related_name="posts"` on `author = ForeignKey(Author, ...)` give you?
 
-Define model, makemigrations, migrate, create rows in shell.
-
-</details>
-
----
-
-### Exercise 3.2: Practice CRUD
-
-Create 5 posts in shell; filter published; update one.
-
-<details>
-<summary>Click to reveal solution for Exercise 3.2</summary>
-
-Use create(), filter(), save(), update().
-
-</details>
-
----
-
-### Exercise 3.3: Lookups
-
-Filter posts with title containing 'django' case-insensitive.
-
-<details>
-<summary>Click to reveal solution for Exercise 3.3</summary>
-
-`Post.objects.filter(title__icontains='django')`
-
-</details>
+- A) A property `author.posts` that returns all posts by that author ✔
+- B) A new field on `Post` called `posts`
+- C) A new database column
+- D) A read-only alias for `author.post_set`
 
 ---
 
-### Exercise 3.4: Add author FK
+## Real World Example
 
-Add ForeignKey to User; migrate; use select_related in loop.
+A typical e-commerce schema in Django uses every relationship type you just learned:
 
-<details>
-<summary>Click to reveal solution for Exercise 3.4</summary>
+```python
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
 
-Add field, migrate, `Post.objects.select_related('author')`.
+    def __str__(self):
+        return self.name
 
-</details>
 
----
-## Chapter Summary
+class Product(models.Model):
+    name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    in_stock = models.BooleanField(default=True)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        related_name="products",
+    )
+    tags = models.ManyToManyField("Tag", related_name="products", blank=True)
 
-Excellent work completing Chapter 3. Here is what you learned:
 
-- Completed Chapter 3: Models and ORM
-- Reviewed core patterns and examples
-- Practiced with exercises
+class Order(models.Model):
+    customer = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, through="OrderLine")
+    created_at = models.DateTimeField(auto_now_add=True)
 
-### Key rules to remember
 
-```
-✅ Practice in a real project
-✅ Use official docs
-❌ Skip migrations
-❌ Disable security middleware in production
+class OrderLine(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 ```
 
+**What this schema demonstrates:**
+
+| Pattern | Where it appears |
+|---------|------------------|
+| `ForeignKey` with `PROTECT` | `Product.category` — block deletion of categories with products |
+| `ForeignKey` with `CASCADE` | `OrderLine.order` — delete lines when the order is deleted |
+| `ManyToManyField` with `through=` | `Order.products` via `OrderLine` — store extra fields per relationship |
+| `DecimalField` for money | `price`, `unit_price` — never use `FloatField` for currency |
+| `related_name` | `category.products`, `tag.products` — clean reverse accessors |
+
+A typical "list all in-stock products in a category, including their tags" query becomes:
+
+```python
+Product.objects.filter(
+    category__name="Books",
+    in_stock=True,
+).select_related("category").prefetch_related("tags")
+```
+
+One Python line → one optimized SQL query plan, no N+1 problems.
+
 ---
 
-## Next Chapter
+## Summary
 
-Continue to the next chapter.
+Today you learned:
 
-**➡️ [Next Chapter →](./ch04-views-urls.md)**
+- ✔ Django's **ORM** maps Python classes to database tables and Python objects to rows.
+- ✔ **Fields** describe columns; **field options** (`null`, `blank`, `default`, `unique`) control behavior at the DB and form level.
+- ✔ Three relationship types — **`ForeignKey`**, **`ManyToManyField`**, **`OneToOneField`** — cover every real-world data shape.
+- ✔ **QuerySets** are lazy — chain `.filter()`, `.exclude()`, `.order_by()` freely until you actually iterate.
+- ✔ Use **`__lookup`** syntax (`__icontains`, `__gte`, `__year`, `__in`, `__isnull`) for expressive queries.
+- ✔ **`Q`** combines conditions with `OR`/`AND`/`NOT`; **`F`** updates a column atomically based on its current value.
+- ✔ Avoid **N+1 queries** with `select_related` (FK / OneToOne) and `prefetch_related` (M2M / reverse FK).
+- ✔ **Migrations** are your schema's version control — `makemigrations`, then `migrate`.
 
----
+### Key Takeaways
 
-*Chapter 3 of the Complete Django Guide | [Report an issue](https://github.com/zaid0091/CodeShelf/issues)*
+```text
+✅ Models = tables, instances = rows, attributes = columns
+✅ QuerySets are lazy until iterated, sliced, or list()-ed
+✅ Use blank=True for strings, null=True only for non-strings
+✅ Pick on_delete deliberately (CASCADE, PROTECT, SET_NULL)
+✅ select_related for FKs, prefetch_related for M2Ms
+✅ Q objects for complex conditions, F expressions for atomic updates
+✅ Always run makemigrations + migrate after editing models
+✅ DecimalField for money — never FloatField
+```
 
----
+### Command Reference
 
-## Extended Study Guide: Models and ORM
+```bash
+python manage.py makemigrations          # Generate migration files
+python manage.py migrate                 # Apply migrations to the DB
+python manage.py sqlmigrate blog 0001    # Show the raw SQL for a migration
+python manage.py showmigrations          # List migrations and their state
+python manage.py shell                   # Open the Django shell for the ORM
+python manage.py createsuperuser         # Create an admin user
+```
 
 ### Glossary
 
 | Term | Definition |
 |------|------------|
-| Django | High-level Python web framework |
-| MTV | Model-Template-View architecture |
-| ORM | Object-Relational Mapper for database access |
-| QuerySet | Lazy database query representation |
-| Migration | Version-controlled schema change file |
+| ORM | Object-Relational Mapper — maps Python objects to DB rows |
+| Model | Python class mapped to a database table |
+| Field | Class attribute mapped to a column |
+| QuerySet | Lazy, chainable representation of a database query |
+| Manager | Object on a model (`objects`) that creates QuerySets |
+| Lookup | `__name` filter syntax (e.g., `__icontains`, `__gte`) |
+| `Q` object | Object that lets you combine filters with OR/AND/NOT |
+| `F` expression | Reference to a database column inside an update |
+| Migration | Versioned schema change file |
+| N+1 problem | Running one query per related object in a loop |
+| `select_related` | SQL JOIN to follow `ForeignKey` / `OneToOne` in one query |
+| `prefetch_related` | Extra query + Python join for `ManyToMany` / reverse FK |
+| `on_delete` | Required argument on `ForeignKey` controlling cascade behavior |
+| `related_name` | Name of the reverse accessor on the other side of a relation |
 
-### Self-check questions
-
-1. Can you explain this chapter's main idea in two sentences?
-2. Can you write the key code patterns from memory?
-3. Can you debug one common error mentioned in Common Mistakes?
-
-### Command reference
-
-```bash
-python manage.py runserver
-python manage.py makemigrations
-python manage.py migrate
-python manage.py shell
-python manage.py test
-```
 ---
 
-## Extended Study Guide: Chapter 3
+## Next Lesson Navigation
 
-> Use this section for review, interviews, and spaced repetition after completing **Models and ORM**.
-
-### Frequently Asked Questions
-
-**Q: What table name does Post create?**
-
-By default app_label + model name lowercase: blog_post.
-
-**Q: Can I rename the database table?**
-
-Yes: Meta.db_table = 'custom_name'.
-
-**Q: What is related_name?**
-
-Name for reverse relation from ForeignKey target back to source.
-
-**Q: Difference between save() and update()?**
-
-save() per instance, runs signals, calls full_clean optionally. update() single SQL, no save() on each instance.
-
-**Q: When does DoesNotExist happen?**
-
-Model.objects.get() with zero matching rows.
-
-**Q: Can QuerySets be chained?**
-
-Yes. Each filter returns a new QuerySet.
-
-**Q: What is pk?**
-
-Shortcut for primary key field name, usually id.
-
-**Q: How to do OR queries?**
-
-Use Q objects: filter(Q(a=1) | Q(b=2)).
-
-**Q: How to avoid N+1?**
-
-select_related for FK, prefetch_related for M2M.
-
-**Q: Should I use raw SQL?**
-
-When ORM is awkward (complex reports). Always parameterize.
-
-
-### Step-by-Step Walkthrough
-
-1. Define Post model with fields from chapter.
-2. makemigrations and migrate.
-3. Open shell: create 3 posts.
-4. Filter published=True.
-5. Practice __icontains lookup.
-6. Add author ForeignKey; migrate again.
-7. Loop posts with select_related('author').
-8. Try get() vs filter().first() behavior.
-
-### Additional Code Patterns
-
-#### Pattern 3.1
-
-```python
-Post.objects.filter(published=True).order_by('-created_at')
-```
-
-#### Pattern 3.2
-
-```python
-Post.objects.select_related('author').all()
-```
-
-### Review checklist
-
-```text
-[ ] I can explain the main concepts without notes
-[ ] I typed the code examples myself
-[ ] I completed all exercises
-[ ] I fixed at least one error using the traceback
-[ ] I read the linked official Django documentation
-```
+| ← Previous Lesson | Next Lesson → |
+|-------------------|---------------|
+| [Setup and Project Structure](./ch02-setup-project-structure.md) | [Views and URLs](./ch04-views-urls.md) |
