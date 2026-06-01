@@ -15,7 +15,7 @@ From absolute beginner to professional — every concept explained with examples
 
 | Chapter | Topic |
 |---------|--------|
-| [JavaScript Basics](./ch01-javascript-basics.md) | History, running JS, variables (`let`, `const`, `var`) |
+| [JavaScript Basics](./ch01-javascript-basics.md) | Introduction, DOM demos, history, variables (`let`, `const`, `var`) |
 | [Data Types](./ch02-data-types.md) | Primitives, `typeof`, coercion, truthy/falsy |
 | [Operators & Control Flow](./ch03-operators-and-control-flow.md) | `if`/`else`, `switch`, loops |
 
