@@ -82,7 +82,7 @@ export function DocsIndexPage() {
           Choose your track
         </h1>
         <p className="docs-index__desc text-body-lg text-shade-50 max-w-2xl">
-          Six curated revision paths — open a course overview, then dive into structured notes
+          Curated revision paths — open a course overview, then dive into structured notes
           whenever you need a quick refresh.
         </p>
 

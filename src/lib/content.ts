@@ -6,6 +6,7 @@ const TOPIC_LABELS: Record<string, { label: string }> = {
   typescript: { label: 'TypeScript' },
   javascript: { label: 'JavaScript' },
   react: { label: 'React' },
+  nextjs: { label: 'Next.js' },
   python: { label: 'Python' },
   django: { label: 'Django' },
   drf: { label: 'Django REST Framework' },

@@ -345,7 +345,7 @@ function HomePageContent() {
                 },
                 {
                   icon: <Layers size={26} strokeWidth={1.3} />,
-                  title: 'Six curated tracks',
+                  title: 'Curated tracks',
                   body: 'TypeScript · JavaScript · React · Python · Django · DRF — all in one place.',
                   accent: '#6ee7b7',
                 },

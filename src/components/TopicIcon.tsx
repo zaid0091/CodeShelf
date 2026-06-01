@@ -2,6 +2,7 @@ const TOPIC_ICON_SRC: Record<string, string> = {
   typescript: '/icons/topics/typescript.svg',
   javascript: '/icons/topics/javascript.svg',
   react: '/icons/topics/react.svg',
+  nextjs: '/icons/topics/nextjs.svg',
   python: '/icons/topics/python.svg',
   django: '/icons/topics/django.svg',
   drf: '/icons/topics/drf.svg',

@@ -114,7 +114,7 @@ export function TopicsSection() {
             start="top 92%"
             className="topics-header__desc text-body-lg text-link-cool-2 max-w-xl"
           >
-            Six curated tracks — structured notes you can open and revise in seconds.
+            Curated tracks — structured notes you can open and revise in seconds.
           </ScrollReveal>
         </header>
 
