@@ -6027,9 +6027,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  /* start hidden; GSAP will reveal */
-  opacity: 0;
-  scale: 0;
+  opacity: 1;
 }
 
 .lp-node__ring {
@@ -6067,9 +6065,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   letter-spacing: 0.04em;
   color: rgba(193, 251, 212, 0.7);
   white-space: nowrap;
-  /* start hidden; GSAP will reveal */
-  opacity: 0;
-  transform: translateX(-20px);
+  opacity: 1;
 }
 
 /* ============================================================
@@ -6316,7 +6312,6 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 /* Ensure learning path nodes are visible by default since their animations are disabled */
 .lp-node {
   opacity: 1 !important;
-  scale: 1 !important;
 }
 .lp-node__label {
   opacity: 1 !important;
