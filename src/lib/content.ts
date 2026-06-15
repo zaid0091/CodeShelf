@@ -10,6 +10,7 @@ const TOPIC_LABELS: Record<string, { label: string }> = {
   python: { label: 'Python' },
   django: { label: 'Django' },
   drf: { label: 'Django REST Framework' },
+  docker: { label: 'Docker & Containerization' },
 }
 
 const modules = import.meta.glob('../../content/**/*.md', {
