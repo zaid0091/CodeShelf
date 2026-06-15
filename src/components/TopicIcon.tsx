@@ -7,6 +7,7 @@ const TOPIC_ICON_SRC: Record<string, string> = {
   django: '/icons/topics/django.svg',
   drf: '/icons/topics/drf.svg',
   docker: '/icons/topics/docker.svg',
+  git: '/icons/topics/git.svg',
 }
 
 interface TopicIconProps {

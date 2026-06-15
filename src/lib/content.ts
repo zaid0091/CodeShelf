@@ -11,6 +11,7 @@ const TOPIC_LABELS: Record<string, { label: string }> = {
   django: { label: 'Django' },
   drf: { label: 'Django REST Framework' },
   docker: { label: 'Docker & Containerization' },
+  git: { label: 'Git & GitHub' },
 }
 
 const modules = import.meta.glob('../../content/**/*.md', {
