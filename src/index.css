@@ -3669,6 +3669,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   --spot-y: 50%;
   --topic-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-height: 220px;
@@ -3690,7 +3691,6 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   transition:
     transform 0.75s var(--topic-ease),
     box-shadow 0.75s var(--topic-ease),
-    background 0.75s var(--topic-ease),
     border-color 0.75s var(--topic-ease);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06) inset,
@@ -3698,16 +3698,33 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
     0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
-.topic-card--hover,
-.topic-card:hover,
-.topic-card:focus-visible {
-  transform: translateY(-6px);
+.topic-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
   background: linear-gradient(
     155deg,
     rgba(255, 255, 255, 0.09) 0%,
     rgba(255, 255, 255, 0.04) 42%,
     rgba(0, 0, 0, 0.28) 100%
   );
+  opacity: 0;
+  transition: opacity 0.75s var(--topic-ease);
+}
+
+.topic-card--hover::before,
+.topic-card:hover::before,
+.topic-card:focus-visible::before {
+  opacity: 1;
+}
+
+.topic-card--hover,
+.topic-card:hover,
+.topic-card:focus-visible {
+  transform: translateY(-6px);
   box-shadow:
     0 0 0 1px rgba(193, 251, 212, 0.14) inset,
     0 0 48px rgba(193, 251, 212, 0.08),
@@ -4102,6 +4119,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   --spot-x: 50%;
   --spot-y: 50%;
   position: relative;
+  isolation: isolate;
   display: block;
   overflow: hidden;
   border-radius: 1.5rem;
@@ -4122,20 +4140,36 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   transform: translateY(0);
   transition:
     transform 0.75s var(--search-ease),
-    box-shadow 0.75s var(--search-ease),
-    background 0.75s var(--search-ease);
+    box-shadow 0.75s var(--search-ease);
 }
 
-.search-feature--hover,
-.search-feature__card:hover,
-.search-feature__card:focus-within {
-  transform: translateY(-4px);
+.search-feature__card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
   background: linear-gradient(
     152deg,
     rgba(255, 255, 255, 0.1) 0%,
     rgba(255, 255, 255, 0.04) 40%,
     rgba(0, 0, 0, 0.36) 100%
   );
+  opacity: 0;
+  transition: opacity 0.75s var(--search-ease);
+}
+
+.search-feature--hover::before,
+.search-feature__card:hover::before,
+.search-feature__card:focus-within::before {
+  opacity: 1;
+}
+
+.search-feature--hover,
+.search-feature__card:hover,
+.search-feature__card:focus-within {
+  transform: translateY(-4px);
   box-shadow:
     0 0 0 1px rgba(193, 251, 212, 0.16) inset,
     0 1px 0 rgba(255, 255, 255, 0.1) inset,
@@ -5604,6 +5638,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   --spot-x: 50%;
   --spot-y: 50%;
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-height: 200px;
@@ -5627,8 +5662,30 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   transform: translateY(0);
   transition:
     transform 0.75s var(--docs-card-ease),
-    box-shadow 0.75s var(--docs-card-ease),
-    background 0.75s var(--docs-card-ease);
+    box-shadow 0.75s var(--docs-card-ease);
+}
+
+.docs-index-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(193, 251, 212, 0.12) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.75s var(--docs-card-ease);
+}
+
+.docs-index-card--hover::before,
+.docs-index-card:hover::before,
+.docs-index-card:focus-visible::before {
+  opacity: 1;
 }
 
 .docs-index-card__border {
@@ -5689,12 +5746,6 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 .docs-index-card:hover,
 .docs-index-card:focus-visible {
   transform: translateY(-5px);
-  background: linear-gradient(
-    155deg,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.92) 50%,
-    rgba(193, 251, 212, 0.12) 100%
-  );
   box-shadow:
     0 0 0 1px rgba(193, 251, 212, 0.35) inset,
     0 0 40px rgba(193, 251, 212, 0.15),

@@ -216,15 +216,18 @@
   );
 }
 
-.dark .docs-index-card--hover,
-.dark .docs-index-card:hover,
-.dark .docs-index-card:focus-visible {
+.dark .docs-index-card::before {
   background: linear-gradient(
     155deg,
     rgba(34, 44, 52, 0.98) 0%,
     rgba(26, 34, 40, 0.95) 50%,
     rgba(20, 28, 34, 0.98) 100%
   );
+}
+
+.dark .docs-index-card--hover,
+.dark .docs-index-card:hover,
+.dark .docs-index-card:focus-visible {
   box-shadow:
     0 0 0 1px rgba(193, 251, 212, 0.15) inset,
     0 0 40px rgba(193, 251, 212, 0.06),
