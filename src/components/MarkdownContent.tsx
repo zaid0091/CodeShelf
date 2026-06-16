@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug'
+import rehypeRaw from 'rehype-raw'
 import { Link } from 'react-router-dom'
 import { CodeBlock, extractCodeText } from './CodeBlock'
 import { isExternalHref, resolveMarkdownHref } from '@/lib/resolveMarkdownHref'
@@ -16,7 +17,7 @@ export function MarkdownContent({ content, topic }: MarkdownContentProps) {
     <article className="prose-docs">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight, rehypeSlug]}
+        rehypePlugins={[rehypeHighlight, rehypeSlug, rehypeRaw]}
         components={{
           pre({ children }) {
             return <>{children}</>
