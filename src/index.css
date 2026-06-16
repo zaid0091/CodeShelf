@@ -2862,7 +2862,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 }
 
 .hero-preview-card--back {
-  inset: 10% 0 0 14%;
+  inset: 14% 0 0 18%;
   transform: rotate(5deg) translateZ(-50px);
   opacity: 0.35;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
@@ -2875,7 +2875,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 }
 
 .hero-preview-card--mid {
-  inset: 5% 5% 5% 8%;
+  inset: 8% 5% 5% 12%;
   transform: rotate(-2.5deg) translateZ(-15px);
   opacity: 0.55;
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85);
@@ -2913,6 +2913,7 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   inset: 0;
   z-index: 2;
   pointer-events: none;
+  border-radius: 15px;
   background: linear-gradient(
     125deg,
     rgba(255, 255, 255, 0.1) 0%,
@@ -2957,8 +2958,6 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.03);
   border-radius: 15px 15px 0 0;
-  transform: translateZ(10px);
-  transform-style: preserve-3d;
 }
 
 .hero-preview-dot {
