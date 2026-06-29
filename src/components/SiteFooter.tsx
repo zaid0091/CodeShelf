@@ -115,7 +115,7 @@ export function SiteFooter() {
 
             <div className="site-footer__bottom">
               <p className="site-footer__copyright text-caption text-link-cool-3">
-                © {year} CodeShelf · Built for learning · Frontend-only · Always yours
+                © {year} CodeShelf · Built for learning · Always yours
               </p>
               <a
                 href={GITHUB_URL}
