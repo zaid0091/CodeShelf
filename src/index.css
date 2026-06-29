@@ -7590,3 +7590,208 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   background: var(--color-surface-muted) !important;
   color: var(--color-ink) !important;
 }
+
+/* ============================================================
+   SIDEBAR SUMMARY DRAWER STYLES
+   ============================================================ */
+.doc-page__notes-toggle {
+  position: fixed;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dark .doc-page__notes-toggle {
+  background: rgba(20, 20, 20, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.doc-page__notes-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--color-surface);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.dark .doc-page__notes-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.notes-toggle-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-aloe);
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.dark .notes-toggle-dot {
+  border-color: #141414;
+}
+
+/* Notes Drawer Layout */
+.notes-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.notes-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dark .notes-drawer__backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.notes-drawer__panel {
+  position: relative;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  width: 440px;
+  max-width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: -4px 0 30px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .notes-drawer__panel {
+  background: rgba(18, 18, 18, 0.96);
+  border-left-color: rgba(255, 255, 255, 0.06);
+  box-shadow: -4px 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.notes-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.dark .notes-drawer__header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.notes-drawer__header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.notes-drawer__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.notes-drawer__subtitle {
+  font-size: 0.75rem;
+  color: var(--color-shade-50);
+  margin: 0;
+}
+
+.notes-drawer__close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--color-shade-50);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notes-drawer__close-btn:hover {
+  color: var(--color-ink);
+  background: var(--color-surface-muted);
+}
+
+.notes-drawer__content {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  min-height: 0;
+}
+
+.notes-drawer__textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.notes-drawer__textarea::placeholder {
+  color: var(--color-shade-30);
+}
+
+.notes-drawer__footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  background: rgba(0, 0, 0, 0.01);
+  flex-shrink: 0;
+}
+
+.dark .notes-drawer__footer {
+  border-top-color: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.notes-drawer__status-text {
+  font-size: 0.75rem;
+  color: var(--color-shade-40);
+}
+
+/* Hides Toggle and Drawer on print */
+@media print {
+  .doc-page__notes-toggle,
+  .notes-drawer {
+    display: none !important;
+  }
+}

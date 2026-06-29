@@ -11,7 +11,7 @@ import { DocReadingProgress } from '@/components/DocReadingProgress'
 import { NotFoundPage } from './NotFoundPage'
 import { parseFlashcards } from '@/lib/flashcards'
 import { FlashcardViewer } from '@/components/FlashcardViewer'
-import { BookOpen, Brain, Printer, FileDown } from 'lucide-react'
+import { BookOpen, Brain, Printer, FileDown, Notebook, X } from 'lucide-react'
 
 export function DocPage() {
   const { topic, slug } = useParams<{ topic: string; slug: string }>()
@@ -34,6 +34,42 @@ export function DocPage() {
 
   const [isStudyMode, setIsStudyMode] = useState(false)
   const flashcards = useMemo(() => parseFlashcards(page.content), [page.content])
+
+  const [isNotesOpen, setIsNotesOpen] = useState(false)
+  const [noteText, setNoteText] = useState('')
+
+  // Read notes from localStorage when the page changes
+  useEffect(() => {
+    if (!page) return
+    const savedNotes = localStorage.getItem('codeshelf_chapter_notes')
+    if (savedNotes) {
+      const notesMap = JSON.parse(savedNotes)
+      setNoteText(notesMap[page.path] || '')
+    } else {
+      setNoteText('')
+    }
+  }, [page?.path])
+
+  // Handle saving notes on text change
+  const handleNotesChange = (text: string) => {
+    if (!page) return
+    setNoteText(text)
+    const savedNotes = localStorage.getItem('codeshelf_chapter_notes')
+    const notesMap = savedNotes ? JSON.parse(savedNotes) : {}
+    notesMap[page.path] = text
+    localStorage.setItem('codeshelf_chapter_notes', JSON.stringify(notesMap))
+  }
+
+  // Esc key to close notes drawer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsNotesOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const exportMarkdown = () => {
     const markdownContent = `---
@@ -191,6 +227,60 @@ ${page.content}
 
         {!isStudyMode && <DocPageToc contentKey={page.path} />}
       </div>
+
+      {/* Floating Notes Toggle Button */}
+      {!isStudyMode && (
+        <button
+          className="doc-page__notes-toggle"
+          onClick={() => setIsNotesOpen(true)}
+          title="Open Chapter Notes"
+        >
+          <Notebook size={16} />
+          <span>Notes</span>
+          {noteText.trim().length > 0 && <span className="notes-toggle-dot" />}
+        </button>
+      )}
+
+      {/* Sidebar Summary Drawer */}
+      {!isStudyMode && isNotesOpen && (
+        <div className="notes-drawer">
+          <div 
+            className="notes-drawer__backdrop animate-fade-in" 
+            onClick={() => setIsNotesOpen(false)}
+          />
+          <aside className="notes-drawer__panel animate-slide-in-right">
+            <header className="notes-drawer__header">
+              <div className="notes-drawer__header-titles">
+                <h2 className="notes-drawer__title font-display text-ink">My Notes</h2>
+                <p className="notes-drawer__subtitle text-caption truncate">{page.title}</p>
+              </div>
+              <button
+                type="button"
+                className="notes-drawer__close-btn"
+                onClick={() => setIsNotesOpen(false)}
+                aria-label="Close notes"
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            <div className="notes-drawer__content">
+              <textarea
+                className="notes-drawer__textarea font-body"
+                placeholder="Type your notes or summaries for this chapter here..."
+                value={noteText}
+                onChange={(e) => handleNotesChange(e.target.value)}
+              />
+            </div>
+
+            <footer className="notes-drawer__footer">
+              <span className="notes-drawer__status-text text-caption">
+                {noteText.trim().length > 0 ? 'Saved in browser storage' : 'No notes written yet'}
+              </span>
+            </footer>
+          </aside>
+        </div>
+      )}
     </div>
   )
 }
