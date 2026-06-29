@@ -34,7 +34,7 @@ export function SiteFooter() {
                   CodeShelf
                 </Link>
                 <p className="site-footer__tagline text-body-lg text-link-cool-2">
-                  Personal notes for fast revision — TypeScript to FastAPI,
+                  Personal notes for fast revision — TypeScript to Web Security,
                   beautifully organized and always offline-ready.
                 </p>
                 <div className="site-footer__topic-strip" aria-label="Topics">
