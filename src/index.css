@@ -7121,3 +7121,257 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 .hero-orbit--inner {
   animation: hero-orbit-spin 32s linear infinite reverse !important;
 }
+
+/* ============================================================
+   EXPORT ACTIONS TOOLBAR
+   ============================================================ */
+.doc-page__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-block: 2rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .doc-page__actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .doc-page__actions > div {
+    margin-inline: 0 !important;
+    text-align: center;
+  }
+}
+
+.doc-page__export-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-shade-50);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dark .export-btn {
+  color: var(--color-shade-50);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.export-btn:hover {
+  color: var(--color-ink);
+  background: var(--color-surface-muted);
+}
+
+/* ============================================================
+   PRINT-FRIENDLY PDF STYLING
+   ============================================================ */
+@media print {
+  /* Hide interactive/UI elements */
+  .navbar,
+  .docs-navbar,
+  .docs-sidebar-panel,
+  #docs-sidebar,
+  .doc-toc,
+  .doc-progress,
+  .doc-page__mode-toggle,
+  .doc-page__actions,
+  .doc-page-nav,
+  .doc-nav,
+  .scroll-to-top,
+  .scroll-btn,
+  .mode-toggle-btn,
+  .doc-hero__ambient,
+  .doc-hero__rail,
+  .site-footer {
+    display: none !important;
+  }
+
+  /* Reset layout structure for printing */
+  html, body, #root, .docs-layout, .docs-layout__body, .docs-main, main {
+    background: #ffffff !important;
+    color: #111111 !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    position: static !important;
+  }
+
+  .docs-main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .doc-page {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .doc-page__layout {
+    display: block !important;
+  }
+
+  .doc-page__article {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Reset typography colors and blockquotes */
+  h1, h2, h3, h4, h5, h6, p, li, span, code, pre, strong, em, table, td, th {
+    color: #111111 !important;
+  }
+
+  a {
+    color: #111111 !important;
+    text-decoration: underline !important;
+  }
+
+  blockquote {
+    border-left: 4px solid #dddddd !important;
+    color: #555555 !important;
+    background: #fafafa !important;
+    padding: 0.5rem 1rem !important;
+    break-inside: avoid;
+  }
+
+  pre {
+    background: #f5f5f5 !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 4px !important;
+    padding: 1rem !important;
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    break-inside: avoid;
+  }
+
+  code {
+    background: #f5f5f5 !important;
+    color: #e01e5a !important;
+    padding: 0.15rem 0.3rem !important;
+    border-radius: 3px !important;
+  }
+
+  /* Page breaks for clean layout spacing */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  pre, blockquote, img, table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+/* ============================================================
+   DIRECT PDF DOWNLOAD OVERRIDES (LIGHT THEME FORCE)
+   ============================================================ */
+.codeshelf-pdf-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.codeshelf-pdf-wrapper h1,
+.codeshelf-pdf-wrapper h2,
+.codeshelf-pdf-wrapper h3,
+.codeshelf-pdf-wrapper h4,
+.codeshelf-pdf-wrapper h5,
+.codeshelf-pdf-wrapper h6 {
+  color: #0f172a !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+  font-weight: 700 !important;
+}
+
+.codeshelf-pdf-wrapper p,
+.codeshelf-pdf-wrapper li,
+.codeshelf-pdf-wrapper span,
+.codeshelf-pdf-wrapper strong,
+.codeshelf-pdf-wrapper em {
+  color: #334155 !important;
+  line-height: 1.6 !important;
+  font-size: 14px !important;
+}
+
+.codeshelf-pdf-wrapper blockquote {
+  border-left: 4px solid #cbd5e1 !important;
+  color: #475569 !important;
+  background: #f8fafc !important;
+  padding: 0.75rem 1.25rem !important;
+  border-radius: 4px !important;
+  margin: 1.5rem 0 !important;
+}
+
+.codeshelf-pdf-wrapper pre {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 1.25rem !important;
+  overflow: visible !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  margin: 1.5rem 0 !important;
+}
+
+.codeshelf-pdf-wrapper pre code {
+  background: transparent !important;
+  color: #0f172a !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.codeshelf-pdf-wrapper code {
+  background: #f1f5f9 !important;
+  color: #e11d48 !important;
+  padding: 0.15rem 0.3rem !important;
+  border-radius: 4px !important;
+  font-size: 13px !important;
+  font-family: monospace !important;
+}
+
+.codeshelf-pdf-wrapper table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.5rem 0 !important;
+}
+
+.codeshelf-pdf-wrapper th,
+.codeshelf-pdf-wrapper td {
+  border: 1px solid #e2e8f0 !important;
+  padding: 0.75rem 1rem !important;
+  text-align: left !important;
+  font-size: 13px !important;
+}
+
+.codeshelf-pdf-wrapper th {
+  background: #f1f5f9 !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+}
+
+.codeshelf-pdf-wrapper a {
+  color: #0284c7 !important;
+  text-decoration: underline !important;
+}
