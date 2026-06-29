@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="fastapi-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#009485" />
+      <stop offset="100%" stop-color="#005d54" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#fastapi-grad)" />
+  <path d="M 86 16 H 48 L 32 64 H 54 L 38 116 L 96 52 H 72 Z" fill="#ffffff" />
+</svg>

@@ -8,6 +8,7 @@ const TOPIC_ICON_SRC: Record<string, string> = {
   drf: '/icons/topics/drf.svg',
   docker: '/icons/topics/docker.svg',
   git: '/icons/topics/git.svg',
+  fastapi: '/icons/topics/fastapi.svg',
 }
 
 interface TopicIconProps {
