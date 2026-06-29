@@ -7375,3 +7375,218 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
   color: #0284c7 !important;
   text-decoration: underline !important;
 }
+
+/* ============================================================
+   PROGRESS DASHBOARD PAGE STYLES
+   ============================================================ */
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  width: 100%;
+}
+
+.dashboard-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 4px 12px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.3s ease;
+}
+
+.dark .dashboard-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-stat-card__icon-well {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-surface-muted);
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.dark .dashboard-stat-card__icon-well {
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.dashboard-stat-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dashboard-stat-card__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-shade-50);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dashboard-stat-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+/* Dashboard Course Cards */
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dashboard-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.dashboard-card__progress-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.dashboard-card__progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.dashboard-card__actions {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+  width: 100%;
+}
+
+.dark .dashboard-card__actions {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-card__cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0c2d1c;
+  background: var(--color-aloe);
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1px solid transparent;
+}
+
+.dark .dashboard-card__cta-btn {
+  color: #0c2d1c;
+}
+
+.dashboard-card__cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(193, 251, 212, 0.25);
+  background: #a2efa8;
+}
+
+/* Danger Zone Reset Panel */
+.dashboard-danger-zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 4rem;
+  padding: 2rem;
+  border-radius: var(--radius-xl);
+  background: rgba(239, 68, 68, 0.03);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  overflow: hidden;
+}
+
+.dashboard-danger-zone__content {
+  max-w: 2xl;
+}
+
+.dashboard-danger-zone__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--color-ink);
+}
+
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.danger-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.dashboard-danger-zone__confirm-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.danger-btn--confirm {
+  color: #ffffff !important;
+  background: #ef4444 !important;
+  border-color: transparent !important;
+}
+
+.danger-btn--confirm:hover {
+  background: #dc2626 !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.danger-btn--cancel {
+  color: var(--color-shade-50) !important;
+  border-color: var(--color-shade-20) !important;
+}
+
+.danger-btn--cancel:hover {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-ink) !important;
+}

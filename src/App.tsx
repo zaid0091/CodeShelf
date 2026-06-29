@@ -4,6 +4,7 @@ import { DocsLayout } from '@/layouts/DocsLayout'
 import { HomePage } from '@/pages/HomePage'
 import { DocPage } from '@/pages/DocPage'
 import { DocsIndexPage } from '@/pages/DocsIndexPage'
+import { DashboardPage } from '@/pages/DashboardPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
         <Route element={<DocsLayout />}>
           <Route path="/docs" element={<DocsIndexPage />} />
           <Route path="/docs/:topic/:slug" element={<DocPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

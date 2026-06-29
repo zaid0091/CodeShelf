@@ -20,6 +20,19 @@ function DocsBreadcrumb() {
   const { topic, slug } = useParams<{ topic?: string; slug?: string }>()
   const isDocsIndex =
     location.pathname === '/docs' || location.pathname === '/docs/'
+  const isDashboard =
+    location.pathname === '/dashboard' || location.pathname === '/dashboard/'
+
+  if (isDashboard) {
+    return (
+      <nav className="docs-navbar__crumb" aria-label="Breadcrumb">
+        <Link to="/dashboard" className="docs-navbar__crumb-link docs-navbar__crumb-link--current">
+          <span className="docs-navbar__crumb-eyebrow text-eyebrow">Statistics</span>
+          <span className="docs-navbar__crumb-title font-display">Dashboard</span>
+        </Link>
+      </nav>
+    )
+  }
 
   if (isDocsIndex) {
     return (
@@ -132,6 +145,14 @@ export function DocsNavbar({
           >
             <Search size={18} strokeWidth={1.5} />
           </NavbarIconButton>
+          <NavbarButtonLink
+            to="/dashboard"
+            tone={navTone}
+            emphasis="default"
+            className="docs-navbar__dashboard mr-2"
+          >
+            Dashboard
+          </NavbarButtonLink>
           <DocsThemeToggle />
           <NavbarButtonLink
             to="/"

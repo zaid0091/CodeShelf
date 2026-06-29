@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { markChapterCompleted } from '@/lib/progress'
 import { useParams } from 'react-router-dom'
 import { getPage, getTopics } from '@/lib/content'
 import { MarkdownContent } from '@/components/MarkdownContent'
@@ -24,6 +25,12 @@ export function DocPage() {
   const currentIndex = pages.findIndex((p) => p.slug === slug)
   const prev = currentIndex > 0 ? pages[currentIndex - 1] : null
   const next = currentIndex < pages.length - 1 ? pages[currentIndex + 1] : null
+
+  useEffect(() => {
+    if (topic && slug) {
+      markChapterCompleted(topic, slug)
+    }
+  }, [topic, slug])
 
   const [isStudyMode, setIsStudyMode] = useState(false)
   const flashcards = useMemo(() => parseFlashcards(page.content), [page.content])
