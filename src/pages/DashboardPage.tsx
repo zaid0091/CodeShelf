@@ -199,7 +199,7 @@ export function DashboardPage() {
             <div className="dashboard-danger-zone__content">
               <h3 className="dashboard-danger-zone__title font-display text-ink">Reset Your Progress</h3>
               <p className="text-body-md text-shade-50 mb-0">
-                This will delete your entire reading history, course completion percentages, and reading streaks from local storage. This action cannot be undone.
+                This will delete your entire reading history, course completion percentages, and reading streaks. This action cannot be undone.
               </p>
             </div>
             
