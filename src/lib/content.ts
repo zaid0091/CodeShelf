@@ -14,6 +14,7 @@ const TOPIC_LABELS: Record<string, { label: string }> = {
   git: { label: 'Git & GitHub' },
   fastapi: { label: 'FastAPI' },
   security: { label: 'Web Security (OWASP Top 10)' },
+  architecture: { label: 'Design & Architecture' },
 }
 
 const modules = import.meta.glob('../../content/**/*.md', {

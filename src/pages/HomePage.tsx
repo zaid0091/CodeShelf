@@ -102,7 +102,7 @@ function HomePageContent() {
                 start="top 95%"
                 className="hero-desc text-body-lg text-link-cool-2 max-w-xl mb-12 leading-relaxed"
               >
-                Quick revision for TypeScript, JavaScript, React, Python, Django, Django REST Framework, FastAPI, and Web Security (OWASP Top 10).
+                Quick revision for TypeScript, JavaScript, React, Python, Django, Django REST Framework, FastAPI, Web Security, and Design & Architecture.
                 No backend — just your notes, ready when you are.
               </ScrollReveal>
               <ScrollReveal
