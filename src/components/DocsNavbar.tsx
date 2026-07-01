@@ -121,8 +121,12 @@ export function DocsNavbar({
             )}
           </NavbarIconButton>
 
-          <Link to="/" className="docs-navbar__logo font-logo">
-            CodeShelf
+          <Link to="/" className="docs-navbar__logo flex items-center">
+            <img
+              src={theme === 'dark' ? '/logo-light.png' : '/logo-dark.png'}
+              alt="CodeShelf Logo"
+              className="h-8 w-auto object-contain"
+            />
           </Link>
 
           <span className="docs-navbar__divider" aria-hidden />

@@ -36,9 +36,13 @@ function HomePageContent() {
         <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-5 flex items-center justify-between gap-3 min-w-0">
           <Link
             to="/"
-            className="font-logo text-lg sm:text-xl text-on-primary shrink-0 min-w-0 truncate"
+            className="flex items-center shrink-0"
           >
-            CodeShelf
+            <img
+              src="/logo-light.png"
+              alt="CodeShelf Logo"
+              className="h-9 w-auto object-contain"
+            />
           </Link>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <NavbarButtonLink to="/docs" tone="dark">
