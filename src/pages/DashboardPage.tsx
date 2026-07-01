@@ -5,8 +5,10 @@ import { getTopics } from '@/lib/content'
 import { TopicIcon } from '@/components/TopicIcon'
 import { getCompletedChapters, getStreak, clearAllProgress } from '@/lib/progress'
 import { ScrollReveal } from '@/components/ScrollReveal'
+import confetti from 'canvas-confetti'
 
 export function DashboardPage() {
+  const topics = getTopics()
   const [completedMap, setCompletedMap] = useState(getCompletedChapters())
   const [streak, setStreak] = useState(getStreak())
   const [showConfirmReset, setShowConfirmReset] = useState(false)
@@ -23,7 +25,93 @@ export function DashboardPage() {
     }
   }, [])
 
-  const topics = getTopics()
+  // Trigger premium confetti explosion
+  const triggerConfetti = () => {
+    const duration = 2.5 * 1000
+    const animationEnd = Date.now() + duration
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 }
+
+    const randomInRange = (min: number, max: number) => {
+      return Math.random() * (max - min) + min
+    }
+
+    const interval = setInterval(function () {
+      const timeLeft = animationEnd - Date.now()
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval)
+      }
+
+      const particleCount = 50 * (timeLeft / duration)
+      
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+      })
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+      })
+    }, 250)
+  }
+
+  // Check completed courses and milestones for celebrations
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    let shouldCelebrate = false
+
+    // 1. Check Course Completion Milestones (100% complete)
+    const celebratedCoursesData = localStorage.getItem('codeshelf_celebrated_courses')
+    let celebratedCourses: string[] = celebratedCoursesData ? JSON.parse(celebratedCoursesData) : []
+    const updatedCelebratedCourses = [...celebratedCourses]
+
+    topics.forEach((topic) => {
+      const completedCount = completedMap[topic.id]?.length || 0
+      const totalCount = topic.pages.length
+      const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+
+      if (percent === 100 && !celebratedCourses.includes(topic.id)) {
+        shouldCelebrate = true
+        updatedCelebratedCourses.push(topic.id)
+      }
+    })
+
+    if (updatedCelebratedCourses.length !== celebratedCourses.length) {
+      localStorage.setItem('codeshelf_celebrated_courses', JSON.stringify(updatedCelebratedCourses))
+    }
+
+    // 2. Check Streak Milestones (7 days, 30 days)
+    const celebratedMilestonesData = localStorage.getItem('codeshelf_celebrated_milestones')
+    let celebratedMilestones: number[] = celebratedMilestonesData ? JSON.parse(celebratedMilestonesData) : []
+    const updatedCelebratedMilestones = [...celebratedMilestones]
+
+    const milestones = [7, 30]
+    milestones.forEach((m) => {
+      if (streak >= m && !celebratedMilestones.includes(m)) {
+        shouldCelebrate = true
+        updatedCelebratedMilestones.push(m)
+      }
+    })
+
+    // Clean up milestones if streak drops below them
+    const cleanedMilestones = updatedCelebratedMilestones.filter((m) => streak >= m)
+
+    if (
+      cleanedMilestones.length !== celebratedMilestones.length ||
+      JSON.stringify(cleanedMilestones) !== JSON.stringify(celebratedMilestones)
+    ) {
+      localStorage.setItem('codeshelf_celebrated_milestones', JSON.stringify(cleanedMilestones))
+    }
+
+    // Fire confetti if any new milestone was reached
+    if (shouldCelebrate) {
+      triggerConfetti()
+    }
+  }, [completedMap, streak, topics])
+
   const totalChapters = topics.reduce((sum, t) => sum + t.pages.length, 0)
   
   const completedChaptersCount = Object.values(completedMap).reduce(
@@ -37,6 +125,8 @@ export function DashboardPage() {
 
   const handleReset = () => {
     clearAllProgress()
+    localStorage.removeItem('codeshelf_celebrated_courses')
+    localStorage.removeItem('codeshelf_celebrated_milestones')
     setShowConfirmReset(false)
   }
 
