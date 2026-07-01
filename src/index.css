@@ -258,8 +258,6 @@ body {
   transition:
     background-color 0.45s cubic-bezier(0.23, 1, 0.32, 1),
     border-color 0.45s cubic-bezier(0.23, 1, 0.32, 1),
-    backdrop-filter 0.45s cubic-bezier(0.23, 1, 0.32, 1),
-    -webkit-backdrop-filter 0.45s cubic-bezier(0.23, 1, 0.32, 1),
     box-shadow 0.45s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -271,16 +269,16 @@ header.navbar.fixed + .hero-section--advanced {
 .navbar--dark.navbar--transparent {
   background-color: transparent;
   border-bottom-color: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   box-shadow: none;
 }
 
 .navbar--dark.navbar--scrolled {
-  background-color: rgba(0, 0, 0, 0.28);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(28px) saturate(1.35);
-  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(28px) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.35) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
