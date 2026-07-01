@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { markChapterCompleted, getCompletedChapters } from '@/lib/progress'
 import { InteractiveRoadmap } from '@/components/InteractiveRoadmap'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useParams } from 'react-router-dom'
 import { getPage, getTopics } from '@/lib/content'
 import { MarkdownContent } from '@/components/MarkdownContent'
@@ -19,6 +20,8 @@ export function DocPage() {
   const page = topic && slug ? getPage(topic, slug) : undefined
 
   if (!page) return <NotFoundPage />
+
+  useDocumentTitle(`${page.title} | CodeShelf`)
 
   const topics = getTopics()
   const currentTopic = topics.find((t) => t.id === topic)

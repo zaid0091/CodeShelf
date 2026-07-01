@@ -15,9 +15,11 @@ import { useLenisScrolled } from '@/hooks/useLenisScrolled'
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useWindowScrolled } from '@/hooks/useScrolled'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { getLenisOptions } from '@/lib/lenisConfig'
 
 function HomePageContent() {
+  useDocumentTitle('CodeShelf — Personal Coding Notes')
   const topics = getTopics()
   const prefersReducedMotion = usePrefersReducedMotion()
   const lenisScrolled = useLenisScrolled(1)

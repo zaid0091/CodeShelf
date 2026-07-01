@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ArrowUpRight, BookOpen, Layers, Search } from 'lucide-react'
 import { getTopics, getCourseStartPath } from '@/lib/content'
 import { TopicIcon } from '@/components/TopicIcon'
@@ -60,7 +61,10 @@ function DocsIndexCard({
   )
 }
 
+
+
 export function DocsIndexPage() {
+  useDocumentTitle('All Topics | CodeShelf')
   const topics = getTopics()
   const totalNotes = topics.reduce((sum, t) => sum + t.pages.length, 0)
 

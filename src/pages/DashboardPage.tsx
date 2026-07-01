@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { Link } from 'react-router-dom'
 import { BookOpen, Calendar, Award, RefreshCw, ChevronRight } from 'lucide-react'
 import { getTopics } from '@/lib/content'
@@ -7,7 +8,10 @@ import { getCompletedChapters, getStreak, clearAllProgress } from '@/lib/progres
 import { ScrollReveal } from '@/components/ScrollReveal'
 import confetti from 'canvas-confetti'
 
+
+
 export function DashboardPage() {
+  useDocumentTitle('Visual Progress Dashboard | CodeShelf')
   const topics = getTopics()
   const [completedMap, setCompletedMap] = useState(getCompletedChapters())
   const [streak, setStreak] = useState(getStreak())
