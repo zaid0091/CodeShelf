@@ -1272,7 +1272,6 @@ header.navbar.fixed + .hero-section--advanced {
   margin-bottom: 0;
   position: relative;
   z-index: 60;
-  isolation: isolate;
 }
 
 .docs-navbar__menu-btn {
