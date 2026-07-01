@@ -27,8 +27,10 @@ function HomePageContent() {
   return (
     <div className="track-cinematic min-h-screen">
       <header
-        className={`navbar navbar--dark fixed top-0 left-0 right-0 z-50 border-b ${
-          scrolled ? 'navbar--scrolled' : 'navbar--transparent'
+        className={`navbar navbar--dark fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
+          scrolled
+            ? 'bg-neutral-950/45 border-white/10 backdrop-blur-xl'
+            : 'bg-transparent border-transparent'
         }`}
       >
         <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-5 flex items-center justify-between gap-3 min-w-0">
