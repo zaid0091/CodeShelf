@@ -7791,7 +7791,276 @@ a.docs-navbar__crumb-link:hover .docs-navbar__crumb-topic {
 /* Hides Toggle and Drawer on print */
 @media print {
   .doc-page__notes-toggle,
-  .notes-drawer {
+  .notes-drawer,
+  .doc-page__console-toggle,
+  .terminal-console {
     display: none !important;
+  }
+}
+
+/* ============================================================
+   IN-BROWSER TERMINAL CONSOLE STYLES
+   ============================================================ */
+.doc-page__console-toggle {
+  position: fixed;
+  bottom: 2.5rem;
+  right: 9.5rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dark .doc-page__console-toggle {
+  background: rgba(20, 20, 20, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.doc-page__console-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--color-surface);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.dark .doc-page__console-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.doc-page__console-toggle--active {
+  background: var(--color-aloe) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Terminal Console Layout */
+.terminal-console {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 380px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.terminal-console__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  background: rgba(9, 15, 29, 0.5);
+}
+
+.terminal-console__langs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.terminal-console__lang-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terminal-console__lang-btn:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.terminal-console__lang-btn--active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.terminal-console__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.terminal-console__loading {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+}
+
+.terminal-console__run-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--color-aloe);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.terminal-console__run-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.terminal-console__run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.terminal-console__clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terminal-console__clear-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.terminal-console__close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terminal-console__close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.terminal-console__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.terminal-console__input-panel {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  min-height: 0;
+}
+
+.terminal-console__textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  font-family: var(--font-code, monospace);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  outline: none;
+}
+
+.terminal-console__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.terminal-console__output-panel {
+  padding: 1.25rem 1.5rem;
+  background: rgba(9, 15, 29, 0.98);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-family: var(--font-code, monospace);
+  font-size: 0.85rem;
+}
+
+.terminal-console__placeholder {
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+}
+
+.terminal-console__line {
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.terminal-console__line--error {
+  color: #f87171 !important;
+}
+
+@media (max-width: 768px) {
+  .terminal-console__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  .terminal-console__output-panel {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+}
+
+@media (max-width: 640px) {
+  .doc-page__notes-toggle {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.6rem 1rem;
+  }
+  .doc-page__console-toggle {
+    bottom: 1.5rem;
+    right: 7.5rem;
+    padding: 0.6rem 1rem;
   }
 }

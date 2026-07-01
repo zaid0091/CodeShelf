@@ -11,7 +11,7 @@ import { DocReadingProgress } from '@/components/DocReadingProgress'
 import { NotFoundPage } from './NotFoundPage'
 import { parseFlashcards } from '@/lib/flashcards'
 import { FlashcardViewer } from '@/components/FlashcardViewer'
-import { BookOpen, Brain, Printer, FileDown, Notebook, X } from 'lucide-react'
+import { BookOpen, Brain, Printer, FileDown, Notebook, X, Play, Trash2, Terminal } from 'lucide-react'
 
 export function DocPage() {
   const { topic, slug } = useParams<{ topic: string; slug: string }>()
@@ -60,16 +60,139 @@ export function DocPage() {
     localStorage.setItem('codeshelf_chapter_notes', JSON.stringify(notesMap))
   }
 
-  // Esc key to close notes drawer
+  // Esc key to close notes drawer and console drawer
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsNotesOpen(false)
+        setIsConsoleOpen(false)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Console State Variables
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false)
+  const [consoleLang, setConsoleLang] = useState<'js' | 'py'>('js')
+  const [consoleCode, setConsoleCode] = useState('')
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([])
+  const [isLoadingPyodide, setIsLoadingPyodide] = useState(false)
+
+  // Load draft code from localStorage when language or page changes
+  useEffect(() => {
+    const savedCode = localStorage.getItem(`codeshelf_console_code_${consoleLang}`)
+    if (savedCode !== null) {
+      setConsoleCode(savedCode)
+    } else {
+      setConsoleCode(
+        consoleLang === 'js'
+          ? '// Type JavaScript code here...\nconsole.log("Hello, JavaScript!");\n'
+          : '# Type Python code here...\nprint("Hello, Python WASM!")\n'
+      )
+    }
+  }, [consoleLang])
+
+  // Save draft code to localStorage on change
+  const handleCodeChange = (val: string) => {
+    setConsoleCode(val)
+    localStorage.setItem(`codeshelf_console_code_${consoleLang}`, val)
+  }
+
+  const loadPyodideScript = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (document.getElementById('pyodide-script')) {
+        resolve()
+        return
+      }
+      const script = document.createElement('script')
+      script.id = 'pyodide-script'
+      script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js'
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Failed to load Pyodide script'))
+      document.head.appendChild(script)
+    })
+  }
+
+  const runCode = async () => {
+    setConsoleOutput(['Running...'])
+
+    if (consoleLang === 'js') {
+      const logs: string[] = []
+      const originalLog = console.log
+      console.log = (...args: any[]) => {
+        logs.push(
+          args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+        )
+      }
+
+      try {
+        const runner = new Function(consoleCode)
+        const result = runner()
+        if (result !== undefined) {
+          logs.push(`=> ${typeof result === 'object' ? JSON.stringify(result) : String(result)}`)
+        }
+      } catch (err: any) {
+        logs.push(`Error: ${err.message}`)
+      }
+
+      console.log = originalLog
+      setConsoleOutput(logs.length > 0 ? logs : ['Code executed successfully (no logs)'])
+    } else {
+      setIsLoadingPyodide(true)
+      try {
+        await loadPyodideScript()
+
+        if (!(window as any).pyodide) {
+          (window as any).pyodide = await (window as any).loadPyodide({
+            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/'
+          })
+        }
+
+        const pyodide = (window as any).pyodide
+
+        let stdoutBuffer = ''
+        const decoder = new TextDecoder()
+        pyodide.setStdout({
+          write: (text: any) => {
+            if (text instanceof Uint8Array || (text && text.buffer instanceof ArrayBuffer)) {
+              const decoded = decoder.decode(text)
+              stdoutBuffer += decoded
+              return text.byteLength
+            }
+            const str = String(text)
+            stdoutBuffer += str
+            return str.length
+          }
+        })
+        pyodide.setStderr({
+          write: (text: any) => {
+            if (text instanceof Uint8Array || (text && text.buffer instanceof ArrayBuffer)) {
+              const decoded = decoder.decode(text)
+              stdoutBuffer += decoded
+              return text.byteLength
+            }
+            const str = String(text)
+            stdoutBuffer += str
+            return str.length
+          }
+        })
+
+        const result = await pyodide.runPythonAsync(consoleCode)
+        let outputLines = stdoutBuffer.split('\n').filter((line) => line !== '')
+
+        if (result !== undefined && result !== null) {
+          outputLines.push(`=> ${result}`)
+        }
+
+        setConsoleOutput(outputLines.length > 0 ? outputLines : ['Python code executed successfully (no prints)'])
+      } catch (err: any) {
+        setConsoleOutput([`Python Error: ${err.message}`])
+      } finally {
+        setIsLoadingPyodide(false)
+      }
+    }
+  }
 
   const exportMarkdown = () => {
     const markdownContent = `---
@@ -241,6 +364,18 @@ ${page.content}
         </button>
       )}
 
+      {/* Floating Console Toggle Button */}
+      {!isStudyMode && (
+        <button
+          className={`doc-page__console-toggle ${isConsoleOpen ? 'doc-page__console-toggle--active' : ''}`}
+          onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+          title="Toggle In-Browser Console"
+        >
+          <Terminal size={16} />
+          <span>Console</span>
+        </button>
+      )}
+
       {/* Sidebar Summary Drawer */}
       {!isStudyMode && isNotesOpen && (
         <div className="notes-drawer">
@@ -279,6 +414,84 @@ ${page.content}
               </span>
             </footer>
           </aside>
+        </div>
+      )}
+
+      {/* Bottom Terminal Console Drawer */}
+      {!isStudyMode && isConsoleOpen && (
+        <div className="terminal-console animate-slide-in-up">
+          <header className="terminal-console__header">
+            <div className="terminal-console__langs">
+              <button
+                type="button"
+                className={`terminal-console__lang-btn ${consoleLang === 'js' ? 'terminal-console__lang-btn--active' : ''}`}
+                onClick={() => setConsoleLang('js')}
+              >
+                JavaScript
+              </button>
+              <button
+                type="button"
+                className={`terminal-console__lang-btn ${consoleLang === 'py' ? 'terminal-console__lang-btn--active' : ''}`}
+                onClick={() => setConsoleLang('py')}
+              >
+                Python (WASM)
+              </button>
+            </div>
+
+            <div className="terminal-console__actions">
+              {isLoadingPyodide && <span className="terminal-console__loading text-caption animate-pulse">Initializing Python WASM...</span>}
+              <button
+                type="button"
+                className="terminal-console__run-btn"
+                onClick={runCode}
+                disabled={isLoadingPyodide}
+              >
+                <Play size={12} />
+                <span>Run Code</span>
+              </button>
+              <button
+                type="button"
+                className="terminal-console__clear-btn"
+                onClick={() => setConsoleOutput([])}
+              >
+                <Trash2 size={12} />
+                <span>Clear</span>
+              </button>
+              <button
+                type="button"
+                className="terminal-console__close-btn"
+                onClick={() => setIsConsoleOpen(false)}
+                aria-label="Close console"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </header>
+
+          <div className="terminal-console__body">
+            <div className="terminal-console__input-panel">
+              <textarea
+                className="terminal-console__textarea font-code"
+                placeholder={consoleLang === 'js' ? '// Type JavaScript code here...\nconsole.log("Hello, JavaScript!");' : '# Type Python code here...\nprint("Hello, Python WASM!")'}
+                value={consoleCode}
+                onChange={(e) => handleCodeChange(e.target.value)}
+              />
+            </div>
+            <div className="terminal-console__output-panel font-code">
+              {consoleOutput.length === 0 ? (
+                <span className="terminal-console__placeholder">Terminal Output...</span>
+              ) : (
+                consoleOutput.map((line, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`terminal-console__line ${line.startsWith('Error') || line.startsWith('Python Error') ? 'terminal-console__line--error' : ''}`}
+                  >
+                    {line}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
