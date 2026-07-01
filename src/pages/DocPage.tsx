@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
-import { markChapterCompleted } from '@/lib/progress'
+import { markChapterCompleted, getCompletedChapters } from '@/lib/progress'
+import { InteractiveRoadmap } from '@/components/InteractiveRoadmap'
 import { useParams } from 'react-router-dom'
 import { getPage, getTopics } from '@/lib/content'
 import { MarkdownContent } from '@/components/MarkdownContent'
@@ -37,6 +38,19 @@ export function DocPage() {
 
   const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
+
+  const [viewMode, setViewMode] = useState<'roadmap' | 'text'>(() => {
+    return (localStorage.getItem('codeshelf_view_pref') as 'roadmap' | 'text') || 'roadmap'
+  })
+  const [completedMap, setCompletedMap] = useState(() => getCompletedChapters())
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setCompletedMap(getCompletedChapters())
+    }
+    window.addEventListener('codeshelf_progress_updated', handleUpdate)
+    return () => window.removeEventListener('codeshelf_progress_updated', handleUpdate)
+  }, [])
 
   // Read notes from localStorage when the page changes
   useEffect(() => {
@@ -303,6 +317,29 @@ ${page.content}
                   <span>Study Mode ({flashcards.length})</span>
                 </button>
               </div>
+            ) : page.slug === 'ch00-course-overview' ? (
+              <div className="roadmap-toggle-group">
+                <button
+                  type="button"
+                  className={`roadmap-toggle-btn ${viewMode === 'roadmap' ? 'roadmap-toggle-btn--active' : ''}`}
+                  onClick={() => {
+                    setViewMode('roadmap')
+                    localStorage.setItem('codeshelf_view_pref', 'roadmap')
+                  }}
+                >
+                  Roadmap Graph
+                </button>
+                <button
+                  type="button"
+                  className={`roadmap-toggle-btn ${viewMode === 'text' ? 'roadmap-toggle-btn--active' : ''}`}
+                  onClick={() => {
+                    setViewMode('text')
+                    localStorage.setItem('codeshelf_view_pref', 'text')
+                  }}
+                >
+                  Classic List
+                </button>
+              </div>
             ) : (
               <div />
             )}
@@ -337,6 +374,15 @@ ${page.content}
                 onBackToReading={() => setIsStudyMode(false)}
               />
             </div>
+          ) : page.slug === 'ch00-course-overview' && viewMode === 'roadmap' ? (
+            <ScrollReveal animation="fade-up" delay={0.08} duration={0.9} distance={24}>
+              <div className="doc-page__body">
+                <InteractiveRoadmap
+                  pages={pages}
+                  completedPages={completedMap[page.topic] || []}
+                />
+              </div>
+            </ScrollReveal>
           ) : (
             <ScrollReveal animation="fade-up" delay={0.08} duration={0.9} distance={24}>
               <div className="doc-page__body" id="print-content">
